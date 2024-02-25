@@ -1,18 +1,15 @@
 import express from 'express';
-import { Resend } from 'resend';
 
-import { RESEND_KEY } from '../../config';
 import { rateLimiterStrict } from '../../middlewares/rate-limiter';
 import { validate } from '../../middlewares/validate-request';
 import { ConflictError } from '../../utils/errors';
 import { generateVerificationCode } from '../../utils/lib';
+import { sendEmail } from '../../utils/send-emails';
 import { getUser, registerUser, verifyLogin } from './repository';
 import { loginSchema, registerSchema } from './schema';
 import { createAccessToken, createRefreshToken, setRefreshCookie, verifyToken } from './utils';
 
 const router = express.Router();
-
-const resend = new Resend(RESEND_KEY);
 
 router.post('/register', validate(registerSchema), rateLimiterStrict, async (req, res, next) => {
     try {
@@ -27,15 +24,14 @@ router.post('/register', validate(registerSchema), rateLimiterStrict, async (req
         await registerUser(email, password, name, verificationToken);
 
         // Send verification email
-        const { error } = await resend.emails.send({
-            from: 'JKT48 Private Message <hello@fleetime.my.id>',
-            to: ['zane.227@gmail.com'],
-            subject: 'JKT48 - Verification Code',
-            text: `Hello, ${name}! Your verification code is ${verificationToken}`,
+        const emailResult = await sendEmail({
+            to: [email],
+            subject: 'Verify your email',
+            text: `Your verification token is: ${verificationToken}`,
         });
 
-        if (error) {
-            return res.status(400).json({ error });
+        if (emailResult.error) {
+            return res.status(400).json({ error: emailResult.error });
         }
 
         res.status(201).json({ message: 'User registered successfully' });
