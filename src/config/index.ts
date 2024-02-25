@@ -25,3 +25,5 @@ export const DB_SSL =
 
 /* Resend Email Config */
 export const RESEND_KEY = process.env.RESEND_KEY;
+export const RESEND_EMAIL = process.env.RESEND_EMAIL;
+export const RESEND_SENDER = process.env.RESEND_SENDER;
