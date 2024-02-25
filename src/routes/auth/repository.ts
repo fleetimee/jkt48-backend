@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm';
 
 import db from '../../db';
 import { users } from '../../models/users';
-import { UnauthorizedError } from '../../utils/errors';
+import { BadRequestError, UnauthorizedError } from '../../utils/errors';
 
 export const getUser = async (email: string) => {
     const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
@@ -31,9 +31,11 @@ export const registerUser = async (email: string, password: string, name: string
 export const verifyUser = async (email: string, verificationToken: string) => {
     const user = await getUser(email);
 
-    if (!user) throw new UnauthorizedError('Invalid username or password');
+    if (!user) throw new UnauthorizedError('Invalid verification token');
 
     if (user.verificationToken !== verificationToken) throw new UnauthorizedError('Invalid verification token');
+
+    if (user.emailVerified) throw new BadRequestError('Email is already verified');
 
     await db.update(users).set({ emailVerified: true }).where(eq(users.email, email));
 };
