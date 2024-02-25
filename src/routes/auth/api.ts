@@ -5,8 +5,8 @@ import { validate } from '../../middlewares/validate-request';
 import { ConflictError } from '../../utils/errors';
 import { generateVerificationCode } from '../../utils/lib';
 import { sendEmail } from '../../utils/send-emails';
-import { getUser, registerUser, verifyLogin } from './repository';
-import { loginSchema, registerSchema } from './schema';
+import { getUser, registerUser, verifyLogin, verifyUser } from './repository';
+import { loginSchema, registerSchema, verifySchema } from './schema';
 import { createAccessToken, createRefreshToken, setRefreshCookie, verifyToken } from './utils';
 
 const router = express.Router();
@@ -63,6 +63,18 @@ router.post('/refresh', async (req, res, next) => {
         const accessToken = createAccessToken(id, email, name);
 
         res.status(200).send({ accessToken });
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.post('/verifyToken', validate(verifySchema), async (req, res, next) => {
+    try {
+        const { email, verificationToken } = req.body;
+
+        await verifyUser(email, verificationToken);
+
+        res.status(200).json({ message: 'Email verified successfully' });
     } catch (error) {
         next(error);
     }

@@ -1,6 +1,14 @@
 import { NextFunction, Request, Response } from 'express';
 import { AnyZodObject, ZodError } from 'zod';
 
+/**
+ * Middleware function that validates the request against a given schema.
+ * If the request is valid, it calls the next middleware function.
+ * If the request is invalid, it sends a response with the validation errors.
+ *
+ * @param schema - The schema to validate the request against.
+ * @returns A middleware function that validates the request.
+ */
 export const validate = (schema: AnyZodObject) => (req: Request, res: Response, next: NextFunction) => {
     try {
         schema.parse({

@@ -7,14 +7,26 @@ const config = {
     validate: { xForwardedForHeader: false },
 };
 
-/* 100 requests per 5 seconds */
+/**
+ * Applies rate limiting to the specified route.
+ * @param {Object} config - The configuration options for rate limiting.
+ * @param {number} config.windowMs - The time window in milliseconds for rate limiting.
+ * @param {number} config.max - The maximum number of requests allowed within the time window.
+ * @returns {Function} - The rate limiter middleware function.
+ */
 export const rateLimiter = rateLimit({
     windowMs: 5 * 1000,
     max: 100,
     ...config,
 });
 
-/* 3 requests per 10 seconds */
+/**
+ * Applies rate limiting to the specified route handler.
+ * @param {Object} config - The rate limiting configuration.
+ * @param {number} config.windowMs - The time window in milliseconds.
+ * @param {number} config.max - The maximum number of requests allowed within the time window.
+ * @returns {Function} - The rate limiting middleware function.
+ */
 export const rateLimiterStrict = rateLimit({
     windowMs: 10 * 1000,
     max: 3,

@@ -9,6 +9,15 @@ declare module 'express-serve-static-core' {
     }
 }
 
+/**
+ * Middleware function to authenticate the user.
+ * It checks if the authorization token is present in the request headers,
+ * verifies the token, and sets the user data in the request object.
+ * If the token is missing or invalid, it throws an UnauthorizedError.
+ * @param req - The Express Request object.
+ * @param res - The Express Response object.
+ * @param next - The Express NextFunction.
+ */
 export const authenticateUser = (req: Request, res: Response, next: NextFunction) => {
     try {
         const token = req.headers.authorization?.split(' ')[1];
