@@ -10,7 +10,6 @@ export const users = pgTable('users', {
     passwordHash: text('password_hash').notNull(),
     fcmId: text('fcm_id'),
     verificationToken: text('verification_token'),
-    resetToken: text('reset_token'),
     roles: text('roles').default(Role.USER).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
