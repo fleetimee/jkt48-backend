@@ -22,10 +22,10 @@ export const verifyLogin = async (email: string, password: string) => {
     return user;
 };
 
-export const registerUser = async (email: string, password: string, name: string) => {
+export const registerUser = async (email: string, password: string, name: string, verificationToken: string) => {
     const passwordHash = await bcrypt.hash(password, 10);
 
-    await db.insert(users).values({ email, name, passwordHash });
+    await db.insert(users).values({ email, name, passwordHash, verificationToken });
 };
 
 export const verifyUser = async (email: string, verificationToken: string) => {

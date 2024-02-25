@@ -5,11 +5,11 @@ interface ResponseParams {
     data: unknown[];
 }
 
-export function formatResponse({ success, code, message, data }: ResponseParams): ResponseParams {
+export const formatResponse = ({ success, code, message, data }: ResponseParams): ResponseParams => {
     return {
         success,
         code,
         message,
         data,
     };
-}
+};
