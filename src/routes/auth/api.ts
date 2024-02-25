@@ -28,8 +28,8 @@ router.post('/register', validate(registerSchema), rateLimiterStrict, async (req
 
         // Send verification email
         const { error } = await resend.emails.send({
-            from: 'Acme <onboarding@resend.dev>',
-            to: ['hello@fleetime.my.id'],
+            from: 'JKT48 Private Message <hello@fleetime.my.id>',
+            to: ['zane.227@gmail.com'],
             subject: 'JKT48 - Verification Code',
             text: `Hello, ${name}! Your verification code is ${verificationToken}`,
         });
