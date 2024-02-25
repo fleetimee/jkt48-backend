@@ -8,6 +8,69 @@
             "when": 1707807187088,
             "tag": "0000_noisy_typhoid_mary",
             "breakpoints": true
+        },
+        {
+            "idx": 1,
+            "version": "5",
+            "when": 1708823671495,
+            "tag": "0001_lumpy_molten_man",
+            "breakpoints": true
+        },
+        {
+            "idx": 2,
+            "version": "5",
+            "when": 1708823826190,
+            "tag": "0002_misty_kitty_pryde",
+            "breakpoints": true
+        },
+        {
+            "idx": 3,
+            "version": "5",
+            "when": 1708823868802,
+            "tag": "0003_magical_valeria_richards",
+            "breakpoints": true
+        },
+        {
+            "idx": 4,
+            "version": "5",
+            "when": 1708823943772,
+            "tag": "0004_flawless_elektra",
+            "breakpoints": true
+        },
+        {
+            "idx": 5,
+            "version": "5",
+            "when": 1708824146358,
+            "tag": "0005_milky_young_avengers",
+            "breakpoints": true
+        },
+        {
+            "idx": 6,
+            "version": "5",
+            "when": 1708826391618,
+            "tag": "0006_tense_sentinel",
+            "breakpoints": true
+        },
+        {
+            "idx": 7,
+            "version": "5",
+            "when": 1708827077813,
+            "tag": "0007_calm_cobalt_man",
+            "breakpoints": true
+        },
+        {
+            "idx": 8,
+            "version": "5",
+            "when": 1708827396382,
+            "tag": "0008_graceful_lucky_pierre",
+            "breakpoints": true
+        },
+        {
+            "idx": 9,
+            "version": "5",
+            "when": 1708827474425,
+            "tag": "0009_curved_squadron_sinister",
+            "breakpoints": true
         }
     ]
 }

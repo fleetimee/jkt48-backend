@@ -14,3 +14,10 @@ export const registerSchema = z.object({
         password: z.string().min(8, 'Password must be at least 8 characters'),
     }),
 });
+
+export const verifySchema = z.object({
+    body: z.object({
+        email: z.string().min(1, 'Please enter your email').email(),
+        verificationToken: z.string().min(1, 'Please enter your verification token'),
+    }),
+});

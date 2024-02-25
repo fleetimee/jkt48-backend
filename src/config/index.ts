@@ -16,9 +16,9 @@ export const DB_PASSWORD = process.env.DB_PASSWORD;
 export const DB_DATABASE = process.env.DB_DATABASE;
 export const DB_MAX_CONNECTIONS = Number(process.env.DB_MAX_CONNECTIONS) || 20;
 export const DB_SSL =
-    process.env.NODE_ENV !== 'DEVELOPMENT'
+    process.env.NODE_ENV === 'DEVELOPMENT'
         ? {
-              rejectUnauthorized: true,
-              ca: process.env.DB_SSL_CA,
+              rejectUnauthorized: false,
+              sslMode: 'require',
           }
         : undefined;

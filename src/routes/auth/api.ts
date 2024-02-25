@@ -1,13 +1,18 @@
 import express from 'express';
+import { Resend } from 'resend';
 
 import { rateLimiterStrict } from '../../middlewares/rate-limiter';
 import { validate } from '../../middlewares/validate-request';
 import { ConflictError } from '../../utils/errors';
+import { generateVerificationCode } from '../../utils/lib';
+import { formatResponse } from '../../utils/response-formatter';
 import { getUser, registerUser, verifyLogin } from './repository';
 import { loginSchema, registerSchema } from './schema';
 import { createAccessToken, createRefreshToken, setRefreshCookie, verifyToken } from './utils';
 
 const router = express.Router();
+
+const resend = new Resend('re_DQCuU9S3_HJFwD4P14HKecfkgp8nYYJKn');
 
 router.post('/register', validate(registerSchema), rateLimiterStrict, async (req, res, next) => {
     try {
@@ -16,9 +21,34 @@ router.post('/register', validate(registerSchema), rateLimiterStrict, async (req
         const user = await getUser(email);
         if (user) throw new ConflictError('A user with that email already exists');
 
+        // Generate a verification token and send an email to the user
+        const verificationToken = generateVerificationCode();
+
         await registerUser(email, password, name);
 
-        res.status(200).send({ message: 'Successfully signed up' });
+        // Send verification email
+        // eslint-disable-next-line unused-imports/no-unused-vars
+        const { data, error } = await resend.emails.send({
+            from: 'Acme <onboarding@resend.dev>',
+            to: ['hello@fleetime.my.id'],
+            subject: 'hello world',
+            text: `Hello, ${name}! Your verification code is ${verificationToken}`,
+        });
+
+        if (error) {
+            return res.status(400).json({ error });
+        }
+
+        res.status(201).send(
+            formatResponse({
+                success: true,
+                code: 201,
+                message: 'User registered successfully',
+                data: [],
+            }),
+        );
+
+        // res.status(200).json({ data });
     } catch (error) {
         next(error);
     }

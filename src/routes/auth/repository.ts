@@ -27,3 +27,13 @@ export const registerUser = async (email: string, password: string, name: string
 
     await db.insert(users).values({ email, name, passwordHash });
 };
+
+export const verifyUser = async (email: string, verificationToken: string) => {
+    const user = await getUser(email);
+
+    if (!user) throw new UnauthorizedError('Invalid username or password');
+
+    if (user.verificationToken !== verificationToken) throw new UnauthorizedError('Invalid verification token');
+
+    await db.update(users).set({ emailVerified: true }).where(eq(users.email, email));
+};
