@@ -26,3 +26,27 @@ export class ConflictError extends CustomError {
         super(message, 409);
     }
 }
+
+export class BadRequestError extends CustomError {
+    constructor(message: string) {
+        super(message, 400);
+    }
+}
+
+export class ForbiddenError extends CustomError {
+    constructor(message: string) {
+        super(message, 403);
+    }
+}
+
+export class InternalServerError extends CustomError {
+    constructor(message: string) {
+        super(message, 500);
+    }
+}
+
+export class ServiceUnavailableError extends CustomError {
+    constructor(message: string) {
+        super(message, 503);
+    }
+}

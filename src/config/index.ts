@@ -22,3 +22,6 @@ export const DB_SSL =
               sslMode: 'require',
           }
         : undefined;
+
+/* Resend Email Config */
+export const RESEND_KEY = process.env.RESEND_KEY;
