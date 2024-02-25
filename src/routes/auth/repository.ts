@@ -37,3 +37,13 @@ export const verifyUser = async (email: string, verificationToken: string) => {
 
     await db.update(users).set({ emailVerified: true }).where(eq(users.email, email));
 };
+
+export const resetPasswordUser = async (email: string, password: string) => {
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    const user = await getUser(email);
+
+    if (!user) throw new UnauthorizedError('No user registered!');
+
+    await db.update(users).set({ passwordHash: passwordHash }).where(eq(users.email, email));
+};
