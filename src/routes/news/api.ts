@@ -24,7 +24,7 @@ router.get('/', async (req, res, next) => {
 
         console.log(newsList);
 
-        res.status(200).send(
+        res.status(StatusCodes.OK).send(
             formatResponsePaginated({
                 success: true,
                 code: StatusCodes.OK,
@@ -51,7 +51,7 @@ router.get('/:id', async (req, res, next) => {
         const newsItem = await getNews(id);
         if (!newsItem) throw new NotFoundError('News not found');
 
-        res.status(200).send(
+        res.status(StatusCodes.OK).send(
             formatResponse({
                 success: true,
                 code: StatusCodes.OK,
@@ -79,7 +79,14 @@ router.post('/', validate(createNewsSchema), authenticateUser, async (req, res, 
 
         const newsItem = await createNews(title, body, userId, image, sluggify, now, now);
 
-        res.status(200).send({ newsItem });
+        res.status(StatusCodes.CREATED).send(
+            formatResponse({
+                success: true,
+                code: StatusCodes.CREATED,
+                message: 'Success create news item',
+                data: newsItem,
+            }),
+        );
     } catch (error) {
         console.error(error);
         next(error);
