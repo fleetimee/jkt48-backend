@@ -1,9 +1,13 @@
 import express from 'express';
 import { StatusCodes } from 'http-status-codes';
+import slugify from 'slugify';
 
+import { authenticateUser } from '../../middlewares/authenticate-user';
+import { validate } from '../../middlewares/validate-request';
 import { NotFoundError } from '../../utils/errors';
 import { formatResponse, formatResponsePaginated } from '../../utils/response-formatter';
-import { getNews, getNewsList } from './repository';
+import { createNews, getNews, getNewsList } from './repository';
+import { createNewsSchema } from './schema';
 
 const router = express.Router();
 
@@ -47,8 +51,6 @@ router.get('/:id', async (req, res, next) => {
         const newsItem = await getNews(id);
         if (!newsItem) throw new NotFoundError('News not found');
 
-        // res.status(200).send({ newsItem });
-
         res.status(200).send(
             formatResponse({
                 success: true,
@@ -58,6 +60,28 @@ router.get('/:id', async (req, res, next) => {
             }),
         );
     } catch (error) {
+        next(error);
+    }
+});
+
+router.post('/', validate(createNewsSchema), authenticateUser, async (req, res, next) => {
+    try {
+        const { title, body, image } = req.body;
+        const userId = req.user.id;
+
+        // Current date and time
+        const now = new Date();
+
+        // Generate slug from title
+        const sluggify = slugify(title, {
+            lower: true,
+        });
+
+        const newsItem = await createNews(title, body, userId, image, sluggify, now, now);
+
+        res.status(200).send({ newsItem });
+    } catch (error) {
+        console.error(error);
         next(error);
     }
 });

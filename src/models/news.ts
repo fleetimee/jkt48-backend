@@ -4,6 +4,7 @@ import { users } from './users';
 
 export const news = pgTable('news', {
     id: uuid('id').primaryKey().defaultRandom(),
+    slug: text('slug').unique(),
     title: text('title').notNull(),
     body: text('body').notNull(),
     image: text('image'),

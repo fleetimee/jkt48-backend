@@ -21,3 +21,15 @@ export const getNewsList = async (orderBy: string, orderDirection: string, limit
 
     return newsList;
 };
+
+export const createNews = async (
+    title: string,
+    body: string,
+    userId: string,
+    image: string,
+    slug: string,
+    createdAt: Date,
+    updatedAt: Date,
+) => {
+    return await db.insert(news).values({ title, body, userId, image, slug, createdAt, updatedAt }).returning();
+};
