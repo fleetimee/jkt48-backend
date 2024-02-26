@@ -19,3 +19,60 @@ export const formatResponse = ({ success, code, message, data }: ResponseParams)
         data,
     };
 };
+
+interface ResponsePaginatedParams {
+    success: boolean;
+    code: number;
+    message: string;
+    data: unknown[];
+    meta: {
+        page: number;
+        pageSize: number;
+        orderBy: string;
+        orderDirection: string;
+    };
+}
+
+/**
+ * Formats a paginated response.
+ *
+ * @param {ResponsePaginatedParams} params - The parameters for formatting the response.
+ * @returns {ResponsePaginatedParams} - The formatted response.
+ */
+export const formatResponsePaginated = ({
+    success,
+    code,
+    message,
+    data,
+    meta,
+}: ResponsePaginatedParams): ResponsePaginatedParams => {
+    return {
+        success,
+        code,
+        message,
+        data,
+        meta,
+    };
+};
+
+interface ErrorResponseParams {
+    success: boolean;
+    code: number;
+    message: string;
+    error: unknown;
+}
+
+/**
+ * Formats an error response.
+ *
+ * @param {ErrorResponseParams} params - The parameters for formatting the error response.
+ * @returns {ErrorResponseParams} - The formatted error response.
+ */
+export const formatErrorResponse = ({ success, code, message, error }: ErrorResponseParams): ErrorResponseParams => {
+    return {
+        success,
+        code,
+        message,
+        error,
+    };
+};
