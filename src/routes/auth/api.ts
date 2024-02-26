@@ -3,13 +3,10 @@ import express from 'express';
 import { rateLimiterStrict } from '../../middlewares/rate-limiter';
 import { validate } from '../../middlewares/validate-request';
 import { ConflictError } from '../../utils/errors';
-import { sendEmail } from '../../utils/send-emails';
-import { getUser, registerUser, verifyLogin, verifyUser } from './repository';
-import { loginSchema, registerSchema, verifySchema } from './schema';
 import { generateRandomStringPassword, generateVerificationCode } from '../../utils/lib';
-import { formatResponse } from '../../utils/response-formatter';
-import { getUser, registerUser, resetPasswordUser, verifyLogin } from './repository';
-import { loginSchema, registerSchema, resetPasswordSchema } from './schema';
+import { sendEmail } from '../../utils/send-emails';
+import { getUser, registerUser, resetPasswordUser, verifyLogin, verifyUser } from './repository';
+import { loginSchema, registerSchema, resetPasswordSchema, verifySchema } from './schema';
 import { createAccessToken, createRefreshToken, setRefreshCookie, verifyToken } from './utils';
 
 const router = express.Router();
@@ -78,6 +75,11 @@ router.post('/verifyToken', validate(verifySchema), async (req, res, next) => {
         await verifyUser(email, verificationToken);
 
         res.status(200).json({ message: 'Email verified successfully' });
+    } catch (error) {
+        next(error);
+    }
+});
+
 // Temporary
 router.get('/user/detail/:email', rateLimiterStrict, async (req, res, next) => {
     const email = req.params.email;
@@ -102,27 +104,17 @@ router.post('/reset_password', validate(resetPasswordSchema), rateLimiterStrict,
         const user = await getUser(email);
         if (user) await resetPasswordUser(email, randomStringPassword);
 
-        // Send verification email
-        // eslint-disable-next-line unused-imports/no-unused-vars
-        const { data, error } = await resend.emails.send({
-            from: 'JKT48 Private Message <hello@fleetime.my.id>',
-            to: email,
-            subject: 'JKT48 - Your New Password',
-            text: `Your new password is: ${randomStringPassword}`,
+        const emailResult = await sendEmail({
+            to: [email],
+            subject: 'Your New Password',
+            text: `Your new password is: ${randomStringPassword}, please change it after login!`,
         });
 
-        if (error) {
-            return res.status(400).json({ error });
+        if (emailResult.error) {
+            return res.status(400).json({ error: emailResult.error });
         }
 
-        res.status(201).send(
-            formatResponse({
-                success: true,
-                code: 201,
-                message: 'Reset password successfully',
-                data: [{ password: randomStringPassword }],
-            }),
-        );
+        res.status(201).json({ message: 'Success resetting password' });
     } catch (error) {
         next(error);
     }

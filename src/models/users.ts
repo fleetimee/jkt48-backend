@@ -5,8 +5,12 @@ import { Role } from '../utils/enum';
 export const users = pgTable('users', {
     id: uuid('id').primaryKey().defaultRandom(),
     name: text('name').notNull(),
+    nickName: text('nickname'),
+    profileImage: text('profile_image'),
+    birthday: timestamp('birthday'),
     email: text('email').notNull().unique(),
     emailVerified: boolean('email_verified').default(false).notNull(),
+    emailVerifiedAt: timestamp('email_verified_at'),
     passwordHash: text('password_hash').notNull(),
     fcmId: text('fcm_id'),
     verificationToken: text('verification_token'),
