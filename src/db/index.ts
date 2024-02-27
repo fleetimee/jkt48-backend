@@ -3,6 +3,7 @@ import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import postgres from 'postgres';
 
 import { DB_DATABASE, DB_HOST, DB_MAX_CONNECTIONS, DB_PASSWORD, DB_PORT, DB_SSL, DB_USER } from '../config';
+import * as schema from '../models/package';
 
 const pg = postgres({
     host: DB_HOST,
@@ -14,7 +15,7 @@ const pg = postgres({
     max: DB_MAX_CONNECTIONS,
 });
 
-const db = drizzle(pg);
+const db = drizzle(pg, { schema: schema });
 
 migrate(db, { migrationsFolder: 'drizzle' });
 
