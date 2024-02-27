@@ -5,7 +5,6 @@ import express from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
 
-import { ORIGIN } from './config';
 import { errorHandler } from './middlewares/error-handler';
 import { rateLimiter } from './middlewares/rate-limiter';
 import routes from './routes';
@@ -21,7 +20,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(
     cors({
         credentials: true,
-        origin: ORIGIN,
+        origin: '*',
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     }),
 );
