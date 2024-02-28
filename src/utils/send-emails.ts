@@ -1,8 +1,8 @@
 import { Resend } from 'resend';
 
-import { RESEND_EMAIL, RESEND_SENDER } from '../config';
+import { RESEND_EMAIL, RESEND_KEY, RESEND_SENDER } from '../config';
 
-const resend = new Resend(process.env.RESEND_KEY);
+const resend = new Resend(RESEND_KEY);
 
 /**
  * Sends an email.

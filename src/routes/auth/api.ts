@@ -1,5 +1,6 @@
 import express from 'express';
 
+import { BASE_URL } from '../../config';
 import { rateLimiterStrict } from '../../middlewares/rate-limiter';
 import { validate } from '../../middlewares/validate-request';
 import { ConflictError } from '../../utils/errors';
@@ -116,7 +117,7 @@ router.post('/forgot_password', validate(forgotPasswordSchema), rateLimiterStric
         const emailResult = await sendEmail({
             to: [email],
             subject: 'Your Reset Password Link here',
-            text: `Please change your password here : ${process.env.BASE_URL}/reset_password?token=${randomStringToken}, please change it!`,
+            text: `Please change your password here : ${BASE_URL}/reset_password?token=${randomStringToken}, please change it!`,
         });
 
         if (emailResult.error) {
