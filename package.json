@@ -1,6 +1,11 @@
 {
-    "name": "your-project-name",
-    "version": "1.0.0",
+    "name": "jkt48-private-message",
+    "author": {
+        "name": "Novian Andika",
+        "email": "novian.andika@bpddiy.co.id",
+        "url": "https://fleetime.my.id"
+    },
+    "version": "1.6.9",
     "main": "src/index.ts",
     "scripts": {
         "dev": "nodemon src/index.ts",
