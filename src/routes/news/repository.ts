@@ -45,3 +45,13 @@ export const createNews = async (
 ) => {
     return await db.insert(news).values({ title, body, userId, image, slug, createdAt, updatedAt }).returning();
 };
+
+export const updateNews = async (title: string, body: string, newsId: string) => {
+    const [newsItem] = await db.update(news).set({ title, body }).where(eq(news.id, newsId)).returning();
+
+    return newsItem;
+};
+
+export const deleteNews = async (newsId: string) => {
+    await db.delete(news).where(eq(news.id, newsId));
+};

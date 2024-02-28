@@ -24,6 +24,7 @@ export const authenticateUser = (req: Request, res: Response, next: NextFunction
         if (!token) throw new UnauthorizedError('Authorization token missing in request');
 
         const userTokenData = verifyToken(token);
+
         req.user = userTokenData;
 
         next();

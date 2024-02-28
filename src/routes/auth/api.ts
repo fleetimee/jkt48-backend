@@ -25,7 +25,8 @@ router.post('/register', validate(registerSchema), rateLimiterStrict, async (req
 
         // Send verification email
         const emailResult = await sendEmail({
-            to: [email],
+            // to: [email],
+            to: ['zane.227@gmail.com'],
             subject: 'Verify your email',
             text: `Your verification token is: ${verificationToken}`,
         });

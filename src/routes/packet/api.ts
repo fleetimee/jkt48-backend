@@ -37,8 +37,6 @@ router.get('/:id', authenticateUser, async (req, res, next) => {
 
         const packageItem = await getPackage(packageId);
 
-        console.log(packageItem);
-
         if (!packageItem) throw new NotFoundError('Package not found');
 
         res.status(StatusCodes.OK).send(

@@ -30,8 +30,6 @@ router.patch('/me', validate(updateUserSchema), authenticateUser, async (req, re
 
         res.status(200).send({ user });
     } catch (error) {
-        console.log(error);
-
         next(error);
     }
 });
