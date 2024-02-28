@@ -31,6 +31,9 @@ app.use(
     }),
 );
 
+// Server Static files
+app.use('/static', express.static('static'));
+
 app.use(rateLimiter);
 app.use('/api', routes);
 
