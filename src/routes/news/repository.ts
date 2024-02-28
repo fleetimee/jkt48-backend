@@ -1,4 +1,4 @@
-import { eq, sql } from 'drizzle-orm';
+import { desc, eq, sql } from 'drizzle-orm';
 
 import db from '../../db';
 import { news } from '../../models/news';
@@ -20,6 +20,18 @@ export const getNewsList = async (orderBy: string, orderDirection: string, limit
     );
 
     return newsList;
+};
+
+export const getNewsBySlug = async (slug: string) => {
+    const [newsItem] = await db.select().from(news).where(eq(news.slug, slug)).limit(1);
+
+    return newsItem;
+};
+
+export const getLatestNews = async () => {
+    const [latestNews] = await db.select().from(news).orderBy(desc(news.createdAt)).limit(1);
+
+    return latestNews;
 };
 
 export const createNews = async (

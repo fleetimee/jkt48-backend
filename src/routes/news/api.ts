@@ -6,7 +6,7 @@ import { authenticateUser } from '../../middlewares/authenticate-user';
 import { validate } from '../../middlewares/validate-request';
 import { NotFoundError } from '../../utils/errors';
 import { formatResponse, formatResponsePaginated } from '../../utils/response-formatter';
-import { createNews, getNews, getNewsList } from './repository';
+import { createNews, getLatestNews, getNews, getNewsBySlug, getNewsList } from './repository';
 import { createNewsSchema } from './schema';
 
 const router = express.Router();
@@ -60,6 +60,41 @@ router.get('/:id', async (req, res, next) => {
             }),
         );
     } catch (error) {
+        next(error);
+    }
+});
+
+router.get('/slug/:slug', authenticateUser, async (req, res, next) => {
+    try {
+        const slug = req.params.slug;
+
+        const newsItem = await getNewsBySlug(slug);
+        if (!newsItem) throw new NotFoundError('News not found');
+
+        res.status(StatusCodes.OK).send(
+            formatResponse({
+                success: true,
+                code: StatusCodes.OK,
+                message: 'Success fetches news item',
+                data: [newsItem],
+            }),
+        );
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+});
+
+router.get('/latest', async (req, res, next) => {
+    try {
+        const news = await getLatestNews();
+        if (!news) throw new NotFoundError('News not found');
+
+        res.status(StatusCodes.OK).send({
+            news,
+        });
+    } catch (error) {
+        console.error(error);
         next(error);
     }
 });

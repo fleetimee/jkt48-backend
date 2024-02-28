@@ -134,6 +134,13 @@
             "when": 1709051097489,
             "tag": "0018_ambiguous_rhino",
             "breakpoints": true
+        },
+        {
+            "idx": 19,
+            "version": "5",
+            "when": 1709083528081,
+            "tag": "0019_careful_outlaw_kid",
+            "breakpoints": true
         }
     ]
 }

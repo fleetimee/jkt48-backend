@@ -1,6 +1,6 @@
 import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 
-export const privacyPolicy = pgTable('privacy_policy', {
+export const terms = pgTable('terms', {
     id: uuid('id').primaryKey().defaultRandom(),
     html_content: text('html_content').notNull(),
     createdAt: timestamp('created_at').notNull().defaultNow(),

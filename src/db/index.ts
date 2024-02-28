@@ -13,9 +13,11 @@ const pg = postgres({
     database: DB_DATABASE,
     ssl: DB_SSL,
     max: DB_MAX_CONNECTIONS,
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    onnotice: () => {},
 });
 
-const db = drizzle(pg, { schema: schema });
+const db = drizzle(pg, { schema: schema, logger: true });
 
 migrate(db, { migrationsFolder: 'drizzle' });
 

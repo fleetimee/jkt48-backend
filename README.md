@@ -1,8 +1,6 @@
-# How to run this project
+# JKT48 Private Message
 
-### Clone the repository
-    git clone https://github.com/zacharynoble/express-typescript-postgres-drizzle-auth-template.git
-    cd express-typescript-postgres-drizzle-auth-template
+![image 2 (1)](https://github.com/fleetimee/jkt48-backend/assets/45744788/575c3b25-2c1b-474d-9e02-14e0b4f474a6)
 
 
 ### Create a .env file at the app root level for configurations
