@@ -3,10 +3,18 @@ import express from 'express';
 import { rateLimiterStrict } from '../../middlewares/rate-limiter';
 import { validate } from '../../middlewares/validate-request';
 import { ConflictError } from '../../utils/errors';
-import { generateRandomStringPassword, generateVerificationCode } from '../../utils/lib';
+import { generateResetTokenPassword, generateVerificationCode } from '../../utils/lib';
 import { sendEmail } from '../../utils/send-emails';
-import { getUser, registerUser, resetPasswordUser, verifyLogin, verifyUser } from './repository';
-import { loginSchema, registerSchema, resetPasswordSchema, verifySchema } from './schema';
+import {
+    forgotPasswordUser,
+    getUser,
+    getUserByTokenReset,
+    registerUser,
+    resetPasswordUser,
+    verifyLogin,
+    verifyUser,
+} from './repository';
+import { forgotPasswordSchema, loginSchema, registerSchema, resetPasswordSchema, verifySchema } from './schema';
 import { createAccessToken, createRefreshToken, setRefreshCookie, verifyToken } from './utils';
 
 const router = express.Router();
@@ -97,25 +105,47 @@ router.get('/user/detail/:email', rateLimiterStrict, async (req, res, next) => {
     }
 });
 
-router.post('/reset_password', validate(resetPasswordSchema), rateLimiterStrict, async (req, res, next) => {
+router.post('/forgot_password', validate(forgotPasswordSchema), rateLimiterStrict, async (req, res, next) => {
     try {
         const { email } = req.body;
-        const randomStringPassword = generateRandomStringPassword();
+        const randomStringToken = generateResetTokenPassword();
 
         const user = await getUser(email);
-        if (user) await resetPasswordUser(email, randomStringPassword);
+        if (user) await forgotPasswordUser(email, randomStringToken);
 
         const emailResult = await sendEmail({
             to: [email],
-            subject: 'Your New Password',
-            text: `Your new password is: ${randomStringPassword}, please change it after login!`,
+            subject: 'Your Reset Password Link here',
+            text: `Please change your password here : ${process.env.BASE_URL}/reset_password?token=${randomStringToken}, please change it!`,
         });
 
         if (emailResult.error) {
             return res.status(400).json({ error: emailResult.error });
         }
 
-        res.status(201).json({ message: 'Success resetting password' });
+        res.status(201).json({ message: 'Success send token to reset password' });
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.post('/reset_password', validate(resetPasswordSchema), rateLimiterStrict, async (req, res, next) => {
+    try {
+        const { token, password } = req.body;
+        const user = await getUserByTokenReset(token);
+        if (token && password) await resetPasswordUser(token, password);
+
+        const emailResult = await sendEmail({
+            to: [user.email],
+            subject: 'Password changed!',
+            text: `Your Password successfully changed`,
+        });
+
+        if (emailResult.error) {
+            return res.status(400).json({ error: emailResult.error });
+        }
+
+        res.status(201).json({ message: 'Success reset password' });
     } catch (error) {
         next(error);
     }

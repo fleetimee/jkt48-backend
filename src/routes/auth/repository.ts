@@ -40,12 +40,31 @@ export const verifyUser = async (email: string, verificationToken: string) => {
     await db.update(users).set({ emailVerified: true }).where(eq(users.email, email));
 };
 
-export const resetPasswordUser = async (email: string, password: string) => {
-    const passwordHash = await bcrypt.hash(password, 10);
-
+export const forgotPasswordUser = async (email: string, token: string) => {
     const user = await getUser(email);
 
     if (!user) throw new UnauthorizedError('No user registered!');
 
-    await db.update(users).set({ passwordHash: passwordHash }).where(eq(users.email, email));
+    await db.update(users).set({ tokenResetPassword: token }).where(eq(users.email, email));
+};
+
+export const resetPasswordUser = async (token: string, password: string) => {
+    const user = await getUserByTokenReset(token);
+    if (!user) throw new UnauthorizedError('Token invalid / expired!');
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    await db
+        .update(users)
+        .set({ passwordHash: passwordHash, tokenResetPassword: null })
+        .where(eq(users.email, user.email));
+};
+
+export const getUserByTokenReset = async (token: string) => {
+    const [user] = await db
+        .select({ id: users.id, name: users.name, email: users.email, tokenResetPassword: users.tokenResetPassword })
+        .from(users)
+        .where(eq(users.tokenResetPassword, token))
+        .limit(1);
+
+    return user;
 };
