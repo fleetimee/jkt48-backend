@@ -1,4 +1,5 @@
 import express from 'express';
+import { StatusCodes } from 'http-status-codes';
 
 import { BASE_URL } from '../../config';
 import { rateLimiterStrict } from '../../middlewares/rate-limiter';
@@ -41,10 +42,10 @@ router.post('/register', validate(registerSchema), rateLimiterStrict, async (req
         });
 
         if (emailResult.error) {
-            return res.status(400).json({ error: emailResult.error });
+            return res.status(StatusCodes.NOT_FOUND).json({ error: emailResult.error });
         }
 
-        res.status(201).json({ message: 'User registered successfully' });
+        res.status(StatusCodes.CREATED).json({ message: 'User registered successfully' });
     } catch (error) {
         next(error);
     }
@@ -59,7 +60,7 @@ router.post('/login', validate(loginSchema), rateLimiterStrict, async (req, res,
         const refreshToken = createRefreshToken(user.id, user.email, user.name);
         setRefreshCookie(res, refreshToken);
 
-        res.status(200).send({ accessToken });
+        res.status(StatusCodes.OK).send({ accessToken });
     } catch (error) {
         next(error);
     }
@@ -72,7 +73,7 @@ router.post('/refresh', async (req, res, next) => {
         const { id, email, name } = verifyToken(refreshToken);
         const accessToken = createAccessToken(id, email, name);
 
-        res.status(200).send({ accessToken });
+        res.status(StatusCodes.OK).send({ accessToken });
     } catch (error) {
         next(error);
     }
@@ -84,7 +85,7 @@ router.post('/verifyToken', validate(verifySchema), async (req, res, next) => {
 
         await verifyUser(email, verificationToken);
 
-        res.status(200).json({ message: 'Email verified successfully' });
+        res.status(StatusCodes.OK).json({ message: 'Email verified successfully' });
     } catch (error) {
         next(error);
     }
@@ -97,9 +98,9 @@ router.get('/user/detail/:email', rateLimiterStrict, async (req, res, next) => {
         const user = await getUser(email);
 
         if (user) {
-            res.status(200).send({ datas: user });
+            res.status(StatusCodes.OK).send({ datas: user });
         } else {
-            res.status(422).send({ messages: `${email} not exist!` });
+            res.status(StatusCodes.UNPROCESSABLE_ENTITY).send({ messages: `${email} not exist!` });
         }
     } catch (error) {
         next(error);

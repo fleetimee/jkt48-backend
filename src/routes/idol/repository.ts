@@ -4,6 +4,15 @@ import { sql } from 'drizzle-orm';
 
 import db from '../../db';
 
+/**
+ * Retrieves a list of members with optional filtering and pagination.
+ * @param limit The maximum number of members to retrieve.
+ * @param offset The number of members to skip before starting to retrieve.
+ * @param orderBy The column to order the members by.
+ * @param sortDirection The direction to sort the members in (ASC or DESC).
+ * @param query Optional search query to filter members by nickname.
+ * @returns A Promise that resolves to an array of member objects.
+ */
 export const getMembers = async (
     limit: number,
     offset: number,
