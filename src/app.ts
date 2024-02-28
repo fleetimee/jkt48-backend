@@ -1,4 +1,5 @@
 import bodyParser from 'body-parser';
+import compression from 'compression';
 import cookies from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
@@ -13,10 +14,15 @@ const app = express();
 
 app.use(morgan('dev'));
 app.use(helmet());
+app.use(compression());
 app.use(express.json());
 app.use(cookies());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(function (req, res, next) {
+    res.setHeader('X-Powered-By', '@fleetime');
+    next();
+});
 app.use(
     cors({
         credentials: true,
