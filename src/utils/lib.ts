@@ -17,7 +17,7 @@ export const generateVerificationCode = () => {
  *
  * @returns The generated random string.
  */
-export const generateRandomStringPassword = () => {
+export const generateResetTokenPassword = () => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let randomString = '';
     for (let i = 0; i < 14; i++) {

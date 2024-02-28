@@ -7,6 +7,7 @@ dotenv.config();
 export const APP_PORT = process.env.APP_PORT || 8080;
 export const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY as Secret;
 export const ORIGIN = process.env.ORIGIN || '*';
+export const BASE_URL = process.env.BASE_URL;
 
 /* DB Config */
 export const DB_HOST = process.env.DB_HOST;

@@ -15,6 +15,7 @@ export const users = pgTable('users', {
     fcmId: text('fcm_id'),
     verificationToken: text('verification_token'),
     roles: text('roles').default(Role.USER).notNull(),
+    tokenResetPassword: text('token_reset_password'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
