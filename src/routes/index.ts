@@ -7,6 +7,7 @@ import packet from './packet/api';
 import posts from './posts/api';
 import privacyPolicy from './privacy-policy/api';
 import terms from './terms/api';
+import topIdol from './top-idol/api';
 import user from './user/api';
 
 const router = express.Router();
@@ -19,6 +20,7 @@ router.use('/package', packet);
 router.use('/privacy-policy', privacyPolicy);
 router.use('/terms', terms);
 router.use('/idol', idol);
+router.use('/top-idol', topIdol);
 
 // Handle 404
 router.use((req, res) => {
