@@ -1,8 +1,10 @@
 import express from 'express';
 import { StatusCodes } from 'http-status-codes';
 
+import { UnprocessableEntityError } from '../../utils/errors';
 import { formatResponsePaginated } from '../../utils/response-formatter';
-import { getConversations } from './repository';
+import { validateUuid } from '../../utils/validate';
+import { getConversations, getConversationsById } from './repository';
 
 const router = express.Router();
 
@@ -14,11 +16,7 @@ router.get('/', async (req, res, next) => {
 
         const offset = (page - 1) * pageSize;
 
-        const conversationList = await getConversations({
-            limit: pageSize,
-            offset,
-            searchQuery,
-        });
+        const conversationList = await getConversations(pageSize, offset, searchQuery);
 
         res.status(StatusCodes.OK).send(
             formatResponsePaginated({
@@ -28,8 +26,8 @@ router.get('/', async (req, res, next) => {
                 meta: {
                     page,
                     pageSize,
-                    orderBy: 'id',
-                    orderDirection: 'ASC',
+                    orderBy: '',
+                    orderDirection: '',
                 },
 
                 message: 'Success fetch conversation list',
@@ -39,3 +37,23 @@ router.get('/', async (req, res, next) => {
         next(error);
     }
 });
+
+router.get('/:id', async (req, res, next) => {
+    try {
+        const conversationId = req.params.id;
+
+        if (!validateUuid(conversationId)) throw new UnprocessableEntityError('The conversation ID is not valid');
+
+        const conversation = await getConversationsById(conversationId);
+
+        res.status(StatusCodes.OK).send({
+            success: true,
+            code: StatusCodes.OK,
+            message: 'Success fetch conversation',
+            data: conversation,
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+export default router;

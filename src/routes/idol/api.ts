@@ -44,7 +44,6 @@ router.get('/:id', async (req, res, next) => {
     try {
         const id = req.params.id;
 
-        // Validate memberId is valid JKT48 member
         if (!validateMemberId(id)) throw new UnprocessableEntityError('The member ID is not valid JKT48 member ID');
 
         const member = await getMemberById(id);
