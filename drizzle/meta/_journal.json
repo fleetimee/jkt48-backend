@@ -169,6 +169,41 @@
             "when": 1709174526246,
             "tag": "0023_boring_nomad",
             "breakpoints": true
+        },
+        {
+            "idx": 24,
+            "version": "5",
+            "when": 1709192108413,
+            "tag": "0024_heavy_lord_hawal",
+            "breakpoints": true
+        },
+        {
+            "idx": 25,
+            "version": "5",
+            "when": 1709194011333,
+            "tag": "0025_fantastic_caretaker",
+            "breakpoints": true
+        },
+        {
+            "idx": 26,
+            "version": "5",
+            "when": 1709194215203,
+            "tag": "0026_solid_morbius",
+            "breakpoints": true
+        },
+        {
+            "idx": 27,
+            "version": "5",
+            "when": 1709195433550,
+            "tag": "0027_romantic_layla_miller",
+            "breakpoints": true
+        },
+        {
+            "idx": 28,
+            "version": "5",
+            "when": 1709195666027,
+            "tag": "0028_woozy_tigra",
+            "breakpoints": true
         }
     ]
 }
