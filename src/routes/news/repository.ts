@@ -1,4 +1,5 @@
 import { desc, eq, sql } from 'drizzle-orm';
+import slugify from 'slugify';
 
 import db from '../../db';
 import { news } from '../../models/news';
@@ -47,7 +48,17 @@ export const createNews = async (
 };
 
 export const updateNews = async (title: string, body: string, newsId: string) => {
-    const [newsItem] = await db.update(news).set({ title, body }).where(eq(news.id, newsId)).returning();
+    // Update date of the news
+    const currentDate = new Date();
+    const sluggify = slugify(title, {
+        lower: true,
+    });
+
+    const [newsItem] = await db
+        .update(news)
+        .set({ title, body, updatedAt: currentDate, slug: sluggify })
+        .where(eq(news.id, newsId))
+        .returning();
 
     return newsItem;
 };

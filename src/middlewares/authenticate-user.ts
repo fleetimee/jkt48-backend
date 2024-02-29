@@ -5,7 +5,7 @@ import { UnauthorizedError } from '../utils/errors';
 
 declare module 'express-serve-static-core' {
     interface Request {
-        user: { id: string; email: string; name: string };
+        user: { id: string; email: string; name: string; roles: string };
     }
 }
 
@@ -30,5 +30,38 @@ export const authenticateUser = (req: Request, res: Response, next: NextFunction
         next();
     } catch (error) {
         next(error);
+    }
+};
+
+/**
+ * Middleware function to require the 'member' role for a user.
+ * If the user has the 'member' role, the next middleware function is called.
+ * Otherwise, an UnauthorizedError is passed to the next middleware function.
+ *
+ * @param req - The Express request object.
+ * @param res - The Express response object.
+ * @param next - The next middleware function.
+ */
+export const requireMemberRole = (req: Request, res: Response, next: NextFunction) => {
+    if (req.user && req.user.roles === 'member') {
+        next();
+    } else {
+        next(new UnauthorizedError('User does not have the required member role'));
+    }
+};
+
+/**
+ * Middleware function to require admin role for a user.
+ * If the user has the admin role, the next middleware function is called.
+ * Otherwise, an UnauthorizedError is passed to the next middleware function.
+ * @param req - The Express Request object.
+ * @param res - The Express Response object.
+ * @param next - The Express NextFunction.
+ */
+export const requireAdminRole = (req: Request, res: Response, next: NextFunction) => {
+    if (req.user && req.user.roles === 'admin') {
+        next();
+    } else {
+        next(new UnauthorizedError('User does not have the required admin role'));
     }
 };

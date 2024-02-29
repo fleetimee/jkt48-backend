@@ -2,12 +2,12 @@ import express from 'express';
 import { StatusCodes } from 'http-status-codes';
 import slugify from 'slugify';
 
-import { authenticateUser } from '../../middlewares/authenticate-user';
+import { authenticateUser, requireAdminRole } from '../../middlewares/authenticate-user';
 import { validate } from '../../middlewares/validate-request';
 import { NotFoundError, UnauthorizedError } from '../../utils/errors';
 import { formatResponse, formatResponsePaginated } from '../../utils/response-formatter';
 import { validateUuid } from '../../utils/validate';
-import { createNews, getLatestNews, getNews, getNewsBySlug, getNewsList } from './repository';
+import { createNews, getLatestNews, getNews, getNewsBySlug, getNewsList, updateNews } from './repository';
 import { createNewsSchema } from './schema';
 
 const router = express.Router();
@@ -135,7 +135,35 @@ router.post('/', validate(createNewsSchema), authenticateUser, async (req, res, 
     }
 });
 
-router.delete('/:id', authenticateUser, async (req, res, next) => {
+router.put('/:newsId', authenticateUser, requireAdminRole, async (req, res, next) => {
+    try {
+        const { title, body } = req.body;
+
+        const newsId = req.params.newsId;
+        const userId = req.user.id;
+
+        const news = await getNews(newsId);
+        if (!news) throw new NotFoundError('News not found');
+
+        if (news.userId !== userId) throw new UnauthorizedError('News does not belong to user');
+
+        const updatedNews = await updateNews(title, body, newsId);
+
+        res.status(StatusCodes.OK).send(
+            formatResponse({
+                success: true,
+                code: StatusCodes.OK,
+                message: 'Success update news item',
+                data: updatedNews,
+            }),
+        );
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+});
+
+router.delete('/:id', authenticateUser, requireAdminRole, async (req, res, next) => {
     try {
         const id = req.params.id;
 
