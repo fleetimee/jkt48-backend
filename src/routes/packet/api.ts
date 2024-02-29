@@ -5,7 +5,7 @@ import { authenticateUser } from '../../middlewares/authenticate-user';
 import { validate } from '../../middlewares/validate-request';
 import { NotFoundError, UnauthorizedError } from '../../utils/errors';
 import { formatResponse } from '../../utils/response-formatter';
-import { validateUuid } from '../../utils/validate-uuid';
+import { validateUuid } from '../../utils/validate';
 import { getPackage, getPackageList, updatePackage } from './repository';
 import { updatePackageSchema } from './schema';
 

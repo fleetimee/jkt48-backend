@@ -50,3 +50,9 @@ export class ServiceUnavailableError extends CustomError {
         super(message, 503);
     }
 }
+
+export class UnprocessableEntityError extends CustomError {
+    constructor(message: string) {
+        super(message, 422);
+    }
+}

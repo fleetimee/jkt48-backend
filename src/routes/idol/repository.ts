@@ -44,3 +44,24 @@ export const getMembers = async (
 
     return members;
 };
+
+export const getMemberById = async (memberId: string) => {
+    const [member] = await db.execute(
+        sql`
+        SELECT u.id AS user_id,
+            i.id AS idol_id,
+            u.nickname,
+            u.birthday,
+            u.profile_image,
+            i.family_name,
+            i.given_name,
+            i.horoscope
+        FROM users u
+        INNER JOIN idol i ON u.id = i.user_id
+        WHERE u.roles = 'member' AND i.id = ${memberId}
+
+        `,
+    );
+
+    return member;
+};

@@ -6,7 +6,7 @@ import { authenticateUser } from '../../middlewares/authenticate-user';
 import { validate } from '../../middlewares/validate-request';
 import { NotFoundError, UnauthorizedError } from '../../utils/errors';
 import { formatResponse, formatResponsePaginated } from '../../utils/response-formatter';
-import { validateUuid } from '../../utils/validate-uuid';
+import { validateUuid } from '../../utils/validate';
 import { createNews, getLatestNews, getNews, getNewsBySlug, getNewsList } from './repository';
 import { createNewsSchema } from './schema';
 

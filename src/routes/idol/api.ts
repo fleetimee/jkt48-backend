@@ -1,8 +1,10 @@
 import express from 'express';
 import { StatusCodes } from 'http-status-codes';
 
+import { NotFoundError, UnprocessableEntityError } from '../../utils/errors';
 import { formatResponsePaginated } from '../../utils/response-formatter';
-import { getMembers } from './repository';
+import { validateMemberId } from '../../utils/validate';
+import { getMemberById, getMembers } from './repository';
 
 const router = express.Router();
 
@@ -34,6 +36,27 @@ router.get('/', async (req, res, next) => {
         );
     } catch (error) {
         console.error(error);
+        next(error);
+    }
+});
+
+router.get('/:id', async (req, res, next) => {
+    try {
+        const id = req.params.id;
+
+        // Validate memberId is valid JKT48 member
+        if (!validateMemberId(id)) throw new UnprocessableEntityError('The member ID is not valid JKT48 member ID');
+
+        const member = await getMemberById(id);
+        if (!member) throw new NotFoundError('Member not found');
+
+        res.status(StatusCodes.OK).send({
+            success: true,
+            code: StatusCodes.OK,
+            message: 'Success fetch member',
+            data: member,
+        });
+    } catch (error) {
         next(error);
     }
 });
