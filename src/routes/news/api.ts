@@ -111,10 +111,8 @@ router.post('/', validate(createNewsSchema), authenticateUser, async (req, res, 
         const { title, body, image } = req.body;
         const userId = req.user.id;
 
-        // Current date and time
         const now = new Date();
 
-        // Generate slug from title
         const sluggify = slugify(title, {
             lower: true,
         });
@@ -137,6 +135,9 @@ router.post('/', validate(createNewsSchema), authenticateUser, async (req, res, 
 
 router.put('/:newsId', authenticateUser, requireAdminRole, async (req, res, next) => {
     try {
+        const isValidUuid = validateUuid(req.params.newsId);
+        if (!isValidUuid) throw new NotFoundError('Not valid UUID format');
+
         const { title, body } = req.body;
 
         const newsId = req.params.newsId;

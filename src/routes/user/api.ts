@@ -3,6 +3,7 @@ import express from 'express';
 import { authenticateUser } from '../../middlewares/authenticate-user';
 import { validate } from '../../middlewares/validate-request';
 import { NotFoundError } from '../../utils/errors';
+import { validateUuid } from '../../utils/validate';
 import { getUserById, updateUser } from './repository';
 import { updateUserSchema } from './schema';
 
@@ -23,6 +24,9 @@ router.get('/me', authenticateUser, async (req, res, next) => {
 
 router.patch('/me', validate(updateUserSchema), authenticateUser, async (req, res, next) => {
     try {
+        const isValidUuid = validateUuid(req.user.id);
+        if (!isValidUuid) throw new NotFoundError('UserId not valid (uuid)');
+
         const id = req.user.id;
         const { name, email, nickName, birthday, profileImage } = req.body;
 

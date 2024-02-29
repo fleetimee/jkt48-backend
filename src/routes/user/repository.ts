@@ -28,9 +28,11 @@ export const updateUser = async (
     birthday: Date,
     profileImage: string,
 ) => {
+    const currentDate = new Date();
+
     const [user] = await db
         .update(users)
-        .set({ email, nickName, name, birthday, profileImage })
+        .set({ email, nickName, name, birthday, profileImage, updatedAt: currentDate })
         .where(eq(users.id, id))
         .returning();
 
