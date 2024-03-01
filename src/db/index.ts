@@ -1,6 +1,9 @@
+import { DefaultLogger, LogWriter } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import postgres from 'postgres';
+import winston from 'winston';
+import DailyRotateFile from 'winston-daily-rotate-file';
 
 import { DB_DATABASE, DB_HOST, DB_MAX_CONNECTIONS, DB_PASSWORD, DB_PORT, DB_SSL, DB_USER } from '../config';
 import * as schema from '../models/package';
@@ -17,7 +20,33 @@ const pg = postgres({
     onnotice: () => {},
 });
 
-const db = drizzle(pg, { schema: schema, logger: true });
+class MyLogWriter implements LogWriter {
+    private logger: winston.Logger;
+
+    constructor() {
+        this.logger = winston.createLogger({
+            level: 'info',
+            format: winston.format.json(),
+            transports: [
+                new DailyRotateFile({
+                    filename: 'logs/drizzle/drizzle-queries-%DATE%.log',
+                    datePattern: 'YYYY-MM-DD',
+                    zippedArchive: true,
+                    maxSize: '20m',
+                    maxFiles: '14d',
+                }),
+            ],
+        });
+    }
+
+    write(message: string) {
+        this.logger.info(message);
+    }
+}
+
+const logger = new DefaultLogger({ writer: new MyLogWriter() });
+
+const db = drizzle(pg, { schema: schema, logger });
 
 migrate(db, { migrationsFolder: 'drizzle' });
 
