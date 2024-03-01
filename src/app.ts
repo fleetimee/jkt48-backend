@@ -7,12 +7,16 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 
 import { errorHandler } from './middlewares/error-handler';
+import loggingMiddleware from './middlewares/logging';
 import { rateLimiter } from './middlewares/rate-limiter';
 import routes from './routes';
 
 const app = express();
 
 app.use(morgan('dev'));
+
+app.use(loggingMiddleware);
+
 app.use(helmet());
 app.use(compression());
 app.use(express.json());
