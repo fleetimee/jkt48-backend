@@ -4,7 +4,7 @@ import { verifyToken } from '../routes/auth/utils';
 import logger from '../utils/winston';
 
 const loggingMiddleware = async (req: Request, res: Response, next: NextFunction) => {
-    let user = 'unauthenticated';
+    let user = 'Unauthenticated';
     const authHeader = req.headers.authorization;
 
     if (authHeader) {
@@ -27,10 +27,10 @@ const loggingMiddleware = async (req: Request, res: Response, next: NextFunction
     }
 
     const now = new Date();
-    const date = now.toLocaleDateString('en-US', {
+    const date = now.toLocaleDateString('en-GB', {
         timeZone: 'Asia/Jakarta',
     });
-    const time = now.toLocaleTimeString('en-US', {
+    const time = now.toLocaleTimeString('en-GB', {
         timeZone: 'Asia/Jakarta',
         hour: 'numeric',
         minute: 'numeric',
