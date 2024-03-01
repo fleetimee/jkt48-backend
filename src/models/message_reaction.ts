@@ -4,7 +4,7 @@ import { message } from './message';
 import { users } from './users';
 
 export const reaction = pgTable('reaction', {
-    id: uuid('id').primaryKey().unique().notNull(),
+    id: uuid('id').primaryKey().unique().notNull().defaultRandom(),
     emoji: text('emoji').notNull(),
 });
 
