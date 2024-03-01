@@ -211,6 +211,20 @@
             "when": 1709265022532,
             "tag": "0029_rare_ultimo",
             "breakpoints": true
+        },
+        {
+            "idx": 30,
+            "version": "5",
+            "when": 1709277778549,
+            "tag": "0030_nifty_rhodey",
+            "breakpoints": true
+        },
+        {
+            "idx": 31,
+            "version": "5",
+            "when": 1709277871922,
+            "tag": "0031_perfect_bulldozer",
+            "breakpoints": true
         }
     ]
 }

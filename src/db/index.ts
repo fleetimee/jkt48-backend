@@ -40,7 +40,9 @@ class MyLogWriter implements LogWriter {
     }
 
     write(message: string) {
-        this.logger.info(message);
+        const formattedMessage = message.replace(/\n/g, ' ');
+        const timestamp = new Date().toISOString();
+        this.logger.info(`${timestamp} - ${formattedMessage}`);
     }
 }
 
