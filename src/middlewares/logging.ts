@@ -8,7 +8,7 @@ const loggingMiddleware = async (req: Request, res: Response, next: NextFunction
     const authHeader = req.headers.authorization;
 
     if (authHeader) {
-        const token = authHeader.split(' ')[1]; // Bearer <token>
+        const token = authHeader.split(' ')[1];
         try {
             const payload = verifyToken(token);
             user = `${payload.name} - ${payload.email} - ${payload.roles}`;
@@ -18,7 +18,6 @@ const loggingMiddleware = async (req: Request, res: Response, next: NextFunction
                 service: 'jkt48-pm',
             });
         } catch (err) {
-            // Token is invalid or user not found, log as unauthenticated
             logger.warn({
                 level: 'warn',
                 message: `Unauthenticated access attempt: ${err}`,
