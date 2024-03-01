@@ -75,3 +75,40 @@ export const getMessages = async (conversationId: string, limit: number, offset:
 
     return messages;
 };
+
+export const createMessage = async (
+    conversationId: string,
+    userId: string,
+    message: string,
+    attachments?: Array<{ filePath: string; fileType: string; fileSize: number; checksum: string }>,
+) => {
+    // Start a transaction
+    await db.execute(sql`BEGIN;`);
+
+    // Insert the message and return its id
+    const result = await db.execute(sql`
+        WITH new_message AS (
+            INSERT INTO message (message, created_at, user_id, conversation_id)
+            VALUES (${message}, NOW(), ${userId}, ${conversationId})
+            RETURNING id
+        )
+        SELECT id FROM new_message;
+    `);
+
+    const messageId = result[0].id;
+
+    // If there are any attachments, insert them into the message_attachment table
+    if (attachments) {
+        for (const attachment of attachments) {
+            await db.execute(sql`
+                INSERT INTO message_attachment (message_id, file_path, file_type, created_at, file_size, checksum)
+                VALUES (${messageId}, ${attachment.filePath}, ${attachment.fileType}, NOW(), ${attachment.fileSize}, ${attachment.checksum});
+            `);
+        }
+    }
+
+    // Commit the transaction
+    await db.execute(sql`COMMIT;`);
+
+    return messageId;
+};
