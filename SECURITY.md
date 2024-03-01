@@ -9,10 +9,6 @@
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-# Security Policy
-
-
-
 ## Reporting a Vulnerability
 
 Please report (suspected) security vulnerabilities to
