@@ -3,6 +3,12 @@ import { NextFunction, Request, Response } from 'express';
 import { verifyToken } from '../routes/auth/utils';
 import logger from '../utils/winston';
 
+/**
+ * Middleware function for logging request information.
+ * @param req - The Express request object.
+ * @param res - The Express response object.
+ * @param next - The next middleware function.
+ */
 const loggingMiddleware = async (req: Request, res: Response, next: NextFunction) => {
     let user = 'Unauthenticated';
     const authHeader = req.headers.authorization;

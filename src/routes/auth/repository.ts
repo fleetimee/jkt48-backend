@@ -14,6 +14,9 @@ export const getUser = async (email: string) => {
 export const verifyLogin = async (email: string, password: string) => {
     const user = await getUser(email);
 
+    const isUserVerified = user?.emailVerified;
+    if (!isUserVerified) throw new UnauthorizedError('Email is not verified yet!');
+
     if (!user) throw new UnauthorizedError('Invalid username or password');
 
     const passwordIsValid = await bcrypt.compare(password, user.passwordHash);
@@ -30,6 +33,7 @@ export const registerUser = async (email: string, password: string, name: string
 
 export const verifyUser = async (email: string, verificationToken: string) => {
     const user = await getUser(email);
+    const dateNow = new Date();
 
     if (!user) throw new UnauthorizedError('Invalid verification token');
 
@@ -37,7 +41,7 @@ export const verifyUser = async (email: string, verificationToken: string) => {
 
     if (user.emailVerified) throw new BadRequestError('Email is already verified');
 
-    await db.update(users).set({ emailVerified: true }).where(eq(users.email, email));
+    await db.update(users).set({ emailVerified: true, emailVerifiedAt: dateNow }).where(eq(users.email, email));
 };
 
 export const forgotPasswordUser = async (email: string, token: string) => {
