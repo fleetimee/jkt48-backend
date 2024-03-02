@@ -23,17 +23,17 @@ const router = express.Router();
 
 router.post('/register', validate(registerSchema), rateLimiterStrict, async (req, res, next) => {
     try {
-        const { email, password, name } = req.body;
+        const { email, password, name, birthday } = req.body;
 
         const user = await getUser(email);
         if (user) throw new ConflictError('A user with that email already exists');
 
-        // Generate a verification token and send an email to the user
         const verificationToken = generateVerificationCode();
 
-        await registerUser(email, password, name, verificationToken);
+        const birthdayDate = new Date(birthday);
 
-        // Send verification email
+        await registerUser(email, password, name, birthdayDate, verificationToken);
+
         const emailResult = await sendEmail({
             // to: [email],
             to: ['zane.227@gmail.com'],
@@ -47,6 +47,8 @@ router.post('/register', validate(registerSchema), rateLimiterStrict, async (req
 
         res.status(StatusCodes.CREATED).json({ message: 'User registered successfully' });
     } catch (error) {
+        console.log(error);
+
         next(error);
     }
 });
