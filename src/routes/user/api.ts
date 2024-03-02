@@ -1,10 +1,11 @@
 import express from 'express';
+import { StatusCodes } from 'http-status-codes';
 
 import { authenticateUser } from '../../middlewares/authenticate-user';
 import { validate } from '../../middlewares/validate-request';
 import { NotFoundError } from '../../utils/errors';
 import { validateUuid } from '../../utils/validate';
-import { getUserById, updateUser } from './repository';
+import { countRegisteredUsers, getUserById, updateUser } from './repository';
 import { updateUserSchema } from './schema';
 
 const router = express.Router();
@@ -16,7 +17,17 @@ router.get('/me', authenticateUser, async (req, res, next) => {
         const user = await getUserById(id);
         if (!user) throw new NotFoundError('User not found');
 
-        res.status(200).send({ user });
+        res.status(StatusCodes.OK).send({ user });
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.get('/count', async (req, res, next) => {
+    try {
+        const count = await countRegisteredUsers();
+
+        res.status(StatusCodes.OK).send({ count });
     } catch (error) {
         next(error);
     }
@@ -32,7 +43,7 @@ router.patch('/me', validate(updateUserSchema), authenticateUser, async (req, re
 
         const user = await updateUser(id, email, nickName, name, birthday, profileImage);
 
-        res.status(200).send({ user });
+        res.status(StatusCodes.OK).send({ user });
     } catch (error) {
         next(error);
     }

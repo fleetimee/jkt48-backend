@@ -1,10 +1,13 @@
 import express from 'express';
 import { StatusCodes } from 'http-status-codes';
 
+import { authenticateUser } from '../../middlewares/authenticate-user';
+import { validate } from '../../middlewares/validate-request';
 import { UnprocessableEntityError } from '../../utils/errors';
 import { formatResponsePaginated } from '../../utils/response-formatter';
 import { validateUuid } from '../../utils/validate';
-import { getMessages } from './repository';
+import { createMessage, getMessages } from './repository';
+import { createMessageSchema } from './schema';
 
 const router = express.Router();
 
@@ -40,6 +43,36 @@ router.get('/:id', async (req, res, next) => {
     }
 });
 
-// router.post('/', async (req, res, next) => { });
+router.post('/', validate(createMessageSchema), authenticateUser, async (req, res, next) => {
+    try {
+        const { conversationId, messages, attachments } = req.body;
+
+        const formattedAttachments = attachments?.map(
+            (attachment: { file_path: string; file_type: string; file_size: number; checksum: string }) => ({
+                filePath: attachment.file_path,
+                fileType: attachment.file_type,
+                fileSize: attachment.file_size,
+                checksum: attachment.checksum,
+            }),
+        );
+
+        const userId = req.user.id;
+
+        const sendMessage = await createMessage(conversationId, userId, messages, formattedAttachments);
+
+        res.status(StatusCodes.OK).send({
+            success: true,
+            code: StatusCodes.OK,
+            message: 'Success create message',
+            data: {
+                sendMessage,
+            },
+        });
+    } catch (error) {
+        console.error(error);
+
+        next(error);
+    }
+});
 
 export default router;

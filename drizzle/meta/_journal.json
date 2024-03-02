@@ -225,6 +225,13 @@
             "when": 1709277871922,
             "tag": "0031_perfect_bulldozer",
             "breakpoints": true
+        },
+        {
+            "idx": 32,
+            "version": "5",
+            "when": 1709349033441,
+            "tag": "0032_colossal_kang",
+            "breakpoints": true
         }
     ]
 }

@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 
 import db from '../../db';
 import { users } from '../../models/users';
@@ -37,4 +37,14 @@ export const updateUser = async (
         .returning();
 
     return user;
+};
+
+export const countRegisteredUsers = async () => {
+    const [count] = await db
+        .select({
+            count: sql<number>`cast(count(*) as int) as count`,
+        })
+        .from(users);
+
+    return count;
 };
