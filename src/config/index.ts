@@ -31,3 +31,6 @@ export const RESEND_SENDER = process.env.RESEND_SENDER;
 
 /* Xendit */
 export const XENDIT_SECRET_KEY = process.env.XENDIT_SECRET_KEY;
+
+/* Tax */
+export const PPN_PERCENTAGE = Number(process.env.PPN_PERCENTAGE) || 0.1;

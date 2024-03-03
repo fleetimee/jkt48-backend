@@ -3,6 +3,7 @@ import express from 'express';
 import auth from './auth/api';
 import conversation from './conversation/api';
 import idol from './idol/api';
+import inquiry from './inquiry/api';
 import messages from './messages/api';
 import news from './news/api';
 import packet from './packet/api';
@@ -25,6 +26,7 @@ router.use('/idol', idol);
 router.use('/top-idol', topIdol);
 router.use('/conversation', conversation);
 router.use('/messages', messages);
+router.use('/inquiry', inquiry);
 
 // Handle 404
 router.use((req, res) => {

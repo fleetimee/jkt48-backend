@@ -1,7 +1,9 @@
 import { eq } from 'drizzle-orm';
 
+import { PPN_PERCENTAGE } from '../../config';
 import db from '../../db';
 import { packagePayment } from '../../models/package';
+import { calculateTaxAndTotal } from '../../utils/lib';
 
 export const getPackageList = async () => {
     return await db.query.packagePayment.findMany();
@@ -29,4 +31,20 @@ export const updatePackage = async (
         .returning();
 
     return packageItem;
+};
+
+export const getInquiry = async (packageId: string) => {
+    const [packageItem] = await db
+        .select({
+            packageName: packagePayment.name,
+            packageDescription: packagePayment.description,
+            packagePrice: packagePayment.price,
+        })
+        .from(packagePayment)
+        .where(eq(packagePayment.id, packageId))
+        .limit(1);
+
+    const { tax, total } = calculateTaxAndTotal(Number(packageItem.packagePrice), PPN_PERCENTAGE);
+
+    return { ...packageItem, tax, total };
 };

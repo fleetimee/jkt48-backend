@@ -25,3 +25,18 @@ export const generateResetTokenPassword = () => {
     }
     return randomString;
 };
+
+/**
+ * Calculates the tax and total amount for a given price and tax rate.
+ * @param price - The price of the item.
+ * @param taxRate - The tax rate as a percentage.
+ * @returns An object containing the calculated tax and total amount.
+ */
+export const calculateTaxAndTotal = (price: number, taxRate: number) => {
+    console.log('price', price);
+    console.log('taxRate', taxRate);
+
+    const tax = Math.round(price * (taxRate / 100));
+    const total = price + tax;
+    return { tax, total };
+};
