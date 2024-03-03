@@ -232,6 +232,13 @@
             "when": 1709349033441,
             "tag": "0032_colossal_kang",
             "breakpoints": true
+        },
+        {
+            "idx": 33,
+            "version": "5",
+            "when": 1709426259537,
+            "tag": "0033_peaceful_silver_samurai",
+            "breakpoints": true
         }
     ]
 }
