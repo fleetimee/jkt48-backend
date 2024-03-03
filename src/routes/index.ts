@@ -4,6 +4,7 @@ import auth from './auth/api';
 import conversation from './conversation/api';
 import idol from './idol/api';
 import inquiry from './inquiry/api';
+import invoice from './invoice/api';
 import messages from './messages/api';
 import news from './news/api';
 import order from './order/api';
@@ -29,6 +30,7 @@ router.use('/conversation', conversation);
 router.use('/messages', messages);
 router.use('/inquiry', inquiry);
 router.use('/order', order);
+router.use('/invoice', invoice);
 
 // Handle 404
 router.use((req, res) => {
