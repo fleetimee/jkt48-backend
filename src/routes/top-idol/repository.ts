@@ -5,6 +5,8 @@ import db from '../../db';
 export const getTopIdol = async () => {
     const topIdol = await db.execute(sql`
     SELECT
+       u.id AS user_id,
+       i.id AS idol_id,
        u.nickname,
        u.profile_image,
        it.subscription_count
