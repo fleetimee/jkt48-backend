@@ -6,6 +6,7 @@ import idol from './idol/api';
 import inquiry from './inquiry/api';
 import messages from './messages/api';
 import news from './news/api';
+import order from './order/api';
 import packet from './packet/api';
 import posts from './posts/api';
 import privacyPolicy from './privacy-policy/api';
@@ -27,6 +28,7 @@ router.use('/top-idol', topIdol);
 router.use('/conversation', conversation);
 router.use('/messages', messages);
 router.use('/inquiry', inquiry);
+router.use('/order', order);
 
 // Handle 404
 router.use((req, res) => {
