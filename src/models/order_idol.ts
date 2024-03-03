@@ -6,11 +6,17 @@ import { order } from './order';
 export const orderIdols = pgTable('order_idol', {
     orderId: uuid('order_id')
         .notNull()
-        .references(() => order.id),
+        .references(() => order.id, {
+            onDelete: 'cascade',
+            onUpdate: 'cascade',
+        }),
     idolId: varchar('idol_id', {
         length: 10,
     })
         .notNull()
         .unique()
-        .references(() => idol.id),
+        .references(() => idol.id, {
+            onDelete: 'cascade',
+            onUpdate: 'cascade',
+        }),
 });

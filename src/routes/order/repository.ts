@@ -11,17 +11,22 @@ export const createOrder = async (
     total: number,
     idolIds: string[],
 ) => {
+    console.log('idolIds', idolIds);
+    console.log({ userId, packageId, paymentMethod, subtotal, tax, total, idolIds });
+
     await db.transaction(async trx => {
         const [orderId] = await trx.execute(sql`
-        INSERT INTO order (user_id, package_id, payment_method, subtotal, tax, total)
-        VALUES (${userId}, ${packageId}, ${paymentMethod}, ${subtotal}, ${tax}, ${total})
+        INSERT INTO public."order" (user_id, package_id, payment_method, subtotal, tax, total, order_status)
+        VALUES (${userId}, ${packageId}, ${paymentMethod}::payment_method, ${subtotal}, ${tax}, ${total}, 'pending'::order_status)
         RETURNING id;
         `);
 
         for (const idolId of idolIds) {
+            console.log({ orderId, idolId });
+
             await trx.execute(sql`
             INSERT INTO order_idol (order_id, idol_id)
-            VALUES (${orderId}, ${idolId});
+            VALUES (${orderId.id}, ${idolId});
             `);
         }
 

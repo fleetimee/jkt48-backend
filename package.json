@@ -9,6 +9,7 @@
     "main": "src/index.ts",
     "scripts": {
         "dev": "nodemon src/index.ts",
+        "clean": "rm -rf dist",
         "build": "tsc",
         "start": "pm2 start ./dist/index.js --no-daemon",
         "generate": "drizzle-kit generate:pg",
