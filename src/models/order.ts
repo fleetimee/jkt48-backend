@@ -1,4 +1,4 @@
-import { numeric, pgEnum, pgTable, uuid } from 'drizzle-orm/pg-core';
+import { numeric, pgEnum, pgTable, timestamp, uuid } from 'drizzle-orm/pg-core';
 
 import { packagePayment } from './package';
 import { users } from './users';
@@ -28,4 +28,5 @@ export const order = pgTable('order', {
     tax: numeric('tax').notNull(),
     total: numeric('total').notNull(),
     orderStatus: oderStatusEnum('order_status'),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
 });

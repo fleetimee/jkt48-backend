@@ -28,3 +28,6 @@ export const DB_SSL =
 export const RESEND_KEY = process.env.RESEND_KEY;
 export const RESEND_EMAIL = process.env.RESEND_EMAIL;
 export const RESEND_SENDER = process.env.RESEND_SENDER;
+
+/* Xendit */
+export const XENDIT_SECRET_KEY = process.env.XENDIT_SECRET_KEY;
