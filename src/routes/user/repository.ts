@@ -55,12 +55,36 @@ export const updateUser = async (
     return user;
 };
 
+/**
+ * Counts the number of registered users who have verified their email and have the role of 'user'.
+ * @returns {Promise<number>} The count of registered users.
+ */
 export const countRegisteredUsers = async () => {
-    const [count] = await db
-        .select({
-            count: sql<number>`cast(count(*) as int) as count`,
-        })
-        .from(users);
+    const [count] = await db.execute(sql`
+    SELECT COUNT(*)
+    FROM users
+    WHERE email_verified = TRUE
+    AND roles = 'user';
+    `);
+
+    return count;
+};
+
+/**
+ * Counts the number of active subscriptions users.
+ * An active subscription user is defined as a user who has a successful order with an expiration date in the future.
+ *
+ * @returns {Promise<number>} The count of active subscriptions users.
+ */
+export const countActiveSubscriptionsUsers = async () => {
+    const [count] = await db.execute(sql`
+    SELECT COUNT(*)
+    FROM users
+    WHERE id IN (SELECT user_id
+                FROM "order"
+                WHERE order_status = 'success'
+                AND expired_at > NOW());
+    `);
 
     return count;
 };

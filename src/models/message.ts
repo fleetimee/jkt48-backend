@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { boolean, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 
 import { conversation } from './conversation';
 import { users } from './users';
@@ -14,4 +14,5 @@ export const message = pgTable('message', {
     message: text('message').notNull(),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    isApproved: boolean('approved').notNull().default(false),
 });
