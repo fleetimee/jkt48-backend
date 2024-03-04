@@ -2,6 +2,11 @@ import { sql } from 'drizzle-orm';
 
 import db from '../../db';
 
+/**
+ * Retrieves the reactions for the given message IDs.
+ * @param messageIds An array of message IDs.
+ * @returns A Promise that resolves to an array of reaction objects.
+ */
 export const getMessageReactions = async (messageIds: string[]) => {
     const reactions = await db.execute(
         sql.raw(
@@ -17,6 +22,12 @@ export const getMessageReactions = async (messageIds: string[]) => {
 
     return reactions;
 };
+
+/**
+ * Retrieves message attachments based on the provided message IDs.
+ * @param messageIds - An array of message IDs.
+ * @returns A Promise that resolves to an array of message attachments.
+ */
 export const getMessageAttachments = async (messageIds: string[]) => {
     const attachments = await db.execute(
         sql.raw(
@@ -37,6 +48,13 @@ export const getMessageAttachments = async (messageIds: string[]) => {
     return attachments;
 };
 
+/**
+ * Retrieves messages from the database based on the conversation ID, limit, and offset.
+ * @param conversationId - The ID of the conversation.
+ * @param limit - The maximum number of messages to retrieve.
+ * @param offset - The number of messages to skip before retrieving.
+ * @returns A Promise that resolves to an array of messages.
+ */
 export const getMessages = async (conversationId: string, limit: number, offset: number) => {
     const messages = await db.execute(
         sql.raw(
@@ -76,6 +94,13 @@ export const getMessages = async (conversationId: string, limit: number, offset:
     return messages;
 };
 
+/**
+ * Creates a new message in the database.
+ * @param conversationId - The ID of the conversation the message belongs to.
+ * @param userId - The ID of the user who sent the message.
+ * @param message - The content of the message.
+ * @param attachments - Optional array of attachments associated with the message.
+ */
 export const createMessage = async (
     conversationId: string,
     userId: string,

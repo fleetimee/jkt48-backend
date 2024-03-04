@@ -2,6 +2,18 @@ import { sql } from 'drizzle-orm';
 
 import db from '../../db';
 
+/**
+ * Creates a new order in the database.
+ *
+ * @param {string} userId - The ID of the user placing the order.
+ * @param {string} packageId - The ID of the package being ordered.
+ * @param {string} paymentMethod - The payment method used for the order.
+ * @param {number} subtotal - The subtotal amount of the order.
+ * @param {number} tax - The tax amount of the order.
+ * @param {number} total - The total amount of the order.
+ * @param {string[]} idolIds - An array of IDs of the idols included in the order.
+ * @returns {Promise<number>} - The ID of the created order.
+ */
 export const createOrder = async (
     userId: string,
     packageId: string,
@@ -32,4 +44,49 @@ export const createOrder = async (
 
         return orderId;
     });
+};
+
+/**
+ * Retrieves the details of an order by its ID.
+ *
+ * @param {string} orderId - The ID of the order to retrieve.
+ * @returns {Promise<Object>} - The order details.
+ */
+export const getInquiryOrder = async (orderId: string) => {
+    const [order] = await db.execute(sql`
+    SELECT o.id           AS order_id,
+       o.subtotal     AS order_subtotal,
+       o.tax          AS order_tax,
+       o.total        AS order_total,
+       p.name         AS package_name,
+       p.description  AS package_description,
+       p.price        AS package_price,
+       'subscription' AS category,
+       1              AS quantity
+    FROM "order" o
+            INNER JOIN users u ON o.user_id = u.id
+            INNER JOIN package p ON o.package_id = p.id
+    WHERE o.id = ${orderId}
+    `);
+
+    return order;
+};
+
+/**
+ * Retrieves the list of idol nicknames associated with a specific order ID.
+ * @param {string} orderId - The ID of the order.
+ * @returns {Promise<string[]>} - A promise that resolves to an array of idol nicknames.
+ */
+export const getInquiryOrderListIdol = async (orderId: string) => {
+    const order = await db.execute(sql`
+    SELECT i.given_name AS idol_nickname
+    FROM order_idol
+            INNER JOIN "order" o ON order_idol.order_id = o.id
+            INNER JOIN idol i ON order_idol.idol_id = i.id
+    WHERE o.id = ${orderId}
+    `);
+
+    const idolNicknames = order.map(row => row.idol_nickname);
+
+    return idolNicknames;
 };

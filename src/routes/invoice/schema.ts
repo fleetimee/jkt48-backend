@@ -2,11 +2,10 @@ import { z } from 'zod';
 
 export const createInvoiceSchema = z.object({
     body: z.object({
-        externalId: z.string().min(1, 'External ID must be at least 1 character long'),
-        amount: z.number().min(1, 'Amount must be at least 1'),
+        idOrder: z.string().min(1, 'External ID must be at least 1 character long'),
+        amount: z.number().min(1, 'Amount must be at least 1').optional(),
         currency: z.string().min(1, 'Currency must be at least 1 character long'),
-        description: z.string().min(1, 'Description must be at least 1 character long'),
-        payerEmail: z.string().email('Invalid email'),
+        description: z.string().min(1, 'Description must be at least 1 character long').optional(),
         customer: z
             .object({
                 givename: z.string().optional(),

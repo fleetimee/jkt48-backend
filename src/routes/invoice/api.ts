@@ -3,7 +3,10 @@ import { StatusCodes } from 'http-status-codes';
 
 import { authenticateUser } from '../../middlewares/authenticate-user';
 import { validate } from '../../middlewares/validate-request';
+import { UnprocessableEntityError } from '../../utils/errors';
 import { formatResponse } from '../../utils/response-formatter';
+import { validateUuid } from '../../utils/validate';
+import { getInquiryOrder } from '../order/repository';
 import { createInvoice, getInvoice } from './repository';
 import { createInvoiceSchema } from './schema';
 
@@ -33,22 +36,47 @@ router.get('/:invoiceId', async (req, res, next) => {
 
 router.post('/', validate(createInvoiceSchema), authenticateUser, async (req, res, next) => {
     try {
-        const idUser = req.user.id;
+        const { id, email, name } = req.user;
 
-        const { idOrder, amount, currency, description, payerEmail } = req.body;
+        const { idOrder, currency } = req.body;
 
-        // const getOrder = await getOrderBy
+        // Check if idOrder is valid
+        if (!validateUuid(idOrder)) throw new UnprocessableEntityError('The orderId is not a valid UUID');
 
-        const invoice = await createInvoice(
-            {
-                externalId: idOrder,
-                amount,
-                currency,
-                description,
-                payerEmail,
+        // Check if order exists
+
+        // Inquiry order to get package details
+        const inquiryOrder = await getInquiryOrder(idOrder);
+
+        console.log(inquiryOrder);
+
+        const invoice = await createInvoice({
+            externalId: idOrder,
+            payerEmail: email,
+            amount: inquiryOrder.order_total as number,
+            currency,
+            description: 'Pembayaran JKT48 Private Message',
+            customer: {
+                id: id,
+                email: email,
+                customerId: `${id}-${Date.now()}`,
+                givenNames: name,
             },
-            idUser,
-        );
+            items: [
+                {
+                    name: inquiryOrder.package_name as string,
+                    price: inquiryOrder.order_subtotal as number,
+                    quantity: 1,
+                    category: inquiryOrder.category as string,
+                },
+                {
+                    name: 'Tax',
+                    price: inquiryOrder.order_tax as number,
+                    quantity: 1,
+                    category: 'tax',
+                },
+            ],
+        });
 
         res.status(StatusCodes.OK).send(
             formatResponse({
@@ -59,7 +87,7 @@ router.post('/', validate(createInvoiceSchema), authenticateUser, async (req, re
             }),
         );
     } catch (error) {
-        // console.error(error);
+        console.error(error);
         next(error);
     }
 });

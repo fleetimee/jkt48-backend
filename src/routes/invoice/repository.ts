@@ -16,12 +16,16 @@ const xenditInvoiceClient = new InvoiceClient({ secretKey: XENDIT_SECRET_KEY as 
 //     payerEmail: 'zane.227@gmail.com',
 // };
 
-export const createInvoice = async (xenditData: CreateInvoiceRequest, forUserId: string) => {
-    // console.log(data);
+/**
+ * Creates an invoice using the provided Xendit data.
+ * @param xenditData - The data required to create the invoice.
+ * @returns The created invoice.
+ */
+export const createInvoice = async (xenditData: CreateInvoiceRequest) => {
+    console.log(xenditData);
 
     const response: Invoice = await xenditInvoiceClient.createInvoice({
         data: xenditData,
-        forUserId: forUserId,
     });
 
     console.log(response);
@@ -29,13 +33,15 @@ export const createInvoice = async (xenditData: CreateInvoiceRequest, forUserId:
     return response;
 };
 
+/**
+ * Retrieves an invoice by its ID.
+ * @param {string} invoiceId - The ID of the invoice to retrieve.
+ * @returns {Promise<Invoice>} - A promise that resolves to the retrieved invoice.
+ */
 export const getInvoice = async (invoiceId: string) => {
     const response: Invoice = await xenditInvoiceClient.getInvoiceById({
         invoiceId,
     });
-    console.log(response);
-
-    console.log(response);
 
     return response;
 };
