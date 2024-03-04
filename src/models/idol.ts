@@ -9,9 +9,14 @@ export const idol = pgTable('idol', {
         .primaryKey()
         .unique()
         .notNull(),
+    bio: text('bio'),
     givenName: text('given_name').notNull(),
     familyName: text('family_name').notNull(),
     horoscope: text('horoscope').notNull(),
+    height: text('height'),
+    bloodType: text('blood_type'),
+    instagramUrl: text('instagram_url'),
+    xUrl: text('x_url'),
     userId: uuid('user_id')
         .references(() => users.id)
         .notNull()

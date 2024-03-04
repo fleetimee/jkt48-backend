@@ -274,6 +274,13 @@
             "when": 1709536761333,
             "tag": "0038_exotic_human_cannonball",
             "breakpoints": true
+        },
+        {
+            "idx": 39,
+            "version": "5",
+            "when": 1709540623348,
+            "tag": "0039_dry_frightful_four",
+            "breakpoints": true
         }
     ]
 }
