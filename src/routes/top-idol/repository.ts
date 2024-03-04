@@ -2,6 +2,10 @@ import { sql } from 'drizzle-orm';
 
 import db from '../../db';
 
+/**
+ * Retrieves the top idol data.
+ * @returns {Promise<Array<Object>>} The top idol data.
+ */
 export const getTopIdol = async () => {
     const topIdol = await db.execute(sql`
     SELECT
