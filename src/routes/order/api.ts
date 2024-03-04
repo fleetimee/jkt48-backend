@@ -55,10 +55,7 @@ router.post('/', validate(createOrderSchema), authenticateUser, async (req, res,
 
         const { packageId, paymentMethod, subtotal, tax, total, idolIds } = req.body;
 
-        console.log({ userId, packageId, paymentMethod, subtotal, tax, total, idolIds });
-
         // const checkPackageId = getPackage(packageId);
-        // console.log(checkPackageId);
 
         const createOrderItem = await createOrder(userId, packageId, paymentMethod, subtotal, tax, total, idolIds);
 

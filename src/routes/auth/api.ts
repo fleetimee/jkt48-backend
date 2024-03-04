@@ -47,8 +47,6 @@ router.post('/register', validate(registerSchema), rateLimiterStrict, async (req
 
         res.status(StatusCodes.CREATED).json({ message: 'User registered successfully' });
     } catch (error) {
-        console.log(error);
-
         next(error);
     }
 });

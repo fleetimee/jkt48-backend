@@ -33,9 +33,6 @@ export const generateResetTokenPassword = () => {
  * @returns An object containing the calculated tax and total amount.
  */
 export const calculateTaxAndTotal = (price: number, taxRate: number) => {
-    console.log('price', price);
-    console.log('taxRate', taxRate);
-
     const tax = Math.round(price * (taxRate / 100));
     const total = price + tax;
     return { tax, total };

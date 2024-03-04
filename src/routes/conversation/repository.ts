@@ -2,6 +2,13 @@ import { sql } from 'drizzle-orm';
 
 import db from '../../db';
 
+/**
+ * Retrieves conversations with optional search query, limited by a specified number and offset.
+ * @param limit - The maximum number of conversations to retrieve.
+ * @param offset - The number of conversations to skip before starting to retrieve.
+ * @param searchQuery - The optional search query to filter conversations by user nickname.
+ * @returns A promise that resolves to an array of conversations.
+ */
 export const getConversations = async (limit: number, offset: number, searchQuery?: string) => {
     let whereClause = '';
     if (searchQuery) {
@@ -32,6 +39,11 @@ export const getConversations = async (limit: number, offset: number, searchQuer
     return conversation;
 };
 
+/**
+ * Retrieves conversations by conversation ID.
+ * @param conversationId - The ID of the conversation.
+ * @returns A Promise that resolves to the conversation data.
+ */
 export const getConversationsById = async (conversationId: string) => {
     const conversation = await db.execute(
         sql.raw(

@@ -22,13 +22,9 @@ const xenditInvoiceClient = new InvoiceClient({ secretKey: XENDIT_SECRET_KEY as 
  * @returns The created invoice.
  */
 export const createInvoice = async (xenditData: CreateInvoiceRequest) => {
-    console.log(xenditData);
-
     const response: Invoice = await xenditInvoiceClient.createInvoice({
         data: xenditData,
     });
-
-    console.log(response);
 
     return response;
 };

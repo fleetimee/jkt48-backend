@@ -18,8 +18,6 @@ router.get('/:invoiceId', async (req, res, next) => {
 
         const invoice = await getInvoice(invoiceId);
 
-        console.log(invoice);
-
         res.status(StatusCodes.OK).send(
             formatResponse({
                 success: true,
@@ -29,7 +27,6 @@ router.get('/:invoiceId', async (req, res, next) => {
             }),
         );
     } catch (error) {
-        // console.error(error);
         next(error);
     }
 });
@@ -43,12 +40,10 @@ router.post('/', validate(createInvoiceSchema), authenticateUser, async (req, re
         // Check if idOrder is valid
         if (!validateUuid(idOrder)) throw new UnprocessableEntityError('The orderId is not a valid UUID');
 
-        // Check if order exists
+        // TODO: Check if order exists
 
         // Inquiry order to get package details
         const inquiryOrder = await getInquiryOrder(idOrder);
-
-        console.log(inquiryOrder);
 
         const invoice = await createInvoice({
             externalId: idOrder,
