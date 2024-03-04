@@ -1,6 +1,20 @@
-import { sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 
 import db from '../../db';
+import { order } from '../../models/order';
+
+/**
+ * Retrieves an order by its ID.
+ * @param orderId - The ID of the order to retrieve.
+ * @returns The order item matching the provided ID, or undefined if not found.
+ */
+export const getOrderById = async (orderId: string) => {
+    const [orderItem] = await db.select().from(order).where(eq(order.id, orderId));
+
+    console.log('orderItem', orderItem);
+
+    return orderItem;
+};
 
 /**
  * Creates a new order in the database.

@@ -3,11 +3,36 @@ import { StatusCodes } from 'http-status-codes';
 
 import { authenticateUser } from '../../middlewares/authenticate-user';
 import { validate } from '../../middlewares/validate-request';
+import { NotFoundError } from '../../utils/errors';
 import { formatResponse } from '../../utils/response-formatter';
-import { createOrder, getInquiryOrder, getInquiryOrderListIdol } from './repository';
+import { createOrder, getInquiryOrder, getInquiryOrderListIdol, getOrderById } from './repository';
 import { createOrderSchema } from './schema';
 
 const router = express.Router();
+
+router.get('/:orderId', async (req, res, next) => {
+    try {
+        const orderId = req.params.orderId;
+
+        const order = await getOrderById(orderId);
+
+        if (!order) throw new NotFoundError('Order not found');
+
+        console.log('order', order);
+
+        res.status(StatusCodes.OK).send(
+            formatResponse({
+                success: true,
+                code: StatusCodes.OK,
+                message: 'Order fetched',
+                data: order,
+            }),
+        );
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+});
 
 router.get('/inquiry/:orderId', async (req, res, next) => {
     try {

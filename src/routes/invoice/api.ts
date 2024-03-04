@@ -6,7 +6,7 @@ import { validate } from '../../middlewares/validate-request';
 import { UnprocessableEntityError } from '../../utils/errors';
 import { formatResponse } from '../../utils/response-formatter';
 import { validateUuid } from '../../utils/validate';
-import { getInquiryOrder } from '../order/repository';
+import { getInquiryOrder, getOrderById } from '../order/repository';
 import { createInvoice, getInvoice } from './repository';
 import { createInvoiceSchema } from './schema';
 
@@ -40,7 +40,9 @@ router.post('/', validate(createInvoiceSchema), authenticateUser, async (req, re
         // Check if idOrder is valid
         if (!validateUuid(idOrder)) throw new UnprocessableEntityError('The orderId is not a valid UUID');
 
-        // TODO: Check if order exists
+        // Check if the order exists
+        const order = await getOrderById(idOrder);
+        if (!order) throw new UnprocessableEntityError('The order does not exist');
 
         // Inquiry order to get package details
         const inquiryOrder = await getInquiryOrder(idOrder);
