@@ -7,10 +7,27 @@ import { UnprocessableEntityError } from '../../utils/errors';
 import { formatResponse } from '../../utils/response-formatter';
 import { validateUuid } from '../../utils/validate';
 import { getInquiryOrder, getOrderById } from '../order/repository';
-import { createInvoice, getInvoice } from './repository';
+import { createInvoice, expireInvoice, getInvoice, getInvoices } from './repository';
 import { createInvoiceSchema } from './schema';
 
 const router = express.Router();
+
+router.get('/', async (req, res, next) => {
+    try {
+        const invoices = await getInvoices();
+
+        res.status(StatusCodes.OK).send(
+            formatResponse({
+                success: true,
+                code: StatusCodes.OK,
+                message: 'Invoices fetched',
+                data: invoices,
+            }),
+        );
+    } catch (error) {
+        next(error);
+    }
+});
 
 router.get('/:invoiceId', async (req, res, next) => {
     try {
@@ -31,10 +48,31 @@ router.get('/:invoiceId', async (req, res, next) => {
     }
 });
 
+router.get('/:invoiceId/forceExpire', async (req, res, next) => {
+    try {
+        const invoiceId = req.params.invoiceId;
+
+        const invoice = await expireInvoice(invoiceId);
+
+        res.status(StatusCodes.OK).send(
+            formatResponse({
+                success: true,
+                code: StatusCodes.OK,
+                message: 'Invoice expired',
+                data: invoice,
+            }),
+        );
+    } catch (error) {
+        next(error);
+    }
+});
+
 router.post('/', validate(createInvoiceSchema), authenticateUser, async (req, res, next) => {
     try {
+        // Get user details from the request
         const { id, email, name } = req.user;
 
+        // Get order details from the body of the request
         const { idOrder, currency } = req.body;
 
         // Check if idOrder is valid
@@ -47,6 +85,7 @@ router.post('/', validate(createInvoiceSchema), authenticateUser, async (req, re
         // Inquiry order to get package details
         const inquiryOrder = await getInquiryOrder(idOrder);
 
+        // Build request body for creating invoice
         const invoice = await createInvoice({
             externalId: idOrder,
             payerEmail: email,

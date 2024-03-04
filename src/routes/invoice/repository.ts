@@ -8,13 +8,28 @@ const { Invoice } = xenditClient;
 
 const xenditInvoiceClient = new InvoiceClient({ secretKey: XENDIT_SECRET_KEY as string });
 
-// const data: CreateInvoiceRequest = {
-//     externalId: '12xnm2kajkd2121287348989475',
-//     amount: 10000,
-//     currency: 'IDR',
-//     description: 'Invoice for order #111',
-//     payerEmail: 'zane.227@gmail.com',
-// };
+/**
+ * Retrieves a list of invoices.
+ * @returns {Promise<Invoice[]>} A promise that resolves to an array of invoices.
+ */
+export const getInvoices = async () => {
+    const response: Invoice[] = await xenditInvoiceClient.getInvoices({});
+
+    return response;
+};
+
+/**
+ * Retrieves an invoice by its ID.
+ * @param {string} invoiceId - The ID of the invoice to retrieve.
+ * @returns {Promise<Invoice>} - A promise that resolves to the retrieved invoice.
+ */
+export const getInvoice = async (invoiceId: string) => {
+    const response: Invoice = await xenditInvoiceClient.getInvoiceById({
+        invoiceId,
+    });
+
+    return response;
+};
 
 /**
  * Creates an invoice using the provided Xendit data.
@@ -30,12 +45,12 @@ export const createInvoice = async (xenditData: CreateInvoiceRequest) => {
 };
 
 /**
- * Retrieves an invoice by its ID.
- * @param {string} invoiceId - The ID of the invoice to retrieve.
- * @returns {Promise<Invoice>} - A promise that resolves to the retrieved invoice.
+ * Expires an invoice.
+ * @param invoiceId - The ID of the invoice to expire.
+ * @returns The expired invoice.
  */
-export const getInvoice = async (invoiceId: string) => {
-    const response: Invoice = await xenditInvoiceClient.getInvoiceById({
+export const expireInvoice = async (invoiceId: string) => {
+    const response: Invoice = await xenditInvoiceClient.expireInvoice({
         invoiceId,
     });
 
