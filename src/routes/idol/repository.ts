@@ -1,5 +1,3 @@
-/* eslint-disable unused-imports/no-unused-vars */
-
 import { sql } from 'drizzle-orm';
 
 import db from '../../db';
@@ -45,6 +43,11 @@ export const getMembers = async (
     return members;
 };
 
+/**
+ * Retrieves a member by their ID.
+ * @param memberId - The ID of the member to retrieve.
+ * @returns A Promise that resolves to the member object.
+ */
 export const getMemberById = async (memberId: string) => {
     const [member] = await db.execute(
         sql`

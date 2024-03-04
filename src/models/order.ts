@@ -29,4 +29,6 @@ export const order = pgTable('order', {
     total: numeric('total').notNull(),
     orderStatus: oderStatusEnum('order_status'),
     createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    expiredAt: timestamp('expired_at'),
 });

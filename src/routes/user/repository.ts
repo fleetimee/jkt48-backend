@@ -1,6 +1,7 @@
 import { eq, sql } from 'drizzle-orm';
 
 import db from '../../db';
+import { order } from '../../models/order';
 import { users } from '../../models/users';
 
 /**
@@ -62,4 +63,40 @@ export const countRegisteredUsers = async () => {
         .from(users);
 
     return count;
+};
+
+/**
+ * Checks the user's subscription status.
+ * @param userId - The ID of the user.
+ * @returns A Promise that resolves to the user's subscription details.
+ */
+export const checkUserSubscription = async (userId: string) => {
+    const [subscription] = await db.execute(sql`
+    SELECT o.id          AS order_id,
+       p.name        AS package_name,
+       p.description AS package_description,
+       o.expired_at  AS expired_at
+    FROM "order" o
+            INNER JOIN package p ON o.package_id = p.id
+    WHERE o.user_id = ${userId}
+    AND o.order_status = 'success'
+    AND o.expired_at > NOW();
+    `);
+
+    return subscription;
+};
+
+/**
+ * Cancels the subscription for a user.
+ * @param userId - The ID of the user.
+ * @returns The updated subscription object.
+ */
+export const cancelSubscription = async (userId: string) => {
+    const [subscription] = await db
+        .update(order)
+        .set({ orderStatus: 'failed' })
+        .where(eq(order.userId, userId))
+        .returning();
+
+    return subscription;
 };

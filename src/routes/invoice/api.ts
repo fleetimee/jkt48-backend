@@ -82,6 +82,9 @@ router.post('/', validate(createInvoiceSchema), authenticateUser, async (req, re
         const order = await getOrderById(idOrder);
         if (!order) throw new UnprocessableEntityError('The order does not exist');
 
+        // Check if order status is success
+        if (order.orderStatus === 'success') throw new UnprocessableEntityError('The order has already been paid');
+
         // Inquiry order to get package details
         const inquiryOrder = await getInquiryOrder(idOrder);
 
