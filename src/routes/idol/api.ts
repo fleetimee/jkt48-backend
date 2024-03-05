@@ -1,10 +1,14 @@
 import express from 'express';
 import { StatusCodes } from 'http-status-codes';
 
+import { authenticateUser, requireAdminRole } from '../../middlewares/authenticate-user';
+import { validateSchema } from '../../middlewares/validate-request';
 import { NotFoundError, UnprocessableEntityError } from '../../utils/errors';
 import { formatResponsePaginated } from '../../utils/response-formatter';
-import { validateMemberId } from '../../utils/validate';
-import { getMemberById, getMembers } from './repository';
+import { validateMemberId, validateUuid } from '../../utils/validate';
+import { getUserById } from '../user/repository';
+import { getMemberById, getMembers, updateMemberById } from './repository';
+import { updateIdolSchema } from './schema';
 
 const router = express.Router();
 
@@ -59,5 +63,50 @@ router.get('/:id', async (req, res, next) => {
         next(error);
     }
 });
+
+router.patch(
+    '/:userId',
+    validateSchema(updateIdolSchema),
+    authenticateUser,
+    requireAdminRole,
+    async (req, res, next) => {
+        try {
+            const userId = req.params.userId;
+
+            console.log('userId', userId);
+
+            if (!validateUuid(userId)) throw new UnprocessableEntityError('User id is not valid');
+
+            const { email, fullName, nickname, birthday, height, bloodType, horoscope } = req.body;
+
+            const user = await getUserById(userId);
+            if (!user) throw new NotFoundError('User not found');
+
+            // const birthdayDate = new Date(birthday);
+
+            const updatedMember = await updateMemberById(
+                userId,
+                email,
+                fullName,
+                nickname,
+                birthday,
+                height,
+                bloodType,
+                horoscope,
+            );
+
+            res.status(StatusCodes.OK).send({
+                success: true,
+                code: StatusCodes.OK,
+                message: 'Success update member',
+                data: updatedMember,
+            });
+        } catch (error) {
+            console.error(error);
+
+            next(error);
+        }
+    },
+);
 
 export default router;

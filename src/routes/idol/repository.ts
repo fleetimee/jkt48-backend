@@ -94,26 +94,32 @@ export const updateMemberById = async (
     bloodType: string,
     horoscope: string,
 ) => {
+    // const birthdayString = birthday.toISOString();
+
     await db.transaction(async trx => {
         await trx.execute(
-            sql`
+            sql.raw(
+                `
             UPDATE users
-            SET email = ${email},
-                name = ${fullName},
-                nickname = ${nickName},
-                birthday = ${birthday}
-            WHERE id = ${userId}
+            SET email = '${email}',
+                name = '${fullName}',
+                nickname = '${nickName}',
+                birthday = '${birthday}'
+            WHERE id = '${userId}'
             `,
+            ),
         );
 
         await trx.execute(
-            sql`
+            sql.raw(
+                `
             UPDATE idol
             SET height = ${height},
-                blood_type = ${bloodType},
-                horoscope = ${horoscope}
-            WHERE user_id = ${userId}
+                blood_type = '${bloodType}',
+                horoscope = '${horoscope}'
+            WHERE user_id = '${userId}'
             `,
+            ),
         );
     });
 };
