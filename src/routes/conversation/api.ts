@@ -1,6 +1,7 @@
 import express from 'express';
 import { StatusCodes } from 'http-status-codes';
 
+import { authenticateUser, requireAdminRole } from '../../middlewares/authenticate-user';
 import { UnprocessableEntityError } from '../../utils/errors';
 import { formatResponsePaginated } from '../../utils/response-formatter';
 import { validateUuid } from '../../utils/validate';
@@ -8,7 +9,7 @@ import { getConversations, getConversationsById } from './repository';
 
 const router = express.Router();
 
-router.get('/', async (req, res, next) => {
+router.get('/', authenticateUser, requireAdminRole, async (req, res, next) => {
     try {
         const page = parseInt(req.query.page as string) || 1;
         const pageSize = parseInt(req.query.pageSize as string) || 10;
@@ -38,7 +39,7 @@ router.get('/', async (req, res, next) => {
     }
 });
 
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', authenticateUser, requireAdminRole, async (req, res, next) => {
     try {
         const conversationId = req.params.id;
 

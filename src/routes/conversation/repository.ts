@@ -25,6 +25,7 @@ export const getConversations = async (limit: number, offset: number, searchQuer
                           u.profile_image,
                           m.message    AS last_message,
                           m.created_at AS last_message_time
+                          m.approved   AS approved
         FROM conversation c
                 LEFT JOIN idol i ON c.idol_id = i.id
                 LEFT JOIN users u ON i.user_id = u.id

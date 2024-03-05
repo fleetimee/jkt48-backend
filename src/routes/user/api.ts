@@ -1,12 +1,19 @@
 import express from 'express';
 import { StatusCodes } from 'http-status-codes';
 
-import { authenticateUser } from '../../middlewares/authenticate-user';
+import { authenticateUser, requireAdminRole } from '../../middlewares/authenticate-user';
 import { validate } from '../../middlewares/validate-request';
 import { NotFoundError } from '../../utils/errors';
 import { formatResponse } from '../../utils/response-formatter';
 import { validateUuid } from '../../utils/validate';
-import { cancelSubscription, checkUserSubscription, countRegisteredUsers, getUserById, updateUser } from './repository';
+import {
+    cancelSubscription,
+    checkUserSubscription,
+    countActiveSubscriptionsUsers,
+    countRegisteredUsers,
+    getUserById,
+    updateUser,
+} from './repository';
 import { updateUserSchema } from './schema';
 
 const router = express.Router();
@@ -70,11 +77,35 @@ router.get('/me/cancelSubscription', authenticateUser, async (req, res, next) =>
     }
 });
 
-router.get('/count', async (req, res, next) => {
+router.get('/countRegistered', authenticateUser, requireAdminRole, async (req, res, next) => {
     try {
         const count = await countRegisteredUsers();
 
-        res.status(StatusCodes.OK).send({ count });
+        res.status(StatusCodes.OK).send(
+            formatResponse({
+                code: StatusCodes.OK,
+                message: 'Count of registered users',
+                data: count,
+                success: true,
+            }),
+        );
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.get('/countActiveSubscriptions', authenticateUser, requireAdminRole, async (req, res, next) => {
+    try {
+        const count = await countActiveSubscriptionsUsers();
+
+        res.status(StatusCodes.OK).send(
+            formatResponse({
+                code: StatusCodes.OK,
+                message: 'Count of active subscriptions users',
+                data: count,
+                success: true,
+            }),
+        );
     } catch (error) {
         next(error);
     }
