@@ -9,7 +9,7 @@ import { AnyZodObject, ZodError } from 'zod';
  * @param schema - The schema to validate the request against.
  * @returns A middleware function that validates the request.
  */
-export const validate = (schema: AnyZodObject) => (req: Request, res: Response, next: NextFunction) => {
+export const validateSchema = (schema: AnyZodObject) => (req: Request, res: Response, next: NextFunction) => {
     try {
         schema.parse({
             body: req.body,

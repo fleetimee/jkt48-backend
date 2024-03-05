@@ -1,14 +1,14 @@
 import express from 'express';
 
 import { authenticateUser } from '../../middlewares/authenticate-user';
-import { validate } from '../../middlewares/validate-request';
+import { validateSchema } from '../../middlewares/validate-request';
 import { NotFoundError, UnauthorizedError } from '../../utils/errors';
 import { createPost, deletePost, getPost, getPostsByUser, updatePost } from './repository';
 import { createPostSchema, updatePostSchema } from './schema';
 
 const router = express.Router();
 
-router.post('/', validate(createPostSchema), authenticateUser, async (req, res, next) => {
+router.post('/', validateSchema(createPostSchema), authenticateUser, async (req, res, next) => {
     try {
         const { title, body } = req.body;
         const userId = req.user.id;
@@ -34,7 +34,7 @@ router.get('/:postId', async (req, res, next) => {
     }
 });
 
-router.put('/:postId', validate(updatePostSchema), authenticateUser, async (req, res, next) => {
+router.put('/:postId', validateSchema(updatePostSchema), authenticateUser, async (req, res, next) => {
     try {
         const { body } = req.body;
         const postId = req.params.postId;

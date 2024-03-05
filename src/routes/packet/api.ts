@@ -2,7 +2,7 @@ import express from 'express';
 import { StatusCodes } from 'http-status-codes';
 
 import { authenticateUser } from '../../middlewares/authenticate-user';
-import { validate } from '../../middlewares/validate-request';
+import { validateSchema } from '../../middlewares/validate-request';
 import { NotFoundError, UnauthorizedError } from '../../utils/errors';
 import { formatResponse } from '../../utils/response-formatter';
 import { validateUuid } from '../../utils/validate';
@@ -53,7 +53,7 @@ router.get('/:id', authenticateUser, async (req, res, next) => {
     }
 });
 
-router.patch('/:id', validate(updatePackageSchema), authenticateUser, async (req, res, next) => {
+router.patch('/:id', validateSchema(updatePackageSchema), authenticateUser, async (req, res, next) => {
     try {
         const { name, description, totalMembers, price, isActive } = req.body;
         const packageId = req.params.id;

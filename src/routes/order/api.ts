@@ -2,7 +2,7 @@ import express from 'express';
 import { StatusCodes } from 'http-status-codes';
 
 import { authenticateUser } from '../../middlewares/authenticate-user';
-import { validate } from '../../middlewares/validate-request';
+import { validateSchema } from '../../middlewares/validate-request';
 import { NotFoundError } from '../../utils/errors';
 import { formatResponse } from '../../utils/response-formatter';
 import { createOrder, getInquiryOrder, getInquiryOrderListIdol, getOrderById } from './repository';
@@ -74,7 +74,7 @@ router.get('/inquiry/:orderId/idol', async (req, res, next) => {
     }
 });
 
-router.post('/', validate(createOrderSchema), authenticateUser, async (req, res, next) => {
+router.post('/', validateSchema(createOrderSchema), authenticateUser, async (req, res, next) => {
     try {
         const userId = req.user.id;
 

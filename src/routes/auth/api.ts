@@ -3,7 +3,7 @@ import { StatusCodes } from 'http-status-codes';
 
 import { BASE_URL } from '../../config';
 import { rateLimiterStrict } from '../../middlewares/rate-limiter';
-import { validate } from '../../middlewares/validate-request';
+import { validateSchema } from '../../middlewares/validate-request';
 import { ConflictError } from '../../utils/errors';
 import { generateResetTokenPassword, generateVerificationCode } from '../../utils/lib';
 import { sendEmail } from '../../utils/send-emails';
@@ -21,7 +21,7 @@ import { createAccessToken, createRefreshToken, setRefreshCookie, verifyToken } 
 
 const router = express.Router();
 
-router.post('/register', validate(registerSchema), rateLimiterStrict, async (req, res, next) => {
+router.post('/register', validateSchema(registerSchema), rateLimiterStrict, async (req, res, next) => {
     try {
         const { email, password, name, birthday } = req.body;
 
@@ -51,7 +51,7 @@ router.post('/register', validate(registerSchema), rateLimiterStrict, async (req
     }
 });
 
-router.post('/login', validate(loginSchema), rateLimiterStrict, async (req, res, next) => {
+router.post('/login', validateSchema(loginSchema), rateLimiterStrict, async (req, res, next) => {
     try {
         const { email, password } = req.body;
 
@@ -79,7 +79,7 @@ router.post('/refresh', async (req, res, next) => {
     }
 });
 
-router.post('/verifyToken', validate(verifySchema), async (req, res, next) => {
+router.post('/verifyToken', validateSchema(verifySchema), async (req, res, next) => {
     try {
         const { email, verificationToken } = req.body;
 
@@ -107,7 +107,7 @@ router.get('/user/detail/:email', rateLimiterStrict, async (req, res, next) => {
     }
 });
 
-router.post('/forgot_password', validate(forgotPasswordSchema), rateLimiterStrict, async (req, res, next) => {
+router.post('/forgot_password', validateSchema(forgotPasswordSchema), rateLimiterStrict, async (req, res, next) => {
     try {
         const { email } = req.body;
         const randomStringToken = generateResetTokenPassword();
@@ -131,7 +131,7 @@ router.post('/forgot_password', validate(forgotPasswordSchema), rateLimiterStric
     }
 });
 
-router.post('/reset_password', validate(resetPasswordSchema), rateLimiterStrict, async (req, res, next) => {
+router.post('/reset_password', validateSchema(resetPasswordSchema), rateLimiterStrict, async (req, res, next) => {
     try {
         const { token, password } = req.body;
         const user = await getUserByTokenReset(token);

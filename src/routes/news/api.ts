@@ -3,7 +3,7 @@ import { StatusCodes } from 'http-status-codes';
 import slugify from 'slugify';
 
 import { authenticateUser, requireAdminRole } from '../../middlewares/authenticate-user';
-import { validate } from '../../middlewares/validate-request';
+import { validateSchema } from '../../middlewares/validate-request';
 import { NotFoundError, UnauthorizedError } from '../../utils/errors';
 import { formatResponse, formatResponsePaginated } from '../../utils/response-formatter';
 import { validateUuid } from '../../utils/validate';
@@ -106,7 +106,7 @@ router.get('/slug/:slug', async (req, res, next) => {
     }
 });
 
-router.post('/', validate(createNewsSchema), authenticateUser, async (req, res, next) => {
+router.post('/', validateSchema(createNewsSchema), authenticateUser, async (req, res, next) => {
     try {
         const { title, body, image } = req.body;
         const userId = req.user.id;

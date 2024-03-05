@@ -1,17 +1,17 @@
 import express from 'express';
 import { StatusCodes } from 'http-status-codes';
 
-import { authenticateUser } from '../../middlewares/authenticate-user';
-import { validate } from '../../middlewares/validate-request';
+import { authenticateUser, requireAdminRole } from '../../middlewares/authenticate-user';
+import { validateSchema } from '../../middlewares/validate-request';
 import { UnprocessableEntityError } from '../../utils/errors';
 import { formatResponsePaginated } from '../../utils/response-formatter';
 import { validateUuid } from '../../utils/validate';
-import { createMessage, getMessages } from './repository';
-import { createMessageSchema } from './schema';
+import { approveMessage, createMessage, getMessages } from './repository';
+import { approveOrRejectMessageSchema, createMessageSchema } from './schema';
 
 const router = express.Router();
 
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', authenticateUser, requireAdminRole, async (req, res, next) => {
     try {
         const conversationId = req.params.id;
         if (!validateUuid(conversationId)) throw new UnprocessableEntityError('The conversation ID is not valid UUID');
@@ -43,7 +43,7 @@ router.get('/:id', async (req, res, next) => {
     }
 });
 
-router.post('/', validate(createMessageSchema), authenticateUser, async (req, res, next) => {
+router.post('/', validateSchema(createMessageSchema), authenticateUser, async (req, res, next) => {
     try {
         const { conversationId, messages, attachments } = req.body;
 
@@ -74,5 +74,32 @@ router.post('/', validate(createMessageSchema), authenticateUser, async (req, re
         next(error);
     }
 });
+
+router.patch(
+    '/:id/approveOrReject',
+    validateSchema(approveOrRejectMessageSchema),
+    authenticateUser,
+    requireAdminRole,
+    async (req, res, next) => {
+        try {
+            const conversationId = req.params.id;
+            if (!validateUuid(conversationId)) throw new UnprocessableEntityError('The message is not valid UUID');
+
+            const { isApproved } = req.body;
+
+            await approveMessage(conversationId, isApproved);
+
+            res.status(StatusCodes.OK).send({
+                success: true,
+                code: StatusCodes.OK,
+                message: isApproved === true ? 'Success approve message' : 'Success reject message',
+                data: null,
+            });
+        } catch (error) {
+            console.error(error);
+            next(error);
+        }
+    },
+);
 
 export default router;

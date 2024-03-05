@@ -2,7 +2,7 @@ import express from 'express';
 import { StatusCodes } from 'http-status-codes';
 
 import { authenticateUser, requireAdminRole } from '../../middlewares/authenticate-user';
-import { validate } from '../../middlewares/validate-request';
+import { validateSchema } from '../../middlewares/validate-request';
 import { NotFoundError } from '../../utils/errors';
 import { formatResponse } from '../../utils/response-formatter';
 import { validateUuid } from '../../utils/validate';
@@ -111,7 +111,7 @@ router.get('/countActiveSubscriptions', authenticateUser, requireAdminRole, asyn
     }
 });
 
-router.patch('/me', validate(updateUserSchema), authenticateUser, async (req, res, next) => {
+router.patch('/me', validateSchema(updateUserSchema), authenticateUser, async (req, res, next) => {
     try {
         const isValidUuid = validateUuid(req.user.id);
         if (!isValidUuid) throw new NotFoundError('UserId not valid (uuid)');

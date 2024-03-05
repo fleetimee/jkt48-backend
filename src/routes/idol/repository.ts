@@ -51,20 +51,69 @@ export const getMembers = async (
 export const getMemberById = async (memberId: string) => {
     const [member] = await db.execute(
         sql`
-        SELECT u.id AS user_id,
-            i.id AS idol_id,
+        SELECT u.id   AS user_id,
+            i.id   AS idol_id,
+            u.email,
+            u.name AS full_name,
             u.nickname,
             u.birthday,
             u.profile_image,
             i.family_name,
             i.given_name,
-            i.horoscope
+            i.horoscope,
+            i.blood_type,
+            i.height
         FROM users u
-        INNER JOIN idol i ON u.id = i.user_id
-        WHERE u.roles = 'member' AND i.id = ${memberId}
-
+                INNER JOIN idol i ON u.id = i.user_id
+        WHERE u.roles = 'member'
+        AND i.id = ${memberId}
         `,
     );
 
     return member;
+};
+
+/**
+ * Updates a member's information by their ID.
+ * @param userId - The ID of the user.
+ * @param email - The updated email address.
+ * @param fullName - The updated full name.
+ * @param nickName - The updated nickname.
+ * @param birthday - The updated birthday.
+ * @param height - The updated height.
+ * @param bloodType - The updated blood type.
+ * @param horoscope - The updated horoscope.
+ */
+export const updateMemberById = async (
+    userId: string,
+    email: string,
+    fullName: string,
+    nickName: string,
+    birthday: Date,
+    height: number,
+    bloodType: string,
+    horoscope: string,
+) => {
+    await db.transaction(async trx => {
+        await trx.execute(
+            sql`
+            UPDATE users
+            SET email = ${email},
+                name = ${fullName},
+                nickname = ${nickName},
+                birthday = ${birthday}
+            WHERE id = ${userId}
+            `,
+        );
+
+        await trx.execute(
+            sql`
+            UPDATE idol
+            SET height = ${height},
+                blood_type = ${bloodType},
+                horoscope = ${horoscope}
+            WHERE user_id = ${userId}
+            `,
+        );
+    });
 };

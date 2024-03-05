@@ -16,3 +16,9 @@ export const createMessageSchema = z.object({
             .optional(),
     }),
 });
+
+export const approveOrRejectMessageSchema = z.object({
+    body: z.object({
+        isApproved: z.boolean(),
+    }),
+});

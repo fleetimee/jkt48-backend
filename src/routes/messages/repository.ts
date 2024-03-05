@@ -63,7 +63,8 @@ export const getMessages = async (conversationId: string, limit: number, offset:
        m.message    AS message,
        m.created_at AS created_at,
        u2.name      AS idol_name,
-       u2.nickname  AS idol_nickname
+       u2.nickname  AS idol_nickname,
+       m.approved  AS approved
         FROM message m
                 INNER JOIN users u ON m.user_id = u.id
                 INNER JOIN conversation c ON m.conversation_id = c.id
@@ -123,4 +124,23 @@ export const createMessage = async (
             }
         }
     });
+};
+
+/**
+ * Approves or disapproves a message.
+ * @param messageId - The ID of the message to be approved or disapproved.
+ * @param isApproved - A boolean indicating whether the message should be approved or disapproved.
+ * @returns The updated message item.
+ */
+export const approveMessage = async (messageId: string, isApproved: boolean) => {
+    const [messageItem] = await db.execute(
+        sql`
+    UPDATE message
+    SET approved = ${isApproved}
+    WHERE id = ${messageId}
+    RETURNING *;
+    `,
+    );
+
+    return messageItem;
 };

@@ -2,7 +2,7 @@ import express from 'express';
 import { StatusCodes } from 'http-status-codes';
 
 import { authenticateUser } from '../../middlewares/authenticate-user';
-import { validate } from '../../middlewares/validate-request';
+import { validateSchema } from '../../middlewares/validate-request';
 import { UnprocessableEntityError } from '../../utils/errors';
 import { formatResponse } from '../../utils/response-formatter';
 import { validateUuid } from '../../utils/validate';
@@ -67,7 +67,7 @@ router.get('/:invoiceId/forceExpire', async (req, res, next) => {
     }
 });
 
-router.post('/', validate(createInvoiceSchema), authenticateUser, async (req, res, next) => {
+router.post('/', validateSchema(createInvoiceSchema), authenticateUser, async (req, res, next) => {
     try {
         // Get user details from the request
         const { id, email, name } = req.user;
