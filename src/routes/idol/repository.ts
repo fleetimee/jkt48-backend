@@ -1,7 +1,8 @@
 import bcrypt from 'bcrypt';
-import { sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 
 import db from '../../db';
+import { users } from '../../models/users';
 
 /**
  * Retrieves a list of members with optional filtering and pagination.
@@ -74,6 +75,22 @@ export const getMemberById = async (memberId: string) => {
     return member;
 };
 
+/**
+ * Creates a new member in the database.
+ * @param {Object} memberData - The data of the member to be created.
+ * @param {string} memberData.email - The email of the member.
+ * @param {string} memberData.password - The password of the member.
+ * @param {string} memberData.fullName - The full name of the member.
+ * @param {string} memberData.nickname - The nickname of the member.
+ * @param {Date} memberData.birthday - The birthday of the member.
+ * @param {number} memberData.height - The height of the member.
+ * @param {string} memberData.bloodType - The blood type of the member.
+ * @param {string} memberData.horoscope - The horoscope of the member.
+ * @param {string} memberData.verificationToken - The verification token of the member.
+ * @param {string} memberData.xUrl - The X URL of the member.
+ * @param {string} memberData.instagramUrl - The Instagram URL of the member.
+ * @returns {Promise<void>} - A promise that resolves when the member is created.
+ */
 export const createMember = async ({
     email,
     password,
@@ -84,6 +101,8 @@ export const createMember = async ({
     bloodType,
     horoscope,
     verificationToken,
+    xUrl,
+    instagramUrl,
 }: {
     email: string;
     password: string;
@@ -94,8 +113,13 @@ export const createMember = async ({
     bloodType: string;
     horoscope: string;
     verificationToken: string;
+    xUrl: string;
+    instagramUrl: string;
 }) => {
     const passwordHash = await bcrypt.hash(password, 10);
+
+    console.log(`Instagram URL: ${instagramUrl}`);
+    console.log(`X URL: ${xUrl}`);
 
     let givenName = '';
     let familyName = '';
@@ -118,8 +142,8 @@ export const createMember = async ({
 
         await trx.execute(
             sql.raw(
-                `INSERT INTO idol (user_id, height, blood_type, horoscope, family_name, given_name)
-                VALUES ('${userId.id}', ${height}, '${bloodType}', '${horoscope}', '${familyName}', '${givenName}')`,
+                `INSERT INTO idol (user_id, instagram_url, x_url, height, blood_type, horoscope, family_name, given_name)
+                VALUES ('${userId.id}', '${instagramUrl}', '${xUrl}', ${height}, '${bloodType}', '${horoscope}', '${familyName}', '${givenName}')`,
             ),
         );
     });
@@ -146,8 +170,6 @@ export const updateMemberById = async (
     bloodType: string,
     horoscope: string,
 ) => {
-    // const birthdayString = birthday.toISOString();
-
     await db.transaction(async trx => {
         await trx.execute(
             sql.raw(
@@ -174,4 +196,13 @@ export const updateMemberById = async (
             ),
         );
     });
+};
+
+/**
+ * Deletes a member by their ID.
+ * @param {string} userId - The ID of the user to delete.
+ * @returns {Promise<void>} - A promise that resolves when the member is deleted.
+ */
+export const deleteMemberById = async (userId: string) => {
+    await db.delete(users).where(eq(users.id, userId));
 };

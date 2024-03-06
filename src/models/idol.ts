@@ -18,7 +18,10 @@ export const idol = pgTable('idol', {
     instagramUrl: text('instagram_url'),
     xUrl: text('x_url'),
     userId: uuid('user_id')
-        .references(() => users.id)
+        .references(() => users.id, {
+            onDelete: 'cascade',
+            onUpdate: 'cascade',
+        })
         .notNull()
         .unique(),
 });

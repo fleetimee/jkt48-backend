@@ -13,6 +13,8 @@ export const createIdolSchema = z.object({
         height: z.number(),
         bloodType: z.string(),
         horoscope: z.string(),
+        xUrl: z.string(),
+        instagramUrl: z.string(),
     }),
 });
 

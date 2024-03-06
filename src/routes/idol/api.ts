@@ -9,7 +9,7 @@ import { formatResponsePaginated } from '../../utils/response-formatter';
 import { validateMemberId, validateUuid } from '../../utils/validate';
 import { getUser } from '../auth/repository';
 import { getUserById } from '../user/repository';
-import { createMember, getMemberById, getMembers, updateMemberById } from './repository';
+import { createMember, deleteMemberById, getMemberById, getMembers, updateMemberById } from './repository';
 import { createIdolSchema, updateIdolSchema } from './schema';
 
 const router = express.Router();
@@ -68,7 +68,8 @@ router.get('/:id', async (req, res, next) => {
 
 router.post('/', validateSchema(createIdolSchema), authenticateUser, requireAdminRole, async (req, res, next) => {
     try {
-        const { email, password, fullName, nickname, birthday, height, bloodType, horoscope } = req.body;
+        const { email, password, fullName, nickname, birthday, height, bloodType, horoscope, instagramUrl, xUrl } =
+            req.body;
 
         // Check if the email is already registered
         const user = await getUser(email);
@@ -87,6 +88,8 @@ router.post('/', validateSchema(createIdolSchema), authenticateUser, requireAdmi
             horoscope,
             password,
             verificationToken,
+            instagramUrl,
+            xUrl,
         });
 
         res.status(StatusCodes.CREATED).send({
@@ -145,5 +148,27 @@ router.patch(
         }
     },
 );
+
+router.delete('/:userId', authenticateUser, requireAdminRole, async (req, res, next) => {
+    try {
+        const userId = req.params.userId;
+
+        if (!validateUuid(userId)) throw new UnprocessableEntityError('User id is not valid');
+
+        const user = await getUserById(userId);
+        if (!user) throw new NotFoundError('User not found');
+
+        await deleteMemberById(userId);
+
+        res.status(StatusCodes.OK).send({
+            success: true,
+            code: StatusCodes.OK,
+            message: 'Success delete member',
+        });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+});
 
 export default router;
