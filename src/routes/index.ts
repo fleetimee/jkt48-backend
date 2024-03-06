@@ -14,6 +14,7 @@ import privacyPolicy from './privacy-policy/api';
 import terms from './terms/api';
 import topIdol from './top-idol/api';
 import user from './user/api';
+import xenditCallback from './xendit-callback/api';
 
 const router = express.Router();
 
@@ -31,6 +32,7 @@ router.use('/messages', messages);
 router.use('/inquiry', inquiry);
 router.use('/order', order);
 router.use('/invoice', invoice);
+router.use('/xendit-callback', xenditCallback);
 
 // Handle 404
 router.use((req, res) => {
