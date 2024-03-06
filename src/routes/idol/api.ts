@@ -4,11 +4,13 @@ import { StatusCodes } from 'http-status-codes';
 import { authenticateUser, requireAdminRole } from '../../middlewares/authenticate-user';
 import { validateSchema } from '../../middlewares/validate-request';
 import { NotFoundError, UnprocessableEntityError } from '../../utils/errors';
+import { generateVerificationCode } from '../../utils/lib';
 import { formatResponsePaginated } from '../../utils/response-formatter';
 import { validateMemberId, validateUuid } from '../../utils/validate';
+import { getUser } from '../auth/repository';
 import { getUserById } from '../user/repository';
-import { getMemberById, getMembers, updateMemberById } from './repository';
-import { updateIdolSchema } from './schema';
+import { createMember, getMemberById, getMembers, updateMemberById } from './repository';
+import { createIdolSchema, updateIdolSchema } from './schema';
 
 const router = express.Router();
 
@@ -60,6 +62,41 @@ router.get('/:id', async (req, res, next) => {
             data: member,
         });
     } catch (error) {
+        next(error);
+    }
+});
+
+router.post('/', validateSchema(createIdolSchema), authenticateUser, requireAdminRole, async (req, res, next) => {
+    try {
+        const { email, password, fullName, nickname, birthday, height, bloodType, horoscope } = req.body;
+
+        // Check if the email is already registered
+        const user = await getUser(email);
+        if (user) throw new UnprocessableEntityError('Email is already registered');
+
+        // Generate verification token
+        const verificationToken = generateVerificationCode();
+
+        const newMember = await createMember({
+            email,
+            fullName,
+            nickname,
+            birthday,
+            height,
+            bloodType,
+            horoscope,
+            password,
+            verificationToken,
+        });
+
+        res.status(StatusCodes.CREATED).send({
+            success: true,
+            code: StatusCodes.CREATED,
+            message: 'Success create new member',
+            data: newMember,
+        });
+    } catch (error) {
+        console.error(error);
         next(error);
     }
 });

@@ -1,3 +1,4 @@
+import bcrypt from 'bcrypt';
 import { sql } from 'drizzle-orm';
 
 import db from '../../db';
@@ -71,6 +72,47 @@ export const getMemberById = async (memberId: string) => {
     );
 
     return member;
+};
+
+export const createMember = async ({
+    email,
+    password,
+    fullName,
+    nickname,
+    birthday,
+    height,
+    bloodType,
+    horoscope,
+    verificationToken,
+}: {
+    email: string;
+    password: string;
+    fullName: string;
+    nickname: string;
+    birthday: Date;
+    height: number;
+    bloodType: string;
+    horoscope: string;
+    verificationToken: string;
+}) => {
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    await db.transaction(async trx => {
+        const [userId] = await trx.execute(
+            sql.raw(
+                `INSERT INTO users (email, password, name, nickname, birthday, roles, email_verified, email_verified_at, verification_token, created_at)
+                VALUES ('${email}', '${passwordHash}', '${fullName}', '${nickname}', '${birthday}', 'member', true, NOW(), '${verificationToken}', NOW())
+                RETURNING id`,
+            ),
+        );
+
+        await trx.execute(
+            sql.raw(
+                `INSERT INTO idol (user_id, height, blood_type, horoscope)
+                VALUES ('${userId}', ${height}, '${bloodType}', '${horoscope}')`,
+            ),
+        );
+    });
 };
 
 /**
