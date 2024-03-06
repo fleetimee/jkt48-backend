@@ -1,3 +1,4 @@
+import bcrypt from 'bcrypt';
 import { eq, sql } from 'drizzle-orm';
 
 import db from '../../db';
@@ -51,6 +52,21 @@ export const updateUser = async (
         .set({ email, nickName, name, birthday, profileImage, updatedAt: currentDate })
         .where(eq(users.id, id))
         .returning();
+
+    return user;
+};
+
+/**
+ * Updates the email and password of a user.
+ * @param userId - The ID of the user.
+ * @param email - The new email for the user.
+ * @param password - The new password for the user.
+ * @returns The updated user object.
+ */
+export const updateEmailAndPassword = async (userId: string, email: string, password: string) => {
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    const [user] = await db.update(users).set({ email, passwordHash }).where(eq(users.id, userId));
 
     return user;
 };
