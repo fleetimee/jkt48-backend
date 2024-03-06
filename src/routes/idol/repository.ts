@@ -97,10 +97,20 @@ export const createMember = async ({
 }) => {
     const passwordHash = await bcrypt.hash(password, 10);
 
+    let givenName = '';
+    let familyName = '';
+
+    if (fullName.includes(' ')) {
+        givenName = fullName.split(' ').slice(0, -1).join(' ');
+        familyName = fullName.split(' ').slice(-1).join(' ');
+    } else {
+        givenName = fullName;
+    }
+
     await db.transaction(async trx => {
         const [userId] = await trx.execute(
             sql.raw(
-                `INSERT INTO users (email, password, name, nickname, birthday, roles, email_verified, email_verified_at, verification_token, created_at)
+                `INSERT INTO users (email, password_hash, name, nickname, birthday, roles, email_verified, email_verified_at, verification_token, created_at)
                 VALUES ('${email}', '${passwordHash}', '${fullName}', '${nickname}', '${birthday}', 'member', true, NOW(), '${verificationToken}', NOW())
                 RETURNING id`,
             ),
@@ -108,8 +118,8 @@ export const createMember = async ({
 
         await trx.execute(
             sql.raw(
-                `INSERT INTO idol (user_id, height, blood_type, horoscope)
-                VALUES ('${userId}', ${height}, '${bloodType}', '${horoscope}')`,
+                `INSERT INTO idol (user_id, height, blood_type, horoscope, family_name, given_name)
+                VALUES ('${userId.id}', ${height}, '${bloodType}', '${horoscope}', '${familyName}', '${givenName}')`,
             ),
         );
     });
