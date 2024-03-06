@@ -34,6 +34,8 @@ router.post('/', async (req, res, next) => {
             message: 'Invalid status',
         });
     } catch (error) {
+        console.error('Xendit callback error:', error);
+
         next(error);
     }
 });

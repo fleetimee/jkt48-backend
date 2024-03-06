@@ -14,7 +14,6 @@ export const orderIdols = pgTable('order_idol', {
         length: 10,
     })
         .notNull()
-        .unique()
         .references(() => idol.id, {
             onDelete: 'cascade',
             onUpdate: 'cascade',
