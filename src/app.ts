@@ -1,11 +1,13 @@
 import bodyParser from 'body-parser';
 import compression from 'compression';
+// import console from 'console';
 import cookies from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
 
+// import cron from 'node-cron';
 import { errorHandler } from './middlewares/error-handler';
 import loggingMiddleware from './middlewares/logging';
 import { rateLimiter } from './middlewares/rate-limiter';
@@ -37,6 +39,17 @@ app.use(
 
 // Server Static files
 app.use('/static', express.static('static'));
+
+// Schedule tasks to be run on the server.
+// This cron job will run at 00:00 every Sunday.
+// cron.schedule('*/5 * * * * *', function () {
+//     console.log('Running a task every 5 seconds');
+//     try {
+//         console.log('Updating top idol table');
+//     } catch (error) {
+//         console.error('Error updating top idol table:', error);
+//     }
+// });
 
 app.use(rateLimiter);
 app.use('/api', routes);
