@@ -14,5 +14,11 @@ export const updateOrderStatusXenditCallback = async (orderId: string, status: s
         throw new Error(`Invalid status: ${status}`);
     }
 
-    await db.update(order).set({ orderStatus: status }).where(eq(order.id, orderId));
+    const currentDate = new Date();
+
+    currentDate.setMonth(currentDate.getMonth() + 1);
+
+    console.log('currentDate', currentDate);
+
+    await db.update(order).set({ orderStatus: status, expiredAt: currentDate }).where(eq(order.id, orderId));
 };
