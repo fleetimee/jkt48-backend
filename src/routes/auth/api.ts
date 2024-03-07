@@ -1,7 +1,6 @@
 import express from 'express';
 import { StatusCodes } from 'http-status-codes';
 
-import { BASE_URL } from '../../config';
 import { rateLimiterStrict } from '../../middlewares/rate-limiter';
 import { validateSchema } from '../../middlewares/validate-request';
 import { ConflictError } from '../../utils/errors';
@@ -116,16 +115,17 @@ router.post('/forgot_password', validateSchema(forgotPasswordSchema), rateLimite
         if (user) await forgotPasswordUser(email, randomStringToken);
 
         const emailResult = await sendEmail({
-            to: [email],
-            subject: 'Your Reset Password Link here',
-            text: `Please change your password here : ${BASE_URL}/reset_password?token=${randomStringToken}, please change it!`,
+            // to: [email],
+            to: ['zane.227@gmail.com'],
+            subject: 'Your Reset Password Token',
+            text: `Your reset password token is: ${randomStringToken}, use this token to reset your password.`,
         });
 
         if (emailResult.error) {
-            return res.status(400).json({ error: emailResult.error });
+            return res.status(StatusCodes.BAD_REQUEST).json({ error: emailResult.error });
         }
 
-        res.status(201).json({ message: 'Success send token to reset password' });
+        res.status(StatusCodes.BAD_REQUEST).json({ message: 'Success send token to reset password' });
     } catch (error) {
         next(error);
     }
@@ -144,10 +144,10 @@ router.post('/reset_password', validateSchema(resetPasswordSchema), rateLimiterS
         });
 
         if (emailResult.error) {
-            return res.status(400).json({ error: emailResult.error });
+            return res.status(StatusCodes.BAD_REQUEST).json({ error: emailResult.error });
         }
 
-        res.status(201).json({ message: 'Success reset password' });
+        res.status(StatusCodes.OK).json({ message: 'Success reset password' });
     } catch (error) {
         next(error);
     }
