@@ -9,7 +9,7 @@ import { order } from '../../models/order';
  * @param status - The new status of the order.
  * @throws Error if the status is invalid.
  */
-export const updateOrderStatusXenditCallback = async (orderId: string, status: string) => {
+export const updateOrderStatusXenditCallback = async (orderId: string, status: string, callbackData: any) => {
     if (status !== 'pending' && status !== 'success' && status !== 'failed') {
         throw new Error(`Invalid status: ${status}`);
     }
@@ -20,5 +20,8 @@ export const updateOrderStatusXenditCallback = async (orderId: string, status: s
 
     console.log('currentDate', currentDate);
 
-    await db.update(order).set({ orderStatus: status, expiredAt: currentDate }).where(eq(order.id, orderId));
+    await db
+        .update(order)
+        .set({ orderStatus: status, expiredAt: currentDate, callbackData: callbackData })
+        .where(eq(order.id, orderId));
 };

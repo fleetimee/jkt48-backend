@@ -1,4 +1,4 @@
-import { numeric, pgEnum, pgTable, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { jsonb, numeric, pgEnum, pgTable, timestamp, uuid } from 'drizzle-orm/pg-core';
 
 import { packagePayment } from './package';
 import { users } from './users';
@@ -31,4 +31,5 @@ export const order = pgTable('order', {
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow(),
     expiredAt: timestamp('expired_at'),
+    callbackData: jsonb('callback_data'),
 });
