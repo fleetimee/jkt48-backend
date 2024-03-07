@@ -168,7 +168,8 @@ export const getUserTransactionDetail = async (userId: string, orderId: string) 
         o.tax            AS tax,
         o.payment_method AS payment_method,
         o.created_at     AS order_date,
-        o.expired_at     AS expired_at
+        o.expired_at     AS expired_at,
+        o.callback_data AS callback_data
     FROM "order" o
             INNER JOIN package p ON o.package_id = p.id
     WHERE o.user_id = ${userId}

@@ -120,6 +120,11 @@ router.get('/me/transactionDetail/:orderId', authenticateUser, async (req, res, 
         const transactionDetail = await getUserTransactionDetail(id, orderId);
         if (!transactionDetail) throw new NotFoundError('Transaction not found');
 
+        // Parse callback_data from stringified JSON to object
+        if (transactionDetail.callback_data) {
+            transactionDetail.callback_data = JSON.parse(transactionDetail.callback_data as string);
+        }
+
         res.status(StatusCodes.OK).send(
             formatResponse({
                 code: StatusCodes.OK,
@@ -129,6 +134,7 @@ router.get('/me/transactionDetail/:orderId', authenticateUser, async (req, res, 
             }),
         );
     } catch (error) {
+        console.log(error);
         next(error);
     }
 });
