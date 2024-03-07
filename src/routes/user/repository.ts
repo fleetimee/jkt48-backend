@@ -140,3 +140,40 @@ export const cancelSubscription = async (userId: string) => {
 
     return subscription;
 };
+
+export const getUserTransactionList = async (userId: string) => {
+    const transactions = await db.execute(sql`
+    SELECT o.id           AS order_id,
+        p.name         AS package_name,
+        o.created_at   AS order_date,
+        o.total        AS order_total,
+        o.order_status AS order_status
+    FROM "order" o
+            INNER JOIN package p ON o.package_id = p.id
+    WHERE o.user_id = ${userId}
+    ORDER BY o.created_at DESC;
+    `);
+
+    return transactions;
+};
+
+export const getUserTransactionDetail = async (userId: string, orderId: string) => {
+    const [transaction] = await db.execute(sql`
+    SELECT o.id             AS order_id,
+        p.name           AS package_name,
+        o.total          AS order_total,
+        o.order_status   AS order_status,
+        1                AS quantity,
+        o.subtotal       AS subtotal,
+        o.tax            AS tax,
+        o.payment_method AS payment_method,
+        o.created_at     AS order_date,
+        o.expired_at     AS expired_at
+    FROM "order" o
+            INNER JOIN package p ON o.package_id = p.id
+    WHERE o.user_id = ${userId}
+    AND o.id = ${orderId};
+    `);
+
+    return transaction;
+};

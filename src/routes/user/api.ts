@@ -6,12 +6,15 @@ import { validateSchema } from '../../middlewares/validate-request';
 import { NotFoundError } from '../../utils/errors';
 import { formatResponse } from '../../utils/response-formatter';
 import { validateUuid } from '../../utils/validate';
+import { getOrderById } from '../order/repository';
 import {
     cancelSubscription,
     checkUserSubscription,
     countActiveSubscriptionsUsers,
     countRegisteredUsers,
     getUserById,
+    getUserTransactionDetail,
+    getUserTransactionList,
     updateUser,
 } from './repository';
 import { updateUserSchema } from './schema';
@@ -61,6 +64,9 @@ router.get('/me/cancelSubscription', authenticateUser, async (req, res, next) =>
         const user = await getUserById(id);
         if (!user) throw new NotFoundError('User not found');
 
+        const checkSubscription = await checkUserSubscription(id);
+        if (!checkSubscription) throw new NotFoundError('User does not have an active subscription');
+
         const subscription = await cancelSubscription(id);
         if (!subscription) throw new NotFoundError('Subscription not found');
 
@@ -69,6 +75,56 @@ router.get('/me/cancelSubscription', authenticateUser, async (req, res, next) =>
                 code: StatusCodes.OK,
                 message: 'Subscription canceled',
                 data: subscription,
+                success: true,
+            }),
+        );
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
+});
+
+router.get('/me/transactionList', authenticateUser, async (req, res, next) => {
+    try {
+        const id = req.user.id;
+
+        const user = await getUserById(id);
+        if (!user) throw new NotFoundError('User not found');
+
+        const transactionList = await getUserTransactionList(id);
+
+        res.status(StatusCodes.OK).send(
+            formatResponse({
+                code: StatusCodes.OK,
+                message: 'User transaction list',
+                data: transactionList,
+                success: true,
+            }),
+        );
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.get('/me/transactionDetail/:orderId', authenticateUser, async (req, res, next) => {
+    try {
+        const id = req.user.id;
+        const orderId = req.params.orderId;
+
+        const user = await getUserById(id);
+        if (!user) throw new NotFoundError('User not found');
+
+        const order = await getOrderById(orderId);
+        if (!order) throw new NotFoundError('Order not found');
+
+        const transactionDetail = await getUserTransactionDetail(id, orderId);
+        if (!transactionDetail) throw new NotFoundError('Transaction not found');
+
+        res.status(StatusCodes.OK).send(
+            formatResponse({
+                code: StatusCodes.OK,
+                message: 'User transaction detail',
+                data: transactionDetail,
                 success: true,
             }),
         );
