@@ -14,7 +14,7 @@ import { UnauthorizedError } from '../../utils/errors';
  */
 export const createAccessToken = (id: string, email: string, name: string, roles: string) => {
     const payload = { id, email, name, roles };
-    const token = jwt.sign(payload, JWT_SECRET_KEY, { expiresIn: '24h' });
+    const token = jwt.sign(payload, JWT_SECRET_KEY, { expiresIn: '1y' });
     return token;
 };
 
