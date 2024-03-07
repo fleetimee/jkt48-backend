@@ -4,7 +4,7 @@ import { StatusCodes } from 'http-status-codes';
 import { authenticateUser, requireAdminRole } from '../../middlewares/authenticate-user';
 import { validateSchema } from '../../middlewares/validate-request';
 import { NotFoundError } from '../../utils/errors';
-import { formatResponse } from '../../utils/response-formatter';
+import { formatResponse, formatResponsePaginated } from '../../utils/response-formatter';
 import { validateUuid } from '../../utils/validate';
 import { getOrderById } from '../order/repository';
 import {
@@ -13,6 +13,8 @@ import {
     countActiveSubscriptionsUsers,
     countRegisteredUsers,
     getUserById,
+    getUserConversationList,
+    getUserConversationMessages,
     getUserTransactionDetail,
     getUserTransactionList,
     updateUser,
@@ -130,6 +132,60 @@ router.get('/me/transactionDetail/:orderId', authenticateUser, async (req, res, 
                 code: StatusCodes.OK,
                 message: 'User transaction detail',
                 data: transactionDetail,
+                success: true,
+            }),
+        );
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
+});
+
+router.get('/me/conversationList', authenticateUser, async (req, res, next) => {
+    try {
+        const id = req.user.id;
+
+        const user = await getUserById(id);
+        if (!user) throw new NotFoundError('User not found');
+
+        const conversationList = await getUserConversationList(id);
+
+        res.status(StatusCodes.OK).send(
+            formatResponse({
+                code: StatusCodes.OK,
+                message: 'User conversation list',
+                data: conversationList,
+                success: true,
+            }),
+        );
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
+});
+
+router.get('/me/conversation/:conversationId', authenticateUser, async (req, res, next) => {
+    try {
+        const id = req.user.id;
+        const conversationId = req.params.conversationId;
+
+        const user = await getUserById(id);
+        if (!user) throw new NotFoundError('User not found');
+
+        const conversation = await getUserConversationMessages(id, conversationId, 10, 0);
+        if (!conversation) throw new NotFoundError('Conversation not found');
+
+        res.status(StatusCodes.OK).send(
+            formatResponsePaginated({
+                code: StatusCodes.OK,
+                message: 'User conversation',
+                data: conversation,
+                meta: {
+                    page: 1,
+                    pageSize: 10,
+                    orderBy: 'created_at',
+                    orderDirection: 'DESC',
+                },
                 success: true,
             }),
         );

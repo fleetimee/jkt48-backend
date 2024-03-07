@@ -141,6 +141,11 @@ export const cancelSubscription = async (userId: string) => {
     return subscription;
 };
 
+/**
+ * Retrieves the transaction list for a specific user.
+ * @param userId - The ID of the user.
+ * @returns A promise that resolves to an array of transactions.
+ */
 export const getUserTransactionList = async (userId: string) => {
     const transactions = await db.execute(sql`
     SELECT o.id           AS order_id,
@@ -157,6 +162,12 @@ export const getUserTransactionList = async (userId: string) => {
     return transactions;
 };
 
+/**
+ * Retrieves the transaction details for a specific user and order.
+ * @param userId - The ID of the user.
+ * @param orderId - The ID of the order.
+ * @returns A Promise that resolves to the transaction details.
+ */
 export const getUserTransactionDetail = async (userId: string, orderId: string) => {
     const [transaction] = await db.execute(sql`
     SELECT o.id             AS order_id,
@@ -177,4 +188,72 @@ export const getUserTransactionDetail = async (userId: string, orderId: string) 
     `);
 
     return transaction;
+};
+
+/**
+ * Retrieves the list of conversations for a given user.
+ *
+ * @param userId - The ID of the user.
+ * @returns A promise that resolves to the list of conversations.
+ */
+export const getUserConversationList = async (userId: string) => {
+    const conversation = await db.execute(sql`
+        SELECT DISTINCT ON (i.id)
+        c.id            AS conversation_id,
+        u.id            AS user_id,
+        i.id            AS idol_id,
+        u.nickname      AS idol_name,
+        U.profile_image AS idol_image,
+        m.message       AS last_message,
+        m.created_at    AS last_message_time
+    FROM order_idol
+            INNER JOIN "order" o ON order_idol.order_id = o.id
+            INNER JOIN idol i ON order_idol.idol_id = i.id
+            INNER JOIN conversation c ON i.id = c.idol_id
+            INNER JOIN users u ON i.user_id = u.id
+            LEFT JOIN message m ON c.id = m.conversation_id
+    WHERE o.user_id = ${userId}
+    AND o.order_status = 'success'
+    ORDER BY i.id, m.created_at DESC;
+    `);
+
+    return conversation;
+};
+
+/**
+ * Retrieves the messages of a user in a specific conversation.
+ *
+ * @param userId - The ID of the user.
+ * @param conversationId - The ID of the conversation.
+ * @param limit - The maximum number of messages to retrieve.
+ * @param offset - The number of messages to skip before retrieving.
+ * @returns A promise that resolves to an array of messages.
+ */
+export const getUserConversationMessages = async (
+    userId: string,
+    conversationId: string,
+    limit: number,
+    offset: number,
+) => {
+    const messages = await db.execute(sql`
+    SELECT m.id         AS message_id,
+        m.message    AS message,
+        m.created_at AS created_at,
+        u2.name      AS idol_name,
+        u2.nickname  AS idol_nickname,
+        m.approved  AS approved
+    FROM message m
+            INNER JOIN users u ON m.user_id = u.id
+            INNER JOIN conversation c ON m.conversation_id = c.id
+            INNER JOIN idol i ON c.idol_id = i.id
+            INNER JOIN users u ON i.user_id = u.id
+            INNER JOIN users u2 ON i.user_id = u2.id
+    WHERE c.id = ${conversationId}
+    AND m.user_id = ${userId}
+    AND m.approved = TRUE
+    ORDER BY m.created_at DESC
+    LIMIT ${limit} OFFSET ${offset};
+    `);
+
+    return messages;
 };

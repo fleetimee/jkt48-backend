@@ -9,6 +9,7 @@ import { order } from '../../models/order';
  * @param status - The new status of the order.
  * @throws Error if the status is invalid.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const updateOrderStatusXenditCallback = async (orderId: string, status: string, callbackData: any) => {
     if (status !== 'pending' && status !== 'success' && status !== 'failed') {
         throw new Error(`Invalid status: ${status}`);
