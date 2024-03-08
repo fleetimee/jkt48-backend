@@ -10,6 +10,7 @@ import { getOrderById } from '../order/repository';
 import {
     cancelSubscription,
     checkUserSubscription,
+    checkUserSubscriptionOderIdol,
     countActiveSubscriptionsUsers,
     countRegisteredUsers,
     getUserById,
@@ -174,6 +175,17 @@ router.get('/me/conversation/:conversationId', authenticateUser, async (req, res
 
         const conversation = await getUserConversationMessages(id, conversationId, 10, 0);
         if (!conversation) throw new NotFoundError('Conversation not found');
+
+        // From the conversation list, get the first item to get idol id
+        const idolId = conversation[0]?.idol_id;
+
+        // Check if the user is the idol in the conversation
+        if (!idolId) throw new NotFoundError('User not subscribed to this idol');
+
+        // Check if the user subscripted to this idol
+        const subscription = await checkUserSubscriptionOderIdol(id, idolId as string);
+
+        if (!subscription) throw new NotFoundError('User does not have an active subscription to this idol');
 
         res.status(StatusCodes.OK).send(
             formatResponsePaginated({

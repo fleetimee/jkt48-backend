@@ -126,6 +126,22 @@ export const checkUserSubscription = async (userId: string) => {
     return subscription;
 };
 
+export const checkUserSubscriptionOderIdol = async (userId: string, idolId: string) => {
+    const [subscription] = await db.execute(sql`
+    SELECT EXISTS (SELECT 1
+                FROM "order" o
+                            INNER JOIN package p ON o.package_id = p.id
+                WHERE o.user_id = ${userId}
+                    AND o.order_status = 'success'
+                    AND o.expired_at > NOW()
+                    AND o.id IN (SELECT order_id
+                                FROM order_idol
+                                WHERE idol_id = ${idolId})) AS order_exists;
+    `);
+
+    return subscription;
+};
+
 /**
  * Cancels the subscription for a user.
  * @param userId - The ID of the user.
@@ -239,6 +255,7 @@ export const getUserConversationMessages = async (
     SELECT m.id         AS message_id,
         m.message    AS message,
         m.created_at AS created_at,
+        i.id         AS idol_id,
         u2.name      AS idol_name,
         u2.nickname  AS idol_nickname,
         m.approved  AS approved
@@ -246,10 +263,8 @@ export const getUserConversationMessages = async (
             INNER JOIN users u ON m.user_id = u.id
             INNER JOIN conversation c ON m.conversation_id = c.id
             INNER JOIN idol i ON c.idol_id = i.id
-            INNER JOIN users u ON i.user_id = u.id
             INNER JOIN users u2 ON i.user_id = u2.id
     WHERE c.id = ${conversationId}
-    AND m.user_id = ${userId}
     AND m.approved = TRUE
     ORDER BY m.created_at DESC
     LIMIT ${limit} OFFSET ${offset};
