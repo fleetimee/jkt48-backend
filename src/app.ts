@@ -6,6 +6,7 @@ import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import cron from 'node-cron';
 
 // import cron from 'node-cron';
 import { errorHandler } from './middlewares/error-handler';
@@ -106,14 +107,17 @@ app.use('/static', express.static('static'));
 
 // Schedule tasks to be run on the server.
 // This cron job will run at 00:00 every Sunday.
-// cron.schedule('*/5 * * * * *', function () {
-//     console.log('Running a task every 5 seconds');
-//     try {
-//         console.log('Updating top idol table');
-//     } catch (error) {
-//         console.error('Error updating top idol table:', error);
-//     }
-// });
+cron.schedule('0 0 * * 0', function () {
+    console.log('Running store top idols by order transaction every Sunday midnight');
+    try {
+        fetch(`${process.env.BASE_URL}/api/top-idol/by-week`)
+            .then(res => res.json())
+            .then(data => console.log(data))
+            .catch(err => console.error(err));
+    } catch (error) {
+        console.error('Error updating top idol table:', error);
+    }
+});
 
 /**
  * Rate limiter middleware.
