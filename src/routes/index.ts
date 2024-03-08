@@ -11,6 +11,7 @@ import order from './order/api';
 import packet from './packet/api';
 import posts from './posts/api';
 import privacyPolicy from './privacy-policy/api';
+import reaction from './reaction/api';
 import terms from './terms/api';
 import topIdol from './top-idol/api';
 import user from './user/api';
@@ -33,6 +34,7 @@ router.use('/inquiry', inquiry);
 router.use('/order', order);
 router.use('/invoice', invoice);
 router.use('/xendit-callback', xenditCallback);
+router.use('/reaction', reaction);
 
 // Handle 404
 router.use((req, res) => {
