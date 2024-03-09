@@ -283,7 +283,7 @@ export const getUserConversationMessages = async (
  */
 export const postUserReactToMessage = async (userId: string, messageId: string, reactionId: string) => {
     const [message] = await db.execute(sql`
-    INSERT INTO message_reaction (user_id, message_id, reaction_id)
+    INSERT INTO message_reaction (users_id, message_id, reaction_id)
     VALUES (${userId}, ${messageId}, ${reactionId})
     RETURNING *;
     `);
@@ -293,15 +293,17 @@ export const postUserReactToMessage = async (userId: string, messageId: string, 
 
 /**
  * Deletes a user's reaction to a message.
- * @param {string} userId - The ID of the user.
- * @param {string} messageId - The ID of the message.
- * @returns {Promise<any>} - A promise that resolves to the deleted message.
+ * @param userId - The ID of the user.
+ * @param messageId - The ID of the message.
+ * @param reactionId - The ID of the reaction.
+ * @returns The deleted message.
  */
-export const deleteUserReactToMessage = async (userId: string, messageId: string) => {
+export const deleteUserReactToMessage = async (userId: string, messageId: string, reactionId: string) => {
     const [message] = await db.execute(sql`
     DELETE FROM message_reaction
-    WHERE user_id = ${userId}
+    WHERE users_id = ${userId}
     AND message_id = ${messageId}
+    AND reaction_id = ${reactionId}
     RETURNING *;
     `);
 

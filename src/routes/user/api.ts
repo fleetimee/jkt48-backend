@@ -6,21 +6,25 @@ import { validateSchema } from '../../middlewares/validate-request';
 import { NotFoundError } from '../../utils/errors';
 import { formatResponse, formatResponsePaginated } from '../../utils/response-formatter';
 import { validateUuid } from '../../utils/validate';
+import { getMessagesById } from '../messages/repository';
 import { getOrderById } from '../order/repository';
+import { getReactionById } from '../reaction/repository';
 import {
     cancelSubscription,
     checkUserSubscription,
     checkUserSubscriptionOderIdol,
     countActiveSubscriptionsUsers,
     countRegisteredUsers,
+    deleteUserReactToMessage,
     getUserById,
     getUserConversationList,
     getUserConversationMessages,
     getUserTransactionDetail,
     getUserTransactionList,
+    postUserReactToMessage,
     updateUser,
 } from './repository';
-import { updateUserSchema } from './schema';
+import { postReaction, updateUserSchema } from './schema';
 
 const router = express.Router();
 
@@ -207,31 +211,59 @@ router.get('/me/conversation/:conversationId', authenticateUser, async (req, res
     }
 });
 
-// router.post('/me/reactMessage/:conversationId/message/:messageId', authenticateUser, async (req, res, next) => {
-//     try {
-//         const id = req.user.id;
-//         const conversationId = req.params.conversationId;
-//         const messageId = req.params.messageId;
+router.post('/me/reactMessage/:messageId', validateSchema(postReaction), authenticateUser, async (req, res, next) => {
+    try {
+        const id = req.user.id;
+        const messageId = req.params.messageId;
+        const { reactionId } = req.body;
 
-//         // Check if conversation id is valid
-//         const isValidConverationId = validateUuid(conversationId);
-//         if (!isValidConverationId) throw new NotFoundError('ConversationId not valid (uuid)');
+        // Let these functions throw errors if something goes wrong
+        await getMessagesById(messageId);
+        await getReactionById(reactionId);
 
-//         // Check if conversation is exists
-//         const conversation = getConversationsById(conversationId);
-//         if (!conversation) throw new NotFoundError('Conversation not found');
+        // Post the reaction
+        await postUserReactToMessage(id, messageId, reactionId);
 
-//         // Check if message id is valid
-//         const isValidMessageId = validateUuid(messageId);
-//         if (!isValidMessageId) throw new NotFoundError('MessageId not valid (uuid)');
+        res.status(StatusCodes.OK).send(
+            formatResponse({
+                code: StatusCodes.OK,
+                message: 'Reaction posted',
+                success: true,
+                data: null,
+            }),
+        );
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
+});
 
-//         // Check if message is exists
-//         // const
-//     } catch (error) {
-//         console.log(error);
-//         next(error);
-//     }
-// });
+router.delete('/me/unReactMessage/:messageId/reaction/:reactionId', authenticateUser, async (req, res, next) => {
+    try {
+        const id = req.user.id;
+        const messageId = req.params.messageId;
+        const reactionId = req.params.reactionId;
+
+        // Let these functions throw errors if something goes wrong
+        await getMessagesById(messageId);
+        await getReactionById(reactionId);
+
+        // Post the reaction
+        await deleteUserReactToMessage(id, messageId, reactionId);
+
+        res.status(StatusCodes.OK).send(
+            formatResponse({
+                code: StatusCodes.OK,
+                message: 'Reaction removed',
+                success: true,
+                data: null,
+            }),
+        );
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
+});
 
 router.get('/countRegistered', authenticateUser, requireAdminRole, async (req, res, next) => {
     try {

@@ -9,3 +9,9 @@ export const updateUserSchema = z.object({
         profileImage: z.string().optional(),
     }),
 });
+
+export const postReaction = z.object({
+    body: z.object({
+        reactionId: z.string().uuid('Please enter a valid reaction ID'),
+    }),
+});

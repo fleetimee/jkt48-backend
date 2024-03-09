@@ -2,6 +2,7 @@ import { eq, sql } from 'drizzle-orm';
 
 import db from '../../db';
 import { message } from '../../models/message';
+import { NotFoundError } from '../../utils/errors';
 
 /**
  * Retrieves the reactions for the given message IDs.
@@ -103,6 +104,10 @@ export const getMessages = async (conversationId: string, limit: number, offset:
  */
 export const getMessagesById = async (messageId: string) => {
     const [messageItem] = await db.select().from(message).where(eq(message.id, messageId));
+
+    if (!messageItem) {
+        throw new NotFoundError('Message not found');
+    }
 
     return messageItem;
 };
