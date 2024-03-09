@@ -1,6 +1,5 @@
 import bodyParser from 'body-parser';
 import compression from 'compression';
-// import console from 'console';
 import cookies from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
@@ -8,7 +7,6 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import cron from 'node-cron';
 
-// import cron from 'node-cron';
 import { errorHandler } from './middlewares/error-handler';
 import loggingMiddleware from './middlewares/logging';
 import { rateLimiter } from './middlewares/rate-limiter';
@@ -102,7 +100,7 @@ app.use(
     }),
 );
 
-// Server Static files
+// Serve Static files
 app.use('/static', express.static('static'));
 
 // Schedule tasks to be run on the server.

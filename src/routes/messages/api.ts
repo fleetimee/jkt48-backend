@@ -6,12 +6,33 @@ import { validateSchema } from '../../middlewares/validate-request';
 import { UnprocessableEntityError } from '../../utils/errors';
 import { formatResponsePaginated } from '../../utils/response-formatter';
 import { validateUuid } from '../../utils/validate';
-import { approveMessage, createMessage, getMessages } from './repository';
+import { approveMessage, createMessage, getMessages, getMessagesById } from './repository';
 import { approveOrRejectMessageSchema, createMessageSchema } from './schema';
 
 const router = express.Router();
 
 router.get('/:id', authenticateUser, requireAdminRole, async (req, res, next) => {
+    try {
+        const messageId = req.params.id;
+        if (!validateUuid(messageId)) throw new UnprocessableEntityError('The message ID is not valid UUID');
+
+        const message = await getMessagesById(messageId);
+
+        console.log('message', message);
+
+        res.status(StatusCodes.OK).send({
+            success: true,
+            code: StatusCodes.OK,
+            message: 'Success fetch message',
+            data: message,
+        });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+});
+
+router.get('/conversation/:id', authenticateUser, requireAdminRole, async (req, res, next) => {
     try {
         const conversationId = req.params.id;
         if (!validateUuid(conversationId)) throw new UnprocessableEntityError('The conversation ID is not valid UUID');

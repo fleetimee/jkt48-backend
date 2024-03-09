@@ -207,6 +207,32 @@ router.get('/me/conversation/:conversationId', authenticateUser, async (req, res
     }
 });
 
+// router.post('/me/reactMessage/:conversationId/message/:messageId', authenticateUser, async (req, res, next) => {
+//     try {
+//         const id = req.user.id;
+//         const conversationId = req.params.conversationId;
+//         const messageId = req.params.messageId;
+
+//         // Check if conversation id is valid
+//         const isValidConverationId = validateUuid(conversationId);
+//         if (!isValidConverationId) throw new NotFoundError('ConversationId not valid (uuid)');
+
+//         // Check if conversation is exists
+//         const conversation = getConversationsById(conversationId);
+//         if (!conversation) throw new NotFoundError('Conversation not found');
+
+//         // Check if message id is valid
+//         const isValidMessageId = validateUuid(messageId);
+//         if (!isValidMessageId) throw new NotFoundError('MessageId not valid (uuid)');
+
+//         // Check if message is exists
+//         // const
+//     } catch (error) {
+//         console.log(error);
+//         next(error);
+//     }
+// });
+
 router.get('/countRegistered', authenticateUser, requireAdminRole, async (req, res, next) => {
     try {
         const count = await countRegisteredUsers();

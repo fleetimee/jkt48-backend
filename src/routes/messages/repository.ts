@@ -1,6 +1,7 @@
-import { sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 
 import db from '../../db';
+import { message } from '../../models/message';
 
 /**
  * Retrieves the reactions for the given message IDs.
@@ -93,6 +94,17 @@ export const getMessages = async (conversationId: string, limit: number, offset:
     }
 
     return messages;
+};
+
+/**
+ * Retrieves messages by their ID from the database.
+ * @param messageId - The ID of the message to retrieve.
+ * @returns A Promise that resolves to the retrieved messages.
+ */
+export const getMessagesById = async (messageId: string) => {
+    const [messageItem] = await db.select().from(message).where(eq(message.id, messageId));
+
+    return messageItem;
 };
 
 /**
