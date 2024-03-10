@@ -266,6 +266,7 @@ export const getUserConversationMessages = async (
             INNER JOIN users u2 ON i.user_id = u2.id
     WHERE c.id = ${conversationId}
     AND m.approved = TRUE
+    AND m.user_id = ${userId}
     ORDER BY m.created_at DESC
     LIMIT ${limit} OFFSET ${offset};
     `);
