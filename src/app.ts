@@ -7,6 +7,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import cron from 'node-cron';
 
+import { BASE_URL } from './config';
 import { errorHandler } from './middlewares/error-handler';
 import loggingMiddleware from './middlewares/logging';
 import { rateLimiter } from './middlewares/rate-limiter';
@@ -108,7 +109,7 @@ app.use('/static', express.static('static'));
 cron.schedule('0 0 * * 0', function () {
     console.log('Running store top idols by order transaction every Sunday midnight');
     try {
-        fetch(`${process.env.BASE_URL}/api/top-idol/by-week`)
+        fetch(`${BASE_URL}/api/top-idol/by-week`)
             .then(res => res.json())
             .then(data => console.log(data))
             .catch(err => console.error(err));
