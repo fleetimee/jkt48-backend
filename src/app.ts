@@ -6,12 +6,14 @@ import express from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import cron from 'node-cron';
+import swaggerUi from 'swagger-ui-express';
 
 import { BASE_URL } from './config';
 import { errorHandler } from './middlewares/error-handler';
 import loggingMiddleware from './middlewares/logging';
 import { rateLimiter } from './middlewares/rate-limiter';
 import routes from './routes';
+import { specs } from './utils/swagger-options';
 
 /**
  * Express application.
@@ -26,6 +28,8 @@ import routes from './routes';
  * It is a minimal, fast, and unopinionated web framework for Node.js.
  */
 const app = express();
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, { explorer: true }));
 
 /**
  * Morgan, a HTTP request logger middleware for Node.js.
