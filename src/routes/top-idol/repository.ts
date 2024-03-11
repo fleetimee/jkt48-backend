@@ -26,6 +26,18 @@ export const getTopIdol = async () => {
 };
 
 /**
+ * Retrieves idols id.
+ * @returns {Promise<Array<Object>>} The top idol data.
+ */
+export const getIdolIds = async () => {
+    const idolsId = await db.execute(sql`
+    SELECT id
+    FROM "idol"
+    `);
+    return idolsId;
+};
+
+/**
  * Retrieves the top idol data by 7 last day.
  * @returns {Promise<Array<Object>>} The top idol data.
  */
@@ -60,8 +72,8 @@ export const trunctateTopIdols = async () => {
  * @returns {Promise<Array<Object>>} The top idol data.
  */
 interface Datas {
-    id_idol: string;
-    subscription_count: string;
+    id_idol: any;
+    subscription_count: any;
 }
 export const storeTopIdols = async (datas: Datas[]) => {
     await db.transaction(async trx => {
