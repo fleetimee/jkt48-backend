@@ -34,8 +34,8 @@ router.post('/register', validateSchema(registerSchema), rateLimiterStrict, asyn
         await registerUser(email, password, name, birthdayDate, verificationToken);
 
         const emailResult = await sendEmail({
-            // to: [email],
-            to: ['zane.227@gmail.com'],
+            to: [email],
+            // to: ['zane.227@gmail.com'],
             subject: 'Verify your email',
             text: `Your verification token is: ${verificationToken}`,
         });
@@ -115,8 +115,8 @@ router.post('/forgot_password', validateSchema(forgotPasswordSchema), rateLimite
         if (user) await forgotPasswordUser(email, randomStringToken);
 
         const emailResult = await sendEmail({
-            // to: [email],
-            to: ['zane.227@gmail.com'],
+            to: [email],
+            // to: ['zane.227@gmail.com'],
             subject: 'Your Reset Password Token',
             text: `Your reset password token is: ${randomStringToken}, use this token to reset your password.`,
         });

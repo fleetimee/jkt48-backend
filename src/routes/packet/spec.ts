@@ -2,7 +2,7 @@
  * @swagger
  * components:
  *   schemas:
- *     PackagePayment:
+ *     Package:
  *       type: object
  *       required:
  *         - id
@@ -134,6 +134,101 @@
  *                   type: string
  *               example:
  *                 error: "Token expired"
+ *       404:
+ *         description: The package could not be found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *               example:
+ *                 message: "Package not found"
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *               example:
+ *                 message: "Internal Server Error"
+ */
+
+/**
+ * @swagger
+ * /api/package/{id}:
+ *   patch:
+ *     summary: Update a package by its ID
+ *     tags: [Packages]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The package ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               totalMembers:
+ *                 type: string
+ *               price:
+ *                 type: string
+ *               isActive:
+ *                 type: boolean
+ *               updatedAt:
+ *                 type: string
+ *                 format: date-time
+ *           example:
+ *             name: "New Package Name"
+ *             description: "New Package Description"
+ *             totalMembers: "100"
+ *             price: "1000"
+ *             isActive: true
+ *             updatedAt: "2022-01-01T00:00:00Z"
+ *     responses:
+ *       200:
+ *         description: The updated package data.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PackagePayment'
+ *       401:
+ *         description: Authorization information is missing or invalid or token expired
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *               example:
+ *                 error: "Token expired"
+ *       403:
+ *         description: Forbidden, requires admin role
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *               example:
+ *                 message: "Requires admin role"
  *       404:
  *         description: The package could not be found
  *         content:

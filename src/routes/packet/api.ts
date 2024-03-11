@@ -1,7 +1,7 @@
 import express from 'express';
 import { StatusCodes } from 'http-status-codes';
 
-import { authenticateUser } from '../../middlewares/authenticate-user';
+import { authenticateUser, requireAdminRole } from '../../middlewares/authenticate-user';
 import { validateSchema } from '../../middlewares/validate-request';
 import { NotFoundError, UnauthorizedError } from '../../utils/errors';
 import { formatResponse } from '../../utils/response-formatter';
@@ -53,40 +53,46 @@ router.get('/:id', authenticateUser, async (req, res, next) => {
     }
 });
 
-router.patch('/:id', validateSchema(updatePackageSchema), authenticateUser, async (req, res, next) => {
-    try {
-        const { name, description, totalMembers, price, isActive } = req.body;
-        const packageId = req.params.id;
-        const userId = req.user.id;
-        const updatedAt = new Date();
+router.patch(
+    '/:id',
+    validateSchema(updatePackageSchema),
+    authenticateUser,
+    requireAdminRole,
+    async (req, res, next) => {
+        try {
+            const { name, description, totalMembers, price, isActive } = req.body;
+            const packageId = req.params.id;
+            const userId = req.user.id;
+            const updatedAt = new Date();
 
-        if (!validateUuid(packageId)) throw new NotFoundError('Invalid package id (uuid) format');
+            if (!validateUuid(packageId)) throw new NotFoundError('Invalid package id (uuid) format');
 
-        const updatedPackage = await updatePackage(
-            packageId,
-            name,
-            description,
-            totalMembers,
-            price,
-            isActive,
-            updatedAt,
-        );
+            const updatedPackage = await updatePackage(
+                packageId,
+                name,
+                description,
+                totalMembers,
+                price,
+                isActive,
+                updatedAt,
+            );
 
-        if (!updatedPackage) throw new NotFoundError('Package not found');
-        if (updatedPackage.userId !== userId) throw new UnauthorizedError('Package does not belong to user');
+            if (!updatedPackage) throw new NotFoundError('Package not found');
+            if (updatedPackage.userId !== userId) throw new UnauthorizedError('Package does not belong to user');
 
-        res.status(StatusCodes.OK).send(
-            formatResponse({
-                success: true,
-                code: StatusCodes.OK,
-                message: 'Success update package item',
-                data: [updatedPackage],
-            }),
-        );
-    } catch (error) {
-        console.error(error);
-        next(error);
-    }
-});
+            res.status(StatusCodes.OK).send(
+                formatResponse({
+                    success: true,
+                    code: StatusCodes.OK,
+                    message: 'Success update package item',
+                    data: [updatedPackage],
+                }),
+            );
+        } catch (error) {
+            console.error(error);
+            next(error);
+        }
+    },
+);
 
 export default router;

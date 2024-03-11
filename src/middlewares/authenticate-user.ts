@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 
 import { verifyToken } from '../routes/auth/utils';
-import { UnauthorizedError } from '../utils/errors';
+import { ForbiddenError, UnauthorizedError } from '../utils/errors';
 
 declare module 'express-serve-static-core' {
     interface Request {
@@ -46,7 +46,7 @@ export const requireMemberRole = (req: Request, res: Response, next: NextFunctio
     if (req.user && req.user.roles === 'member') {
         next();
     } else {
-        next(new UnauthorizedError('User does not have the required member role'));
+        next(new ForbiddenError('User does not have the required member role'));
     }
 };
 
@@ -62,6 +62,6 @@ export const requireAdminRole = (req: Request, res: Response, next: NextFunction
     if (req.user && req.user.roles === 'admin') {
         next();
     } else {
-        next(new UnauthorizedError('User does not have the required admin role'));
+        next(new ForbiddenError('User does not have the required admin role'));
     }
 };
