@@ -62,7 +62,6 @@
 
 /**
  * @swagger
-
  * /api/package:
  *   get:
  *     summary: Retrieve a list of packages
@@ -79,7 +78,73 @@
  *               items:
  *                 $ref: '#/components/schemas/PackagePayment'
  *       401:
- *         description: Authorization information is missing or invalid
+ *         description: Authorization information is missing or invalid or token expired
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *               example:
+ *                 error: "Token expired"
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *               example:
+ *                 message: "Internal Server Error"
+ */
+
+/**
+ * @swagger
+ * /api/package/{id}:
+ *   get:
+ *     summary: Retrieve a package by its ID
+ *     tags: [Packages]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The package ID
+ *     responses:
+ *       200:
+ *         description: The package data.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PackagePayment'
+ *       401:
+ *         description: Authorization information is missing or invalid or token expired
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *               example:
+ *                 error: "Token expired"
+ *       404:
+ *         description: The package could not be found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *               example:
+ *                 message: "Package not found"
  *       500:
  *         description: Internal Server Error
  *         content:
