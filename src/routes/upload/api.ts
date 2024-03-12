@@ -1,12 +1,13 @@
 import express from 'express';
 import { StatusCodes } from 'http-status-codes';
+import multer from 'multer';
 
 import { upload } from '../../utils/multer';
 import { formatResponse } from '../../utils/response-formatter';
 
 const router = express.Router();
 
-router.post('/:urlParam', upload.single('file'), (req, res, next) => {
+router.post('/:urlParam(news|profile)', upload, (req, res, next) => {
     try {
         if (!req.file) {
             res.status(StatusCodes.BAD_REQUEST).send({ error: 'No file uploaded' });
@@ -25,7 +26,13 @@ router.post('/:urlParam', upload.single('file'), (req, res, next) => {
             }),
         );
     } catch (error) {
-        next(error);
+        console.log(error);
+
+        if (error instanceof multer.MulterError && error.code === 'LIMIT_FILE_SIZE') {
+            res.status(StatusCodes.FORBIDDEN).send({ error: 'File size exceeds the limit' });
+        } else {
+            next(error);
+        }
     }
 });
 

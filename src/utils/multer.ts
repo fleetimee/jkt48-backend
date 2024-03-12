@@ -13,4 +13,17 @@ const storage = multer.diskStorage({
     },
 });
 
-export const upload = multer({ storage: storage });
+export const upload = multer({
+    storage: storage,
+    limits: {
+        fileSize: 500 * 1024, // 500KB
+    },
+    fileFilter(req, file, callback) {
+        console.log(file);
+
+        if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
+            return callback(new Error('Please upload an image file'));
+        }
+        callback(null, true);
+    },
+}).single('file');
