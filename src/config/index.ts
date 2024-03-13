@@ -34,3 +34,15 @@ export const XENDIT_SECRET_KEY = process.env.XENDIT_SECRET_KEY;
 
 /* Tax */
 export const PPN_PERCENTAGE = Number(process.env.PPN_PERCENTAGE) || 0.1;
+
+/* Author Config */
+export const AUTHOR_SERVICE_NAME = process.env.AUTHOR_SERVICE_NAME;
+export const AUTHOR_NAME = process.env.AUTHOR_NAME;
+export const AUTHOR_EMAIL = process.env.AUTHOR_EMAIL;
+export const AUTHOR_SOCIAL_MEDIA = {
+    twitter: process.env.AUTHOR_TWITTER,
+    github: process.env.AUTHOR_GITHUB,
+    linkedin: process.env.AUTHOR_LINKEDIN,
+};
+export const AUTHOR_WEBSITE = process.env.AUTHOR_WEBSITE;
+export const AUTHOR_DOCUMENTATION = process.env.AUTHOR_DOCUMENTATION;
