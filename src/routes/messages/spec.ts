@@ -48,41 +48,39 @@
  *     CreateMessage:
  *       type: object
  *       properties:
- *         body:
- *           type: object
- *           properties:
- *             conversationId:
- *               type: string
- *               minLength: 1
- *               description: Conversation ID cannot be empty
- *             messages:
- *               type: string
- *               minLength: 1
- *               description: Message cannot be empty
- *             attachments:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   file_path:
- *                     type: string
- *                     minLength: 1
- *                     description: Please enter a file path
- *                   file_type:
- *                     type: string
- *                     minLength: 1
- *                     description: Please enter a file type
- *                   file_size:
- *                     type: number
- *                     minimum: 1
- *                     description: Please enter a file size
- *                   checksum:
- *                     type: string
- *                     minLength: 1
- *                     description: Please enter a checksum
- *               nullable: true
+ *         conversationId:
+ *           type: string
+ *           minLength: 1
+ *           description: Conversation ID cannot be empty
+ *         messages:
+ *           type: string
+ *           minLength: 1
+ *           description: Message cannot be empty
+ *         attachments:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               file_path:
+ *                 type: string
+ *                 minLength: 1
+ *                 description: Please enter a file path
+ *               file_type:
+ *                 type: string
+ *                 minLength: 1
+ *                 description: Please enter a file type
+ *               file_size:
+ *                 type: number
+ *                 minimum: 1
+ *                 description: Please enter a file size
+ *               checksum:
+ *                 type: string
+ *                 minLength: 1
+ *                 description: Please enter a checksum
+ *           nullable: true
  *       required:
- *         - body
+ *         - conversationId
+ *         - messages
  */
 
 /**
@@ -92,14 +90,11 @@
  *     ApproveOrRejectMessage:
  *       type: object
  *       properties:
- *         body:
- *           type: object
- *           properties:
- *             isApproved:
- *               type: boolean
- *               description: Approval status of the message
+ *         isApproved:
+ *           type: boolean
+ *           description: Approval status of the message
  *       required:
- *         - body
+ *         - isApproved
  */
 
 /**
@@ -143,6 +138,50 @@
  *               properties:
  *                 message:
  *                   type: string
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ */
+
+/**
+ * @swagger
+ * /api/messages:
+ *   post:
+ *     summary: Create a message
+ *     tags: [Messages]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CreateMessage'
+ *     responses:
+ *       200:
+ *         description: Message created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 code:
+ *                   type: integer
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     sendMessage:
+ *                       $ref: '#/components/schemas/Message'
  *       500:
  *         description: Internal Server Error
  *         content:
