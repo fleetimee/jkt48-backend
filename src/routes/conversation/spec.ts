@@ -95,10 +95,10 @@
 
 /**
  * @swagger
- * /api/conversation/{id}:
- *   get:
- *     summary: Retrieve a conversation by its ID
- *     tags: [Conversations]
+ * /api/messages/{id}/approveOrReject:
+ *   patch:
+ *     summary: Approve or reject a message by its ID
+ *     tags: [Messages]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -108,10 +108,16 @@
  *           type: string
  *           format: uuid
  *         required: true
- *         description: The conversation ID
+ *         description: The message ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ApproveOrRejectMessage'
  *     responses:
  *       200:
- *         description: Success fetches conversation
+ *         description: Message approved or rejected
  *         content:
  *           application/json:
  *             schema:
@@ -124,7 +130,7 @@
  *                 message:
  *                   type: string
  *                 data:
- *                   $ref: '#/components/schemas/Conversation'
+ *                   type: 'null'
  *       422:
  *         description: Unprocessable Entity
  *         content:
