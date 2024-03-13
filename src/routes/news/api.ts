@@ -8,7 +8,7 @@ import { NotFoundError, UnauthorizedError } from '../../utils/errors';
 import { formatResponse, formatResponsePaginated } from '../../utils/response-formatter';
 import { validateUuid } from '../../utils/validate';
 import { createNews, getLatestNews, getNews, getNewsBySlug, getNewsList, updateNews } from './repository';
-import { createNewsSchema } from './schema';
+import { createNewsSchema, updateNewsSchema } from './schema';
 
 const router = express.Router();
 
@@ -133,7 +133,7 @@ router.post('/', validateSchema(createNewsSchema), authenticateUser, async (req,
     }
 });
 
-router.put('/:newsId', authenticateUser, requireAdminRole, async (req, res, next) => {
+router.put('/:newsId', validateSchema(updateNewsSchema), authenticateUser, requireAdminRole, async (req, res, next) => {
     try {
         const isValidUuid = validateUuid(req.params.newsId);
         if (!isValidUuid) throw new NotFoundError('Not valid UUID format');
