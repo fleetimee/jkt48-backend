@@ -1,7 +1,7 @@
 import express from 'express';
 import { StatusCodes } from 'http-status-codes';
 
-import { authenticateUser, requireAdminRole } from '../../middlewares/authenticate-user';
+import { authenticateUser, requireAdminRole, requireMemberRole } from '../../middlewares/authenticate-user';
 import { validateSchema } from '../../middlewares/validate-request';
 import { UnprocessableEntityError } from '../../utils/errors';
 import { formatResponsePaginated } from '../../utils/response-formatter';
@@ -64,7 +64,7 @@ router.get('/conversation/:id', authenticateUser, requireAdminRole, async (req, 
     }
 });
 
-router.post('/', validateSchema(createMessageSchema), authenticateUser, async (req, res, next) => {
+router.post('/', validateSchema(createMessageSchema), authenticateUser, requireMemberRole, async (req, res, next) => {
     try {
         const { conversationId, messages, attachments } = req.body;
 
