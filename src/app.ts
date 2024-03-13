@@ -9,6 +9,7 @@ import cron from 'node-cron';
 import swaggerUi from 'swagger-ui-express';
 
 import { BASE_URL } from './config';
+import { infoMiddleware } from './middlewares/author-info';
 import { errorHandler } from './middlewares/error-handler';
 import loggingMiddleware from './middlewares/logging';
 import { rateLimiter } from './middlewares/rate-limiter';
@@ -128,6 +129,13 @@ cron.schedule('0 0 * * 0', function () {
  * It is based on express-rate-limit.
  */
 app.use(rateLimiter);
+
+/**
+ * Root Route Introduction.
+ */
+app.get('/', infoMiddleware, (req, res) => {
+    res.json(res.locals.info);
+});
 
 /**
  * Routes middleware.
