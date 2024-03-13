@@ -29,8 +29,6 @@
  *                   type: string
  *                 data:
  *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Inquiry'
  *       500:
  *         description: Internal Server Error
  *         content:

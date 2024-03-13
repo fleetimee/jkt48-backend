@@ -1,7 +1,7 @@
 import express from 'express';
 import { StatusCodes } from 'http-status-codes';
 
-import { authenticateUser } from '../../middlewares/authenticate-user';
+import { authenticateUser, requireAdminRole } from '../../middlewares/authenticate-user';
 import { validateSchema } from '../../middlewares/validate-request';
 import { UnprocessableEntityError } from '../../utils/errors';
 import { formatResponse } from '../../utils/response-formatter';
@@ -12,7 +12,7 @@ import { createInvoiceSchema } from './schema';
 
 const router = express.Router();
 
-router.get('/', async (req, res, next) => {
+router.get('/', authenticateUser, requireAdminRole, async (req, res, next) => {
     try {
         const invoices = await getInvoices();
 
@@ -29,7 +29,7 @@ router.get('/', async (req, res, next) => {
     }
 });
 
-router.get('/:invoiceId', async (req, res, next) => {
+router.get('/:invoiceId', authenticateUser, async (req, res, next) => {
     try {
         const invoiceId = req.params.invoiceId;
 
@@ -48,7 +48,7 @@ router.get('/:invoiceId', async (req, res, next) => {
     }
 });
 
-router.get('/:invoiceId/forceExpire', async (req, res, next) => {
+router.get('/:invoiceId/forceExpire', authenticateUser, async (req, res, next) => {
     try {
         const invoiceId = req.params.invoiceId;
 
