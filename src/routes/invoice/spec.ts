@@ -219,7 +219,7 @@
 
 /**
  * @swagger
- * /api/{invoiceId}:
+ * /api/invoice/{invoiceId}:
  *   get:
  *     summary: Retrieve an invoice by its ID
  *     tags: [Invoices]
@@ -371,7 +371,7 @@
 
 /**
  * @swagger
- * /api:
+ * /api/invoice:
  *   post:
  *     summary: Create an invoice
  *     tags: [Invoices]
