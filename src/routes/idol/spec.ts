@@ -274,7 +274,7 @@
 
 /**
  * @swagger
- * /api/members:
+ * /api/idol:
  *   post:
  *     summary: Create a new member
  *     tags: [Idols]
@@ -324,7 +324,7 @@
 
 /**
  * @swagger
- * /api/members/{userId}:
+ * /api/idol/{userId}:
  *   patch:
  *     summary: Update a member by its ID
  *     tags: [Idols]
@@ -391,7 +391,7 @@
 
 /**
  * @swagger
- * /api/members/{userId}:
+ * /api/idol/{userId}:
  *   delete:
  *     summary: Delete a member by its ID
  *     tags: [Idols]
