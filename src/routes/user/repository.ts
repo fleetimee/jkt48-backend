@@ -19,6 +19,7 @@ export const getUserById = async (id: string) => {
             nickname: users.nickName,
             birthday: users.birthday,
             profileImage: users.profileImage,
+            role: users.roles,
         })
         .from(users)
         .where(eq(users.id, id))
