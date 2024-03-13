@@ -59,4 +59,5 @@ router.get('/:id', authenticateUser, requireAdminRole, async (req, res, next) =>
         next(error);
     }
 });
+
 export default router;
