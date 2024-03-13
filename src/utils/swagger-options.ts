@@ -28,10 +28,13 @@ const options: Options = {
         },
         servers: [
             {
-                url: 'http://localhost:6969',
+                url: 'http://127.0.0.1:6969',
             },
             {
                 url: 'https://api.fleetime.my.id',
+            },
+            {
+                url: 'http://152.42.180.106:6969',
             },
         ],
     },
