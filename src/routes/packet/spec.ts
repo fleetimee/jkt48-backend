@@ -70,13 +70,27 @@
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: A list of packages.
+ *         description: Success fetches package list
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/PackagePayment'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 code:
+ *                   type: integer
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Package'
+ *               example:
+ *                 success: true
+ *                 code: 200
+ *                 message: "Success fetches package list"
+ *                 data: []
  *       401:
  *         description: Authorization information is missing or invalid or token expired
  *         content:
@@ -118,11 +132,27 @@
  *         description: The package ID
  *     responses:
  *       200:
- *         description: The package data.
+ *         description: Success fetches package item
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/PackagePayment'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 code:
+ *                   type: integer
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Package'
+ *               example:
+ *                 success: true
+ *                 code: 200
+ *                 message: "Success fetches package item"
+ *                 data: []
  *       401:
  *         description: Authorization information is missing or invalid or token expired
  *         content:
@@ -206,7 +236,7 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/PackagePayment'
+ *               $ref: '#/components/schemas/Package'
  *       401:
  *         description: Authorization information is missing or invalid or token expired
  *         content:
