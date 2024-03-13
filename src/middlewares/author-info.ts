@@ -10,11 +10,31 @@ import {
 } from '../config';
 
 export const infoMiddleware = (req: Request, res: Response, next: NextFunction) => {
+    const start = process.hrtime();
+
     const currentTime = new Date();
-    const formattedTime = `${currentTime.getDate()} ${currentTime.getMonth() + 1} ${currentTime.getFullYear()}`;
+    const timeOptions: Intl.DateTimeFormatOptions = {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        timeZone: 'Asia/Jakarta',
+    };
+    const dateOptions: Intl.DateTimeFormatOptions = {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        timeZone: 'Asia/Jakarta',
+    };
+    const formattedTime = currentTime.toLocaleString('id-ID', timeOptions);
+    const formattedDate = currentTime.toLocaleString('id-ID', dateOptions);
+
+    const diff = process.hrtime(start);
+    const time = diff[0] * 1e3 + diff[1] / 1e6; // convert to milliseconds
 
     res.locals.info = {
         currentTime: formattedTime,
+        currentDate: formattedDate,
+        pageLoadTime: time,
         serviceName: AUTHOR_SERVICE_NAME,
         author: {
             name: AUTHOR_NAME,
