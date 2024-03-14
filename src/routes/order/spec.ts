@@ -62,3 +62,161 @@
  *           type: object
  *           description: The callback data of the order
  */
+
+/**
+ * @swagger
+ * /api/order/{orderId}:
+ *   get:
+ *     security:
+ *      - bearerAuth: []
+ *     tags: [Order]
+ *     summary: Retrieve an order by its ID
+ *     description: Retrieve an order by its ID. If the order does not exist, it returns a 404 error.
+ *     parameters:
+ *       - in: path
+ *         name: orderId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The order ID
+ *     responses:
+ *       200:
+ *         description: A successful response, returns the order data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 code:
+ *                   type: integer
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   $ref: '#/components/schemas/Order'
+ *       404:
+ *         description: Order not found
+ */
+
+/**
+ * @swagger
+ * /order/inquiry/{orderId}:
+ *   get:
+ *     tags: [Order]
+ *     security:
+ *       - BearerAuth: []
+ *     summary: Retrieve an inquiry order by its ID
+ *     description: Retrieve an inquiry order by its ID. If the order does not exist, it returns a 404 error.
+ *     parameters:
+ *       - in: path
+ *         name: orderId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The inquiry order ID
+ *     responses:
+ *       200:
+ *         description: A successful response, returns the inquiry order data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 code:
+ *                   type: integer
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   $ref: '#/components/schemas/InquiryOrder'
+ *       404:
+ *         description: Inquiry order not found
+ */
+
+/**
+ * @swagger
+ * /api/order/inquiry/{orderId}/idol:
+ *   get:
+ *     tags: [Order]
+ *     security:
+ *       - BearerAuth: []
+ *     summary: Retrieve an inquiry order list of idols by its ID
+ *     description: Retrieve an inquiry order list of idols by its ID. If the order does not exist, it returns a 404 error.
+ *     parameters:
+ *       - in: path
+ *         name: orderId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The inquiry order ID
+ *     responses:
+ *       200:
+ *         description: A successful response, returns the inquiry order data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 code:
+ *                   type: integer
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   $ref: '#/components/schemas/InquiryOrderListIdol'
+ *       404:
+ *         description: Inquiry order not found
+ */
+
+/**
+ * @swagger
+ * /api/order:
+ *   post:
+ *     tags: [Order]
+ *     security:
+ *       - BearerAuth: []
+ *     summary: Create a new order
+ *     description: Create a new order. If the user already has an active subscription, it returns a 404 error.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               packageId:
+ *                 type: string
+ *               paymentMethod:
+ *                 type: string
+ *               subtotal:
+ *                 type: number
+ *               tax:
+ *                 type: number
+ *               total:
+ *                 type: number
+ *               idolIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *     responses:
+ *       200:
+ *         description: A successful response, returns the created order data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 code:
+ *                   type: integer
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   $ref: '#/components/schemas/Order'
+ *       404:
+ *         description: User already have an active subscription
+ */
