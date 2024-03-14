@@ -1,6 +1,7 @@
 import express from 'express';
 import { StatusCodes } from 'http-status-codes';
 
+import { authenticateUser } from '../../middlewares/authenticate-user';
 import { rateLimiterStrict } from '../../middlewares/rate-limiter';
 import { validateSchema } from '../../middlewares/validate-request';
 import { ConflictError } from '../../utils/errors';
@@ -60,6 +61,17 @@ router.post('/login', validateSchema(loginSchema), rateLimiterStrict, async (req
         setRefreshCookie(res, refreshToken);
 
         res.status(StatusCodes.OK).send({ accessToken });
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.post('/logout', authenticateUser, async (req, res, next) => {
+    try {
+        // Invalidate the refresh token
+        res.clearCookie('refreshToken', { httpOnly: true, secure: true, sameSite: 'none' });
+
+        res.status(StatusCodes.OK).send({ message: 'Logged out successfully' });
     } catch (error) {
         next(error);
     }
