@@ -54,7 +54,7 @@ export const verifyUser = async (verificationToken: string) => {
 
     await db
         .update(users)
-        .set({ emailVerified: true, emailVerifiedAt: dateNow })
+        .set({ emailVerified: true, emailVerifiedAt: dateNow, verificationToken: null }) // set verificationToken to null
         .where(eq(users.verificationToken, verificationToken));
 };
 
