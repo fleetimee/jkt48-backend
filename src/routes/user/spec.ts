@@ -459,7 +459,7 @@
 
 /**
  * @swagger
- * /me/unReactMessage/{messageId}/reaction/{reactionId}:
+ * /api/user/me/unReactMessage/{messageId}/reaction/{reactionId}:
  *   delete:
  *     summary: Removes a reaction to a message for the authenticated user
  *     description: Removes a reaction to a message for the authenticated user if the message and reaction exist, otherwise returns an error.
@@ -494,6 +494,42 @@
  *                   type: boolean
  *                 data:
  *                   type: 'null'
+ *       400:
+ *         description: Invalid request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *     tags:
+ *       - User (Me)
+ */
+
+/**
+ * @swagger
+ * /ap/user/me:
+ *   patch:
+ *     summary: Updates the authenticated user's details
+ *     description: Updates the authenticated user's details if the user exists and the request body is valid, otherwise returns an error.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UpdateUser'
+ *     responses:
+ *       200:
+ *         description: User details updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
  *       400:
  *         description: Invalid request
  *         content:
