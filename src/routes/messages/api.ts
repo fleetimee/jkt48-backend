@@ -9,7 +9,8 @@ import { UnprocessableEntityError } from '../../utils/errors';
 import { uploadMessage } from '../../utils/multer';
 import { formatResponsePaginated } from '../../utils/response-formatter';
 import { validateUuid } from '../../utils/validate';
-import { approveMessage, createMessage, getMessages, getMessagesById } from './repository';
+import { deleteAttachment, getAttachmentsByMessageId } from '../attachment/repository';
+import { approveMessage, createMessage, deleteMessage, getMessages, getMessagesById } from './repository';
 import { approveOrRejectMessageSchema } from './schema';
 
 const router = express.Router();
@@ -104,6 +105,36 @@ router.post('/', authenticateUser, requireMemberRole, uploadMessage.array('attac
     } catch (error) {
         console.error(error);
 
+        next(error);
+    }
+});
+
+router.delete('/:id', authenticateUser, requireMemberRole, async (req, res, next) => {
+    try {
+        const messageId = req.params.id;
+        if (!validateUuid(messageId)) throw new UnprocessableEntityError('The message ID is not valid UUID');
+
+        const message = await getMessagesById(messageId);
+        if (!message) throw new UnprocessableEntityError('The message is not found');
+
+        const attachment = await getAttachmentsByMessageId(messageId);
+        if (attachment) {
+            for (const attach of attachment) {
+                await deleteAttachment(attach.id);
+                fs.unlinkSync(attach.filePath);
+            }
+        }
+
+        await deleteMessage(messageId);
+
+        res.status(StatusCodes.OK).send({
+            success: true,
+            code: StatusCodes.OK,
+            message: 'Success delete message',
+            data: null,
+        });
+    } catch (error) {
+        console.error(error);
         next(error);
     }
 });

@@ -146,6 +146,15 @@ export const createMessage = async (
 };
 
 /**
+ * Deletes a message from the database.
+ * @param {string} messageId - The ID of the message to delete.
+ * @returns {Promise<void>} - A promise that resolves when the message is deleted.
+ */
+export const deleteMessage = async (messageId: string) => {
+    await db.delete(message).where(eq(message.id, messageId));
+};
+
+/**
  * Approves or disapproves a message.
  * @param messageId - The ID of the message to be approved or disapproved.
  * @param isApproved - A boolean indicating whether the message should be approved or disapproved.
