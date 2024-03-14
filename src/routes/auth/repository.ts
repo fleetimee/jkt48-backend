@@ -11,6 +11,12 @@ export const getUser = async (email: string) => {
     return user;
 };
 
+export const getUserByToken = async (verificationToken: string) => {
+    const [user] = await db.select().from(users).where(eq(users.verificationToken, verificationToken)).limit(1);
+
+    return user;
+};
+
 export const verifyLogin = async (email: string, password: string) => {
     const user = await getUser(email);
 
@@ -38,17 +44,18 @@ export const registerUser = async (
     await db.insert(users).values({ email, name, passwordHash, birthday, nickName, verificationToken });
 };
 
-export const verifyUser = async (email: string, verificationToken: string) => {
-    const user = await getUser(email);
+export const verifyUser = async (verificationToken: string) => {
+    const user = await getUserByToken(verificationToken);
     const dateNow = new Date();
 
     if (!user) throw new UnauthorizedError('Invalid verification token');
 
-    if (user.verificationToken !== verificationToken) throw new UnauthorizedError('Invalid verification token');
-
     if (user.emailVerified) throw new BadRequestError('Email is already verified');
 
-    await db.update(users).set({ emailVerified: true, emailVerifiedAt: dateNow }).where(eq(users.email, email));
+    await db
+        .update(users)
+        .set({ emailVerified: true, emailVerifiedAt: dateNow })
+        .where(eq(users.verificationToken, verificationToken));
 };
 
 export const forgotPasswordUser = async (email: string, token: string) => {

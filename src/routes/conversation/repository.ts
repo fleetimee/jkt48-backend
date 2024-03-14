@@ -1,6 +1,7 @@
-import { sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 
 import db from '../../db';
+import { conversation } from '../../models/conversation';
 
 /**
  * Retrieves conversations with optional search query, limited by a specified number and offset.
@@ -66,4 +67,10 @@ export const getConversationsById = async (conversationId: string) => {
     );
 
     return conversation;
+};
+
+export const getSimpleConversationById = async (conversationId: string) => {
+    const [conversationItem] = await db.select().from(conversation).where(eq(conversation.id, conversationId));
+
+    return conversationItem;
 };

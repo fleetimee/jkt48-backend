@@ -22,7 +22,6 @@ export const registerSchema = z.object({
 
 export const verifySchema = z.object({
     body: z.object({
-        email: z.string().min(1, 'Please enter your email').email(),
         verificationToken: z.string().min(1, 'Please enter your verification token'),
     }),
 });

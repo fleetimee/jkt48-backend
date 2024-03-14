@@ -1,13 +1,16 @@
+import crypto from 'crypto';
 import express from 'express';
+import fs from 'fs';
 import { StatusCodes } from 'http-status-codes';
 
 import { authenticateUser, requireAdminRole, requireMemberRole } from '../../middlewares/authenticate-user';
 import { validateSchema } from '../../middlewares/validate-request';
 import { UnprocessableEntityError } from '../../utils/errors';
+import { uploadMessage } from '../../utils/multer';
 import { formatResponsePaginated } from '../../utils/response-formatter';
 import { validateUuid } from '../../utils/validate';
 import { approveMessage, createMessage, getMessages, getMessagesById } from './repository';
-import { approveOrRejectMessageSchema, createMessageSchema } from './schema';
+import { approveOrRejectMessageSchema } from './schema';
 
 const router = express.Router();
 
@@ -64,20 +67,29 @@ router.get('/conversation/:id', authenticateUser, requireAdminRole, async (req, 
     }
 });
 
-router.post('/', validateSchema(createMessageSchema), authenticateUser, requireMemberRole, async (req, res, next) => {
+// TODO: Perlu dibatasi yang bisa post message itu yang sesuai dengan conversation id, Which is, user yang punya conversation id itu, atau admin
+router.post('/', authenticateUser, requireMemberRole, uploadMessage.array('attachments'), async (req, res, next) => {
     try {
-        const { conversationId, messages, attachments } = req.body;
-
-        const formattedAttachments = attachments?.map(
-            (attachment: { file_path: string; file_type: string; file_size: number; checksum: string }) => ({
-                filePath: attachment.file_path,
-                fileType: attachment.file_type,
-                fileSize: attachment.file_size,
-                checksum: attachment.checksum,
-            }),
-        );
-
         const userId = req.user.id;
+
+        const { conversationId, messages } = req.body;
+
+        const attachments = req.files as Express.Multer.File[];
+
+        const formattedAttachments = attachments?.map(attachment => {
+            const fileBuffer = fs.readFileSync(attachment.path);
+            const hashSum = crypto.createHash('sha1');
+            hashSum.update(fileBuffer);
+            const checksum = hashSum.digest('hex');
+
+            return {
+                filePath: attachment.path, // path where the file is stored
+                fileType: attachment.mimetype, // file type
+                fileSize: attachment.size, // file size
+                originalName: attachment.originalname, // original file name
+                checksum: checksum, // checksum of the file
+            };
+        });
 
         const sendMessage = await createMessage(conversationId, userId, messages, formattedAttachments);
 

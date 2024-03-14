@@ -80,9 +80,9 @@ router.post('/refresh', async (req, res, next) => {
 
 router.post('/verifyToken', validateSchema(verifySchema), async (req, res, next) => {
     try {
-        const { email, verificationToken } = req.body;
+        const { verificationToken } = req.body;
 
-        await verifyUser(email, verificationToken);
+        await verifyUser(verificationToken);
 
         res.status(StatusCodes.OK).json({ message: 'Email verified successfully' });
     } catch (error) {

@@ -7,7 +7,7 @@ import { formatResponse } from '../../utils/response-formatter';
 
 const router = express.Router();
 
-router.post('/:urlParam(news|profile)', upload, (req, res, next) => {
+router.post('/:urlParam(news|profile)', upload.single('file'), (req, res, next) => {
     try {
         if (!req.file) {
             res.status(StatusCodes.BAD_REQUEST).send({ error: 'No file uploaded' });
