@@ -65,6 +65,46 @@
 
 /**
  * @swagger
+ * components:
+ *   schemas:
+ *     CreateOrder:
+ *       type: object
+ *       required:
+ *         - packageId
+ *         - paymentMethod
+ *         - subtotal
+ *         - tax
+ *         - total
+ *       properties:
+ *         packageId:
+ *           type: string
+ *           description: The id of the package
+ *           minLength: 1
+ *         paymentMethod:
+ *           type: string
+ *           enum: [xendit, midtrans, gopay, ovo, dana, google_pay, apple_pay]
+ *           description: The payment method used for the order
+ *         subtotal:
+ *           type: number
+ *           description: The subtotal of the order
+ *           minimum: 1
+ *         tax:
+ *           type: number
+ *           description: The tax of the order
+ *           minimum: 1
+ *         total:
+ *           type: number
+ *           description: The total of the order
+ *           minimum: 1
+ *         idolIds:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: The ids of the idols
+ */
+
+/**
+ * @swagger
  * /api/order/{orderId}:
  *   get:
  *     security:
@@ -185,22 +225,7 @@
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               packageId:
- *                 type: string
- *               paymentMethod:
- *                 type: string
- *               subtotal:
- *                 type: number
- *               tax:
- *                 type: number
- *               total:
- *                 type: number
- *               idolIds:
- *                 type: array
- *                 items:
- *                   type: string
+ *             $ref: '#/components/schemas/CreateOrder'
  *     responses:
  *       200:
  *         description: A successful response, returns the created order data
