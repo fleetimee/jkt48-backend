@@ -17,7 +17,7 @@ import {
     verifyUser,
 } from './repository';
 import { forgotPasswordSchema, loginSchema, registerSchema, resetPasswordSchema, verifySchema } from './schema';
-import { createAccessToken, createRefreshToken, setRefreshCookie, verifyToken } from './utils';
+import { createAccessToken, createRefreshToken, setRefreshCookie, verifyRefreshToken } from './utils';
 
 const router = express.Router();
 
@@ -57,7 +57,7 @@ router.post('/login', validateSchema(loginSchema), rateLimiterStrict, async (req
 
         const user = await verifyLogin(email, password);
         const accessToken = createAccessToken(user.id, user.email, user.name, user.roles);
-        const refreshToken = createRefreshToken(user.id, user.email, user.name);
+        const refreshToken = createRefreshToken(user.id, user.email, user.name, user.roles);
         setRefreshCookie(res, refreshToken);
 
         res.status(StatusCodes.OK).send({ accessToken });
@@ -81,7 +81,7 @@ router.post('/refresh', async (req, res, next) => {
     try {
         const refreshToken = req.cookies.refreshToken;
 
-        const { id, email, name, roles } = verifyToken(refreshToken);
+        const { id, email, name, roles } = verifyRefreshToken(refreshToken);
         const accessToken = createAccessToken(id, email, name, roles);
 
         res.status(StatusCodes.OK).send({ accessToken });
