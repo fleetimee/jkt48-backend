@@ -26,6 +26,12 @@ export const verifySchema = z.object({
     }),
 });
 
+export const resendVerificationSchema = z.object({
+    body: z.object({
+        email: z.string().min(1, 'Please enter your email').email(),
+    }),
+});
+
 export const forgotPasswordSchema = z.object({
     body: z.object({
         email: z.string().min(1, 'Please enter your email').email(),
