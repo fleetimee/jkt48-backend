@@ -13,7 +13,7 @@ import { UnauthorizedError } from '../../utils/errors';
  * @returns The access token.
  */
 export const createAccessToken = (id: string, email: string, name: string, roles: string) => {
-    const payload = { id, email, name, roles };
+    const payload = { type: 'access', id, email, name, roles };
     const token = jwt.sign(payload, JWT_SECRET_KEY, { expiresIn: '1y' });
     return token;
 };
@@ -25,8 +25,8 @@ export const createAccessToken = (id: string, email: string, name: string, roles
  * @param name - The user name.
  * @returns The refresh token.
  */
-export const createRefreshToken = (id: string, email: string, name: string) => {
-    const payload = { id, email, name };
+export const createRefreshToken = (id: string, email: string, name: string, roles: string) => {
+    const payload = { type: 'refresh', id, email, name, roles };
     const token = jwt.sign(payload, JWT_SECRET_KEY, { expiresIn: '360d' });
     return token;
 };
@@ -41,7 +41,51 @@ export const createRefreshToken = (id: string, email: string, name: string) => {
  */
 export const verifyToken = (token: string) => {
     try {
-        return jwt.verify(token, JWT_SECRET_KEY) as { id: string; email: string; name: string; roles: string };
+        const decodedToken = jwt.verify(token, JWT_SECRET_KEY) as {
+            type: string;
+            id: string;
+            email: string;
+            name: string;
+            roles: string;
+        };
+
+        // Check if the token is an access token
+        if (decodedToken.type !== 'access') throw new UnauthorizedError('Invalid token type');
+
+        return decodedToken;
+    } catch (error) {
+        if (error instanceof jwt.TokenExpiredError) {
+            throw new UnauthorizedError('Token expired');
+        } else if (error instanceof jwt.JsonWebTokenError) {
+            throw new UnauthorizedError('Invalid token');
+        } else {
+            throw new UnauthorizedError('An error occurred while verifying the token');
+        }
+    }
+};
+
+/**
+ * Verifies the given refresh token using the JWT_SECRET_KEY and returns the decoded payload.
+ * If the token is invalid, an UnauthorizedError is thrown.
+ *
+ * @param token - The refresh token to be verified.
+ * @returns The decoded payload of the refresh token.
+ * @throws UnauthorizedError if the token is invalid.
+ */
+export const verifyRefreshToken = (token: string) => {
+    try {
+        const decodedToken = jwt.verify(token, JWT_SECRET_KEY) as {
+            type: string;
+            id: string;
+            email: string;
+            name: string;
+            roles: string;
+        };
+
+        // Check if the token is a refresh token
+        if (decodedToken.type !== 'refresh') throw new UnauthorizedError('Invalid token type');
+
+        return decodedToken;
     } catch (error) {
         if (error instanceof jwt.TokenExpiredError) {
             throw new UnauthorizedError('Token expired');
