@@ -21,8 +21,24 @@ export const getUser = async (email: string) => {
  * @param verificationToken - The verification token of the user.
  * @returns The user object if found, otherwise undefined.
  */
-export const getUserByToken = async (verificationToken: string) => {
+export const getUserByVerificationToken = async (verificationToken: string) => {
     const [user] = await db.select().from(users).where(eq(users.verificationToken, verificationToken)).limit(1);
+
+    return user;
+};
+
+/**
+ * Retrieves a user by their reset token.
+ *
+ * @param {string} token - The reset token of the user.
+ * @returns {Promise<object>} - A promise that resolves to the user object.
+ */
+export const getUserByResetToken = async (token: string) => {
+    const [user] = await db
+        .select({ id: users.id, name: users.name, email: users.email, tokenResetPassword: users.tokenResetPassword })
+        .from(users)
+        .where(eq(users.tokenResetPassword, token))
+        .limit(1);
 
     return user;
 };
@@ -50,6 +66,15 @@ export const verifyLogin = async (email: string, password: string) => {
     return user;
 };
 
+/**
+ * Registers a new user.
+ * @param email - The email of the user.
+ * @param password - The password of the user.
+ * @param name - The name of the user.
+ * @param nickName - The nickname of the user.
+ * @param birthday - The birthday of the user.
+ * @param verificationToken - The verification token for the user.
+ */
 export const registerUser = async (
     email: string,
     password: string,
@@ -70,7 +95,7 @@ export const registerUser = async (
  * @throws {BadRequestError} - If the user's email is already verified.
  */
 export const verifyUser = async (verificationToken: string) => {
-    const user = await getUserByToken(verificationToken);
+    const user = await getUserByVerificationToken(verificationToken);
     const dateNow = new Date();
 
     if (!user) throw new UnauthorizedError('Invalid verification token');
@@ -118,7 +143,7 @@ export const forgotPasswordUser = async (email: string, token: string) => {
  * @throws {UnauthorizedError} If the token is invalid or expired.
  */
 export const resetPasswordUser = async (token: string, password: string) => {
-    const user = await getUserByTokenReset(token);
+    const user = await getUserByResetToken(token);
     if (!user) throw new UnauthorizedError('Token invalid / expired!');
 
     const passwordHash = await bcrypt.hash(password, 10);
@@ -126,20 +151,4 @@ export const resetPasswordUser = async (token: string, password: string) => {
         .update(users)
         .set({ passwordHash: passwordHash, tokenResetPassword: null })
         .where(eq(users.email, user.email));
-};
-
-/**
- * Retrieves a user by their reset token.
- *
- * @param {string} token - The reset token of the user.
- * @returns {Promise<object>} - A promise that resolves to the user object.
- */
-export const getUserByTokenReset = async (token: string) => {
-    const [user] = await db
-        .select({ id: users.id, name: users.name, email: users.email, tokenResetPassword: users.tokenResetPassword })
-        .from(users)
-        .where(eq(users.tokenResetPassword, token))
-        .limit(1);
-
-    return user;
 };

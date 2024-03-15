@@ -10,7 +10,7 @@ import { sendEmail } from '../../utils/send-emails';
 import {
     forgotPasswordUser,
     getUser,
-    getUserByTokenReset,
+    getUserByResetToken,
     registerUser,
     resetPasswordUser,
     updateUserVerificationToken,
@@ -189,7 +189,7 @@ router.post('/forgot_password', validateSchema(forgotPasswordSchema), rateLimite
 router.post('/reset_password', validateSchema(resetPasswordSchema), rateLimiterStrict, async (req, res, next) => {
     try {
         const { token, password } = req.body;
-        const user = await getUserByTokenReset(token);
+        const user = await getUserByResetToken(token);
         if (token && password) await resetPasswordUser(token, password);
 
         const emailResult = await sendEmail({
