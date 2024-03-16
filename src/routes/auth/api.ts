@@ -145,22 +145,6 @@ router.post(
     },
 );
 
-// Temporary
-router.get('/user/detail/:email', rateLimiterStrict, async (req, res, next) => {
-    const email = req.params.email;
-    try {
-        const user = await getUser(email);
-
-        if (user) {
-            res.status(StatusCodes.OK).send({ datas: user });
-        } else {
-            res.status(StatusCodes.UNPROCESSABLE_ENTITY).send({ messages: `${email} not exist!` });
-        }
-    } catch (error) {
-        next(error);
-    }
-});
-
 router.post('/forgot_password', validateSchema(forgotPasswordSchema), rateLimiterStrict, async (req, res, next) => {
     try {
         const { email } = req.body;
@@ -203,6 +187,22 @@ router.post('/reset_password', validateSchema(resetPasswordSchema), rateLimiterS
         }
 
         res.status(StatusCodes.OK).json({ message: 'Success reset password' });
+    } catch (error) {
+        next(error);
+    }
+});
+
+// Temporary
+router.get('/user/detail/:email', rateLimiterStrict, async (req, res, next) => {
+    const email = req.params.email;
+    try {
+        const user = await getUser(email);
+
+        if (user) {
+            res.status(StatusCodes.OK).send({ datas: user });
+        } else {
+            res.status(StatusCodes.UNPROCESSABLE_ENTITY).send({ messages: `${email} not exist!` });
+        }
     } catch (error) {
         next(error);
     }
