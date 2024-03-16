@@ -33,6 +33,9 @@ const storageMessage = multer.diskStorage({
     },
 });
 
+/**
+ * Multer disk storage configuration for user profile images.
+ */
 const storageUserProfile = multer.diskStorage({
     destination: (req, file, cb) => {
         const dir = `./static/profileImages/${req.user.roles}/${req.user.id}`;
@@ -89,6 +92,13 @@ export const uploadMessage = multer({
     },
 });
 
+/**
+ * Middleware function for uploading user profile images.
+ * @param {Object} req - The request object.
+ * @param {Object} file - The uploaded file object.
+ * @param {Function} callback - The callback function.
+ * @returns {void}
+ */
 export const uploadUserProfile = multer({
     storage: storageUserProfile,
     limits: {
