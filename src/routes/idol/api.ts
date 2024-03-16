@@ -1,10 +1,13 @@
 import express from 'express';
+import fs from 'fs';
 import { StatusCodes } from 'http-status-codes';
+import path from 'path';
 
 import { authenticateUser, requireAdminRole } from '../../middlewares/authenticate-user';
 import { validateSchema } from '../../middlewares/validate-request';
 import { NotFoundError, UnprocessableEntityError } from '../../utils/errors';
 import { generateVerificationCode } from '../../utils/lib';
+import { uploadUserProfileMember } from '../../utils/multer';
 import { formatResponsePaginated } from '../../utils/response-formatter';
 import { validateMemberId, validateUuid } from '../../utils/validate';
 import { getUser } from '../auth/repository';
@@ -66,43 +69,60 @@ router.get('/:id', async (req, res, next) => {
     }
 });
 
-router.post('/', validateSchema(createIdolSchema), authenticateUser, requireAdminRole, async (req, res, next) => {
-    try {
-        const { email, password, fullName, nickname, birthday, height, bloodType, horoscope, instagramUrl, xUrl } =
-            req.body;
-
-        // Check if the email is already registered
-        const user = await getUser(email);
-        if (user) throw new UnprocessableEntityError('Email is already registered');
-
-        // Generate verification token
-        const verificationToken = generateVerificationCode();
-
-        const newMember = await createMember({
-            email,
-            fullName,
-            nickname,
-            birthday,
-            height,
-            bloodType,
-            horoscope,
-            password,
-            verificationToken,
-            instagramUrl,
-            xUrl,
-        });
-
-        res.status(StatusCodes.CREATED).send({
-            success: true,
-            code: StatusCodes.CREATED,
-            message: 'Success create new member',
-            data: newMember,
-        });
-    } catch (error) {
-        console.error(error);
-        next(error);
-    }
-});
+router.post(
+    '/',
+    uploadUserProfileMember.single('profileImage'),
+    validateSchema(createIdolSchema),
+    authenticateUser,
+    requireAdminRole,
+    async (req, res, next) => {
+        try {
+            const { email, password, fullName, nickname, birthday, height, bloodType, horoscope, instagramUrl, xUrl } =
+                req.body;
+            // Check if the email is already registered
+            const user = await getUser(email);
+            if (user) throw new UnprocessableEntityError('Email is already registered');
+            // Generate verification token
+            const verificationToken = generateVerificationCode();
+            // File path image
+            const ext = req.file?.originalname || '';
+            const oldPath = `./static/profileImages/tmp/${req.file?.originalname}`;
+            const destPath = `./static/profileImages/member/${nickname.toLowerCase()}`;
+            const newPath = `./static/profileImages/member/${nickname.toLowerCase()}/${nickname + path.extname(ext)}`;
+            const imgProfilePath = newPath.substring(1);
+            const newMember = await createMember({
+                email,
+                fullName,
+                nickname,
+                birthday,
+                height,
+                bloodType,
+                horoscope,
+                password,
+                verificationToken,
+                instagramUrl,
+                xUrl,
+                imgProfilePath,
+            });
+            // Handle move image from tmp to specific folder by member nickname
+            if (!fs.existsSync(destPath)) {
+                fs.mkdirSync(destPath, { recursive: true });
+            }
+            fs.rename(oldPath, newPath, function (err) {
+                if (err) throw err;
+            });
+            res.status(StatusCodes.CREATED).send({
+                success: true,
+                code: StatusCodes.CREATED,
+                message: 'Success create new member',
+                data: newMember,
+            });
+        } catch (error) {
+            console.error(error);
+            next(error);
+        }
+    },
+);
 
 router.patch(
     '/:userId',
