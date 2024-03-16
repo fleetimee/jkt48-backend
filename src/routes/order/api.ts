@@ -39,6 +39,10 @@ router.get('/inquiry/:orderId', authenticateUser, async (req, res, next) => {
     try {
         const orderId = req.params.orderId;
 
+        // Check if the order is exist
+        const isOrderExist = await getOrderById(orderId);
+        if (!isOrderExist) throw new NotFoundError('Order not found');
+
         const order = await getInquiryOrder(orderId);
 
         res.status(StatusCodes.OK).send(
@@ -58,6 +62,10 @@ router.get('/inquiry/:orderId', authenticateUser, async (req, res, next) => {
 router.get('/inquiry/:orderId/idol', authenticateUser, async (req, res, next) => {
     try {
         const orderId = req.params.orderId;
+
+        // Check if the order is exist
+        const isOrderExist = await getOrderById(orderId);
+        if (!isOrderExist) throw new NotFoundError('Order not found');
 
         const order = await getInquiryOrderListIdol(orderId);
 
