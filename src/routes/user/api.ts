@@ -1,10 +1,12 @@
 import console from 'console';
 import express from 'express';
 import { StatusCodes } from 'http-status-codes';
+import path from 'path';
 
 import { authenticateUser, requireAdminRole } from '../../middlewares/authenticate-user';
 import { validateSchema } from '../../middlewares/validate-request';
 import { NotFoundError } from '../../utils/errors';
+import { uploadUserProfile } from '../../utils/multer';
 import { formatResponse, formatResponsePaginated } from '../../utils/response-formatter';
 import { validateUuid } from '../../utils/validate';
 import { getMessagesById } from '../messages/repository';
@@ -26,7 +28,6 @@ import {
     updateUser,
 } from './repository';
 import { postReaction, updateUserSchema } from './schema';
-
 const router = express.Router();
 
 router.get('/me', authenticateUser, async (req, res, next) => {
@@ -304,20 +305,33 @@ router.get('/countActiveSubscriptions', authenticateUser, requireAdminRole, asyn
     }
 });
 
-router.patch('/me', validateSchema(updateUserSchema), authenticateUser, async (req, res, next) => {
-    try {
-        const isValidUuid = validateUuid(req.user.id);
-        if (!isValidUuid) throw new NotFoundError('UserId not valid (uuid)');
+router.patch(
+    '/me',
+    authenticateUser,
+    uploadUserProfile.single('profileImage'),
+    validateSchema(updateUserSchema),
+    async (req, res, next) => {
+        try {
+            const isValidUuid = validateUuid(req.user.id);
+            if (!isValidUuid) throw new NotFoundError('UserId not valid (uuid)');
+            const id = req.user.id;
 
-        const id = req.user.id;
-        const { name, email, nickName, birthday, profileImage } = req.body;
+            if (!req.file) {
+                res.status(StatusCodes.BAD_REQUEST).send({ error: 'No file uploaded' });
+                return;
+            }
+            const filePath = `/static/profileImages/${req.user.roles}/${id}/`;
+            const fileName = filePath + 'profile-img-' + id + path.extname(req.file.originalname);
 
-        const user = await updateUser(id, email, nickName, name, birthday, profileImage);
+            const { name, email, nickName, birthday, profileImage } = req.body;
+            console.log(name, email, nickName, birthday, profileImage);
 
-        res.status(StatusCodes.OK).send({ user });
-    } catch (error) {
-        next(error);
-    }
-});
+            const user = await updateUser(id, email, nickName, name, birthday, fileName);
+            res.status(StatusCodes.OK).send({ user });
+        } catch (error) {
+            next(error);
+        }
+    },
+);
 
 export default router;
