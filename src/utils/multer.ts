@@ -2,6 +2,9 @@ import fs from 'fs';
 import multer from 'multer';
 import path from 'path';
 
+/**
+ * Multer disk storage configuration.
+ */
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         const dir = `./static/${req.params.urlParam}`;
@@ -13,6 +16,9 @@ const storage = multer.diskStorage({
     },
 });
 
+/**
+ * Multer disk storage configuration for storing messages.
+ */
 const storageMessage = multer.diskStorage({
     destination: (req, file, cb) => {
         const userId = req.user.id;
@@ -40,6 +46,13 @@ const storageUserProfile = multer.diskStorage({
     },
 });
 
+/**
+ * Middleware function for handling file uploads using Multer.
+ * @param {Object} req - The Express request object.
+ * @param {Object} file - The uploaded file object.
+ * @param {Function} callback - The callback function to be called after file validation.
+ * @returns {void}
+ */
 export const upload = multer({
     storage: storage,
     limits: {
@@ -55,6 +68,12 @@ export const upload = multer({
     },
 });
 
+/**
+ * Middleware function for uploading messages.
+ * @remarks
+ * This function uses multer to handle file uploads and applies file size and file type restrictions.
+ * @returns - The multer middleware function.
+ */
 export const uploadMessage = multer({
     storage: storageMessage,
     limits: {

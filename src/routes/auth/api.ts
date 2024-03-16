@@ -10,13 +10,21 @@ import { sendEmail } from '../../utils/send-emails';
 import {
     forgotPasswordUser,
     getUser,
-    getUserByTokenReset,
+    getUserByResetToken,
     registerUser,
     resetPasswordUser,
+    updateUserVerificationToken,
     verifyLogin,
     verifyUser,
 } from './repository';
-import { forgotPasswordSchema, loginSchema, registerSchema, resetPasswordSchema, verifySchema } from './schema';
+import {
+    forgotPasswordSchema,
+    loginSchema,
+    registerSchema,
+    resendVerificationSchema,
+    resetPasswordSchema,
+    verifySchema,
+} from './schema';
 import { createAccessToken, createRefreshToken, setRefreshCookie, verifyRefreshToken } from './utils';
 
 const router = express.Router();
@@ -102,21 +110,40 @@ router.post('/verifyToken', validateSchema(verifySchema), async (req, res, next)
     }
 });
 
-// Temporary
-router.get('/user/detail/:email', rateLimiterStrict, async (req, res, next) => {
-    const email = req.params.email;
-    try {
-        const user = await getUser(email);
+router.post(
+    '/resend-verification',
+    validateSchema(resendVerificationSchema),
+    rateLimiterStrict,
+    async (req, res, next) => {
+        try {
+            const { email } = req.body;
 
-        if (user) {
-            res.status(StatusCodes.OK).send({ datas: user });
-        } else {
-            res.status(StatusCodes.UNPROCESSABLE_ENTITY).send({ messages: `${email} not exist!` });
+            const user = await getUser(email);
+            if (!user) throw new ConflictError('A user with that email does not exist');
+
+            // Check if the user is already verified
+            if (user.emailVerified) throw new ConflictError('Email is already verified');
+
+            const verificationToken = generateVerificationCode();
+
+            await updateUserVerificationToken(email, verificationToken);
+
+            const emailResult = await sendEmail({
+                to: [email],
+                subject: 'Verify your email',
+                text: `Your verification token is: ${verificationToken}`,
+            });
+
+            if (emailResult.error) {
+                return res.status(StatusCodes.NOT_FOUND).json({ error: emailResult.error });
+            }
+
+            res.status(StatusCodes.OK).json({ message: 'Verification email sent successfully' });
+        } catch (error) {
+            next(error);
         }
-    } catch (error) {
-        next(error);
-    }
-});
+    },
+);
 
 router.post('/forgot_password', validateSchema(forgotPasswordSchema), rateLimiterStrict, async (req, res, next) => {
     try {
@@ -146,7 +173,7 @@ router.post('/forgot_password', validateSchema(forgotPasswordSchema), rateLimite
 router.post('/reset_password', validateSchema(resetPasswordSchema), rateLimiterStrict, async (req, res, next) => {
     try {
         const { token, password } = req.body;
-        const user = await getUserByTokenReset(token);
+        const user = await getUserByResetToken(token);
         if (token && password) await resetPasswordUser(token, password);
 
         const emailResult = await sendEmail({
@@ -160,6 +187,22 @@ router.post('/reset_password', validateSchema(resetPasswordSchema), rateLimiterS
         }
 
         res.status(StatusCodes.OK).json({ message: 'Success reset password' });
+    } catch (error) {
+        next(error);
+    }
+});
+
+// Temporary
+router.get('/user/detail/:email', rateLimiterStrict, async (req, res, next) => {
+    const email = req.params.email;
+    try {
+        const user = await getUser(email);
+
+        if (user) {
+            res.status(StatusCodes.OK).send({ datas: user });
+        } else {
+            res.status(StatusCodes.UNPROCESSABLE_ENTITY).send({ messages: `${email} not exist!` });
+        }
     } catch (error) {
         next(error);
     }
