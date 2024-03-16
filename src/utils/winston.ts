@@ -2,6 +2,9 @@ import 'winston-daily-rotate-file';
 
 import winston from 'winston';
 
+/**
+ * Winston transport for daily rotating log files.
+ */
 const fileTransport = new winston.transports.DailyRotateFile({
     filename: 'logs/application-%DATE%.log',
     datePattern: 'YYYY-MM-DD',
@@ -10,6 +13,9 @@ const fileTransport = new winston.transports.DailyRotateFile({
     maxFiles: '14d',
 });
 
+/**
+ * Winston logger instance.
+ */
 const logger = winston.createLogger({
     level: 'info',
     format: winston.format.json(),
