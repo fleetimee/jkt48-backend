@@ -16,18 +16,6 @@ export const getOrderById = async (orderId: string) => {
     return orderItem;
 };
 
-/**
- * Creates a new order in the database.
- *
- * @param {string} userId - The ID of the user placing the order.
- * @param {string} packageId - The ID of the package being ordered.
- * @param {string} paymentMethod - The payment method used for the order.
- * @param {number} subtotal - The subtotal amount of the order.
- * @param {number} tax - The tax amount of the order.
- * @param {number} total - The total amount of the order.
- * @param {string[]} idolIds - An array of IDs of the idols included in the order.
- * @returns {Promise<number>} - The ID of the created order.
- */
 export const createOrder = async (
     userId: string,
     packageId: string,
@@ -37,22 +25,24 @@ export const createOrder = async (
     total: number,
     idolIds: string[],
 ) => {
-    await db.transaction(async trx => {
-        const [orderId] = await trx.execute(sql`
+    const order = await db.transaction(async trx => {
+        const [order] = await trx.execute(sql`
         INSERT INTO public."order" (user_id, package_id, payment_method, subtotal, tax, total, order_status)
         VALUES (${userId}, ${packageId}, ${paymentMethod}::payment_method, ${subtotal}, ${tax}, ${total}, 'pending'::order_status)
-        RETURNING id;
+        RETURNING *;
         `);
 
         for (const idolId of idolIds) {
             await trx.execute(sql`
             INSERT INTO order_idol (order_id, idol_id)
-            VALUES (${orderId.id}, ${idolId});
+            VALUES (${order.id}, ${idolId});
             `);
         }
 
-        return orderId;
+        return order;
     });
+
+    return order;
 };
 
 /**
