@@ -89,11 +89,8 @@ router.post('/', validateSchema(createOrderSchema), authenticateUser, async (req
 
         const { packageId, paymentMethod, subtotal, tax, total, idolIds } = req.body;
 
-        // const checkPackageId = getPackage(packageId);
-
         // If user have a subscription, then the user can't buy a package
         const checkSubscription = await checkUserSubscription(userId);
-
         if (checkSubscription) throw new NotFoundError('User already have an active subscription');
 
         const createOrderItem = await createOrder(userId, packageId, paymentMethod, subtotal, tax, total, idolIds);

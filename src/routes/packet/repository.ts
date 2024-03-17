@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { asc, eq } from 'drizzle-orm';
 
 import { PPN_PERCENTAGE } from '../../config';
 import db from '../../db';
@@ -10,7 +10,9 @@ import { calculateTaxAndTotal } from '../../utils/lib';
  * @returns {Promise<Array<Package>>} A promise that resolves to an array of packages.
  */
 export const getPackageList = async () => {
-    return await db.query.packagePayment.findMany();
+    return await db.query.packagePayment.findMany({
+        orderBy: [asc(packagePayment.price)],
+    });
 };
 
 /**
