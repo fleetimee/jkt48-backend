@@ -331,6 +331,29 @@ export const getUserConversationMessages = async (
 };
 
 /**
+ * Retrieves the active idols for a given user.
+ * @param userId The ID of the user.
+ * @returns A Promise that resolves to an array of active idols.
+ */
+export const getUserActiveIdols = async (userId: string) => {
+    const [idols] = await db.execute(sql`
+    SELECT i.id            AS idol_id,
+        u.id            AS user_id,
+        u.nickname      AS idol_name,
+        u.profile_image AS idol_image
+    FROM order_idol
+            INNER JOIN "order" o ON order_idol.order_id = o.id
+            INNER JOIN idol i ON order_idol.idol_id = i.id
+            INNER JOIN users u ON i.user_id = u.id
+    WHERE o.user_id = ${userId}
+    AND o.order_status = 'success'
+    AND o.expired_at > now();
+    `);
+
+    return idols;
+};
+
+/**
  * Inserts a user's reaction to a message into the database.
  *
  * @param {string} userId - The ID of the user reacting to the message.
