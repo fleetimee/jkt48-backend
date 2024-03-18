@@ -128,6 +128,12 @@ export const checkUserSubscription = async (userId: string) => {
     return subscription;
 };
 
+/**
+ * Checks if a user has a subscription to a specific idol.
+ * @param userId - The ID of the user.
+ * @param idolId - The ID of the idol.
+ * @returns A boolean indicating whether the user has a subscription to the idol.
+ */
 export const checkUserSubscriptionOderIdol = async (userId: string, idolId: string) => {
     const [subscription] = await db.execute(sql`
     SELECT EXISTS (SELECT 1
@@ -223,7 +229,22 @@ export const getUserConversationList = async (userId: string) => {
         u.nickname      AS idol_name,
         U.profile_image AS idol_image,
         m.message       AS last_message,
-        m.created_at    AS last_message_time
+        m.created_at    AS last_message_time,
+        (
+            SELECT COUNT(*)
+            FROM message
+            WHERE conversation_id = c.id AND (
+                created_at > (
+                    SELECT last_read_at
+                    FROM users_conversation
+                    WHERE user_id = ${userId} AND conversation_id = c.id
+                ) OR (
+                    SELECT last_read_at
+                    FROM users_conversation
+                    WHERE user_id = ${userId} AND conversation_id = c.id
+                ) IS NULL
+            )
+        ) AS unread_count
     FROM order_idol
             INNER JOIN "order" o ON order_idol.order_id = o.id
             INNER JOIN idol i ON order_idol.idol_id = i.id
@@ -253,24 +274,42 @@ export const getUserConversationMessages = async (
     limit: number,
     offset: number,
 ) => {
-    const messages = await db.execute(sql`
-    SELECT m.id         AS message_id,
-        m.message    AS message,
-        m.created_at AS created_at,
-        i.id         AS idol_id,
-        u2.name      AS idol_name,
-        u2.nickname  AS idol_nickname,
-        m.approved  AS approved
-    FROM message m
-            INNER JOIN users u ON m.user_id = u.id
-            INNER JOIN conversation c ON m.conversation_id = c.id
-            INNER JOIN idol i ON c.idol_id = i.id
-            INNER JOIN users u2 ON i.user_id = u2.id
-    WHERE c.id = ${conversationId}
-    AND m.approved = TRUE
-    ORDER BY m.created_at 
-    LIMIT ${limit} OFFSET ${offset};
-    `);
+    let messages: any[] = [];
+
+    console.log(userId, conversationId, limit, offset);
+
+    await db.transaction(async trx => {
+        // Fetch the conversation messages
+        messages = await trx.execute(sql`
+        SELECT m.id         AS message_id,
+            m.message    AS message,
+            m.created_at AS created_at,
+            i.id         AS idol_id,
+            u2.name      AS idol_name,
+            u2.nickname  AS idol_nickname,
+            m.approved  AS approved
+        FROM message m
+                INNER JOIN users u ON m.user_id = u.id
+                INNER JOIN conversation c ON m.conversation_id = c.id
+                INNER JOIN idol i ON c.idol_id = i.id
+                INNER JOIN users u2 ON i.user_id = u2.id
+        WHERE c.id = ${conversationId}
+        AND m.approved = TRUE
+        ORDER BY m.created_at 
+        LIMIT ${limit} OFFSET ${offset};
+        `);
+
+        await trx.execute(
+            sql.raw(
+                `
+            INSERT INTO users_conversation (user_id, conversation_id, last_read_at)
+                VALUES ('${userId}', '${conversationId}', NOW())
+                ON CONFLICT (user_id, conversation_id) 
+                DO UPDATE SET last_read_at = NOW()
+            `,
+            ),
+        );
+    });
 
     const messageIds = messages.map(message => message.message_id);
     const reactions = await getMessageReactions(messageIds as string[]);

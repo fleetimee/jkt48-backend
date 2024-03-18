@@ -4,6 +4,24 @@ import db from '../../db';
 import { conversation } from '../../models/conversation';
 
 /**
+ * Marks a conversation as read for a specific user.
+ * @param {string} userId - The ID of the user.
+ * @param {string} conversationId - The ID of the conversation.
+ * @returns {Promise<void>} - A promise that resolves when the conversation is marked as read.
+ */
+export const markConversationAsRead = async (userId: string, conversationId: string) => {
+    await db.execute(
+        sql.raw(
+            `
+        UPDATE users_conversation
+        SET last_read_at = now()
+        WHERE user_id = '${userId}' AND conversation_id = '${conversationId}'
+        `,
+        ),
+    );
+};
+
+/**
  * Retrieves conversations with optional search query, limited by a specified number and offset.
  * @param limit - The maximum number of conversations to retrieve.
  * @param offset - The number of conversations to skip before starting to retrieve.

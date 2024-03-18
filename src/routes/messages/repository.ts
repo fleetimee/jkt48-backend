@@ -172,3 +172,21 @@ export const approveMessage = async (messageId: string, isApproved: boolean) => 
 
     return messageItem;
 };
+
+export const getAttachmentsByConversationId = async (conversationId: string) => {
+    const attachments = await db.execute(
+        sql.raw(
+            `
+        SELECT ma.file_path AS file_path
+        FROM message m
+        JOIN message_attachment ma ON m.id = ma.message_id
+        WHERE m.conversation_id = '${conversationId}'
+        `,
+        ),
+    );
+
+    // Map over the attachments and extract the file_path
+    const filePaths = attachments.map(attachment => attachment.file_path);
+
+    return filePaths;
+};
