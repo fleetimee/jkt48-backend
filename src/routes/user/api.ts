@@ -179,21 +179,27 @@ router.get('/me/conversation/:conversationId', authenticateUser, async (req, res
         const user = await getUserById(id);
         if (!user) throw new NotFoundError('User not found');
 
+        // Get the conversation list
+        const conversationList = await getUserConversationList(id);
+        if (!conversationList) throw new NotFoundError('Conversation not found');
+
+        // Get the list of idols from the conversation list
+        const idolList = conversationList.map(conversation => conversation.idol_id);
+
+        // Check if the user is subscribed to any of the idols in the conversation
+        const subscriptions = await Promise.all(
+            idolList.map(idolId => checkUserSubscriptionOderIdol(id, idolId as string)),
+        );
+
+        // If the user is not subscribed to any of the idols, throw an error
+        if (subscriptions.every(subscription => !subscription)) {
+            throw new NotFoundError(
+                'User does not have an active subscription to any of the idols in this conversation',
+            );
+        }
+
+        // Get the conversation messages
         const conversation = await getUserConversationMessages(id, conversationId, 10, 0);
-        if (!conversation) throw new NotFoundError('Conversation not found');
-
-        // From the conversation list, get the first item to get idol id
-        const idolId = conversation[0]?.idol_id;
-
-        console.log('idolId', idolId);
-
-        // Check if the user is the idol in the conversation
-        if (!idolId) throw new NotFoundError('User not subscribed to this idol');
-
-        // Check if the user subscripted to this idol
-        const subscription = await checkUserSubscriptionOderIdol(id, idolId as string);
-
-        if (!subscription) throw new NotFoundError('User does not have an active subscription to this idol');
 
         res.status(StatusCodes.OK).send(
             formatResponsePaginated({
