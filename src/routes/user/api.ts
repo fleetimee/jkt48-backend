@@ -19,6 +19,7 @@ import {
     countActiveSubscriptionsUsers,
     countRegisteredUsers,
     deleteUserReactToMessage,
+    getUserActiveIdols,
     getUserById,
     getUserConversationList,
     getUserConversationMessages,
@@ -212,6 +213,30 @@ router.get('/me/conversation/:conversationId', authenticateUser, async (req, res
                     orderBy: 'created_at',
                     orderDirection: 'DESC',
                 },
+                success: true,
+            }),
+        );
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
+});
+
+router.get('/me/getActiveIdols', authenticateUser, async (req, res, next) => {
+    try {
+        const id = req.user.id;
+
+        const user = await getUserById(id);
+        if (!user) throw new NotFoundError('User not found');
+
+        const activeIdols = await getUserActiveIdols(id);
+        if (!activeIdols) throw new NotFoundError('Active idols not found');
+
+        res.status(StatusCodes.OK).send(
+            formatResponse({
+                code: StatusCodes.OK,
+                message: 'Active idols',
+                data: activeIdols,
                 success: true,
             }),
         );
