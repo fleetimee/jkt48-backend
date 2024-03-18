@@ -4,6 +4,7 @@ import { eq, sql } from 'drizzle-orm';
 import db from '../../db';
 import { order } from '../../models/order';
 import { users } from '../../models/users';
+import { getMessageAttachments, getMessageReactions } from '../messages/repository';
 
 /**
  * Retrieves a user by their ID.
@@ -267,10 +268,24 @@ export const getUserConversationMessages = async (
             INNER JOIN users u2 ON i.user_id = u2.id
     WHERE c.id = ${conversationId}
     AND m.approved = TRUE
-    AND m.user_id = ${userId}
-    ORDER BY m.created_at DESC
+    ORDER BY m.created_at 
     LIMIT ${limit} OFFSET ${offset};
     `);
+
+    const messageIds = messages.map(message => message.message_id);
+    const reactions = await getMessageReactions(messageIds as string[]);
+    const attachments = await getMessageAttachments(messageIds as string[]);
+
+    for (const message of messages) {
+        message.reactions = reactions
+            .filter(reaction => reaction.message_id === message.message_id)
+            .map(reaction => ({ ...reaction, reaction_count: parseInt(reaction.reaction_count as string, 10) }));
+
+        message.attachments = attachments.filter(attachment => {
+            attachment.file_size = Number(attachment.file_size);
+            return attachment.message_id === message.message_id;
+        });
+    }
 
     return messages;
 };

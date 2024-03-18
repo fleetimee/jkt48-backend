@@ -73,7 +73,7 @@ export const getMessages = async (conversationId: string, limit: number, offset:
                 INNER JOIN idol i ON c.idol_id = i.id
                 INNER JOIN users u2 ON i.user_id = u2.id
         WHERE conversation_id = '${conversationId}'
-        ORDER BY created_at DESC
+        ORDER BY created_at
         LIMIT ${limit} OFFSET ${offset}
         `,
         ),
