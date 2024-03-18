@@ -274,6 +274,7 @@ export const getUserConversationMessages = async (
     limit: number,
     offset: number,
 ) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let messages: any[] = [];
 
     console.log(userId, conversationId, limit, offset);
