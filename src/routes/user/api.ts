@@ -182,8 +182,6 @@ router.get('/me/conversation/:conversationId', authenticateUser, async (req, res
         const conversation = await getUserConversationMessages(id, conversationId, 10, 0);
         if (!conversation) throw new NotFoundError('Conversation not found');
 
-        console.log('conversation', conversation);
-
         // From the conversation list, get the first item to get idol id
         const idolId = conversation[0]?.idol_id;
 
