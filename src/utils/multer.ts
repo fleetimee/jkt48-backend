@@ -21,9 +21,8 @@ const storage = multer.diskStorage({
  */
 const storageMessage = multer.diskStorage({
     destination: (req, file, cb) => {
-        const userId = req.user.id;
-        const date = new Date();
-        const dir = `./static/messages/${userId}/${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`;
+        const { conversationId } = req.body;
+        const dir = `./static/conversation/${conversationId}`;
 
         fs.mkdirSync(dir, { recursive: true });
         cb(null, dir);

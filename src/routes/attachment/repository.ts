@@ -1,7 +1,27 @@
 import { eq } from 'drizzle-orm';
 
 import db from '../../db';
+import { message } from '../../models/message';
 import { attachment } from '../../models/message_attachment';
+
+export const getAllAttachmentsByConversationId = async (conversationId: string) => {
+    // const attachments = await db.execute(sql`
+    //     SELECT ma.file_path AS file_path
+    //     FROM message m
+    //             JOIN message_attachment ma ON m.id = ma.message_id
+    //     WHERE m.conversation_id = ${conversationId};
+    // `);
+
+    const attachments = await db
+        .select({
+            filePath: attachment.filePath,
+        })
+        .from(message)
+        .innerJoin(attachment, eq(message.id, attachment.messageId))
+        .where(eq(message.conversationId, conversationId));
+
+    return attachments;
+};
 
 /**
  * Retrieves attachments by message ID.

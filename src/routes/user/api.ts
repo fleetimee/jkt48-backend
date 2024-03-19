@@ -9,6 +9,8 @@ import { NotFoundError } from '../../utils/errors';
 import { uploadUserProfile } from '../../utils/multer';
 import { formatResponse, formatResponsePaginated } from '../../utils/response-formatter';
 import { validateUuid } from '../../utils/validate';
+import { getAllAttachmentsByConversationId } from '../attachment/repository';
+import { getConversationsById } from '../conversation/repository';
 import { getMessagesById } from '../messages/repository';
 import { getOrderById } from '../order/repository';
 import { getReactionById } from '../reaction/repository';
@@ -213,6 +215,34 @@ router.get('/me/conversation/:conversationId', authenticateUser, async (req, res
                     orderBy: 'created_at',
                     orderDirection: 'DESC',
                 },
+                success: true,
+            }),
+        );
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
+});
+
+router.get('/me/conversation/:conversationId/images', authenticateUser, async (req, res, next) => {
+    try {
+        const conversationId = req.params.conversationId;
+
+        // Check if conversation id is valid uuid
+        const isValidUuid = validateUuid(conversationId);
+        if (!isValidUuid) throw new NotFoundError('ConversationId not valid (uuid)');
+
+        // Check if the conversation exists
+        const conversation = await getConversationsById(conversationId);
+        if (!conversation) throw new NotFoundError('Conversation not found');
+
+        const images = await getAllAttachmentsByConversationId(conversationId);
+
+        res.status(StatusCodes.OK).send(
+            formatResponse({
+                code: StatusCodes.OK,
+                message: 'Conversation images',
+                data: images,
                 success: true,
             }),
         );
