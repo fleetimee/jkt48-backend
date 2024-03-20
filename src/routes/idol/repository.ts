@@ -64,7 +64,9 @@ export const getMemberById = async (memberId: string) => {
             i.given_name,
             i.horoscope,
             i.blood_type,
-            i.height
+            i.height,
+            i.instagram_url,
+            i.x_url
         FROM users u
                 INNER JOIN idol i ON u.id = i.user_id
         WHERE u.roles = 'member'
