@@ -340,7 +340,7 @@ export const getUserConversationMessages = async (
  * @returns A Promise that resolves to an array of active idols.
  */
 export const getUserActiveIdols = async (userId: string) => {
-    const [idols] = await db.execute(sql`
+    const idols = await db.execute(sql`
     SELECT i.id            AS idol_id,
         u.id            AS user_id,
         u.nickname      AS idol_name,
