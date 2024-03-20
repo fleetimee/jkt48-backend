@@ -253,7 +253,7 @@ export const getUserConversationList = async (userId: string) => {
             LEFT JOIN message m ON c.id = m.conversation_id
     WHERE o.user_id = ${userId}
     AND o.order_status = 'success'
-    ORDER BY u.nickname;
+    ORDER BY unread_count DESC, u.nickname;
     `);
 
     return conversation;
