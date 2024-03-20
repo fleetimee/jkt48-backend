@@ -222,38 +222,42 @@ export const getUserTransactionDetail = async (userId: string, orderId: string) 
  */
 export const getUserConversationList = async (userId: string) => {
     const conversation = await db.execute(sql`
-        SELECT DISTINCT ON (i.id)
-        c.id            AS conversation_id,
-        u.id            AS user_id,
-        i.id            AS idol_id,
-        u.nickname      AS idol_name,
-        U.profile_image AS idol_image,
-        m.message       AS last_message,
-        m.created_at    AS last_message_time,
-        (
-            SELECT COUNT(*)
-            FROM message
-            WHERE conversation_id = c.id AND (
-                created_at > (
-                    SELECT last_read_at
-                    FROM users_conversation
-                    WHERE user_id = ${userId} AND conversation_id = c.id
-                ) OR (
-                    SELECT last_read_at
-                    FROM users_conversation
-                    WHERE user_id = ${userId} AND conversation_id = c.id
-                ) IS NULL
-            )
-        ) AS unread_count
-    FROM order_idol
-            INNER JOIN "order" o ON order_idol.order_id = o.id
-            INNER JOIN idol i ON order_idol.idol_id = i.id
-            INNER JOIN conversation c ON i.id = c.idol_id
-            INNER JOIN users u ON i.user_id = u.id
-            LEFT JOIN message m ON c.id = m.conversation_id
-    WHERE o.user_id = ${userId}
-    AND o.order_status = 'success'
-    ORDER BY i.id, unread_count DESC, u.nickname;
+  SELECT *
+        FROM (
+            SELECT DISTINCT ON (i.id)
+            c.id            AS conversation_id,
+            u.id            AS user_id,
+            i.id            AS idol_id,
+            u.nickname      AS idol_name,
+            U.profile_image AS idol_image,
+            m.message       AS last_message,
+            m.created_at    AS last_message_time,
+            (
+                SELECT COUNT(*)
+                FROM message
+                WHERE conversation_id = c.id AND (
+                    created_at > (
+                        SELECT last_read_at
+                        FROM users_conversation
+                        WHERE user_id = ${userId} AND conversation_id = c.id
+                    ) OR (
+                        SELECT last_read_at
+                        FROM users_conversation
+                        WHERE user_id = ${userId} AND conversation_id = c.id
+                    ) IS NULL
+                )
+            ) AS unread_count
+            FROM order_idol
+                INNER JOIN "order" o ON order_idol.order_id = o.id
+                INNER JOIN idol i ON order_idol.idol_id = i.id
+                INNER JOIN conversation c ON i.id = c.idol_id
+                INNER JOIN users u ON i.user_id = u.id
+                LEFT JOIN message m ON c.id = m.conversation_id
+            WHERE o.user_id = ${userId}
+            AND o.order_status = 'success'
+            ORDER BY i.id, m.created_at DESC
+        ) AS subquery
+        ORDER BY unread_count DESC, idol_name;
     `);
 
     return conversation;
