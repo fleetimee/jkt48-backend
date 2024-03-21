@@ -59,6 +59,20 @@ export const updateUser = async (
 };
 
 /**
+ * Updates the password of a user in the database.
+ * @param id - The ID of the user.
+ * @param password - The new password for the user.
+ * @returns The updated user object.
+ */
+export const updateUserPassword = async (id: string, password: string) => {
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    const [user] = await db.update(users).set({ passwordHash }).where(eq(users.id, id)).returning();
+
+    return user;
+};
+
+/**
  * Updates the email and password of a user.
  * @param userId - The ID of the user.
  * @param email - The new email for the user.
