@@ -4,7 +4,7 @@
  * @returns The generated verification code.
  */
 export const generateVerificationCode = () => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let verificationCode = '';
     for (let i = 0; i < 6; i++) {
         verificationCode += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -18,14 +18,13 @@ export const generateVerificationCode = () => {
  * @returns The generated random string.
  */
 export const generateResetTokenPassword = () => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let randomString = '';
     for (let i = 0; i < 14; i++) {
         randomString += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return randomString;
 };
-
 /**
  * Calculates the tax and total amount for a given price and tax rate.
  * @param price - The price of the item.
