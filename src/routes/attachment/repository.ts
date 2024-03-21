@@ -13,6 +13,7 @@ export const getAllAttachmentsByConversationId = async (conversationId: string) 
     const attachments = await db
         .select({
             filePath: attachment.filePath,
+            createdAt: attachment.createdAt,
         })
         .from(message)
         .innerJoin(attachment, eq(message.id, attachment.messageId))
