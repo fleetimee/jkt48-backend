@@ -12,8 +12,8 @@ import { UnauthorizedError } from '../../utils/errors';
  * @param name - The user's name.
  * @returns The access token.
  */
-export const createAccessToken = (id: string, email: string, name: string, roles: string) => {
-    const payload = { type: 'access', id, email, name, roles };
+export const createAccessToken = (id: string, email: string, name: string, roles: string, isDeleted: boolean) => {
+    const payload = { type: 'access', id, email, name, roles, isDeleted };
     const token = jwt.sign(payload, JWT_SECRET_KEY, { expiresIn: '1y' });
     return token;
 };
@@ -47,6 +47,7 @@ export const verifyToken = (token: string) => {
             email: string;
             name: string;
             roles: string;
+            isDeleted: boolean;
         };
 
         // Check if the token is an access token
@@ -80,6 +81,7 @@ export const verifyRefreshToken = (token: string) => {
             email: string;
             name: string;
             roles: string;
+            isDeleted: boolean;
         };
 
         // Check if the token is a refresh token

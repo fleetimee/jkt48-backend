@@ -25,6 +25,13 @@ export const authenticateUser = (req: Request, res: Response, next: NextFunction
 
         const userTokenData = verifyToken(token);
 
+        // Check if the user is marked as deleted
+        if (userTokenData.isDeleted) {
+            throw new UnauthorizedError(
+                'Youre account has been deleted. Please contact support for further assistance.',
+            );
+        }
+
         req.user = userTokenData;
 
         next();

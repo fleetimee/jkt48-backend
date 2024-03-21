@@ -10,6 +10,7 @@ import { uploadUserProfile } from '../../utils/multer';
 import { formatResponse, formatResponsePaginated } from '../../utils/response-formatter';
 import { validateUuid } from '../../utils/validate';
 import { getAllAttachmentsByConversationId } from '../attachment/repository';
+import { changePasswordSchema } from '../auth/schema';
 import { getConversationsById } from '../conversation/repository';
 import { getMessagesById } from '../messages/repository';
 import { getOrderById } from '../order/repository';
@@ -28,7 +29,9 @@ import {
     getUserTransactionDetail,
     getUserTransactionList,
     postUserReactToMessage,
+    softDeleteUser,
     updateUser,
+    updateUserPassword,
 } from './repository';
 import { postReaction, updateUserSchema } from './schema';
 const router = express.Router();
@@ -392,5 +395,53 @@ router.patch(
         }
     },
 );
+
+router.patch('/me/changePassword', validateSchema(changePasswordSchema), authenticateUser, async (req, res, next) => {
+    try {
+        const id = req.user.id;
+
+        const { password } = req.body;
+
+        // Check if the user exists
+        const user = await getUserById(id);
+        if (!user) throw new NotFoundError('User not found');
+
+        // Change the password
+        await updateUserPassword(id, password);
+
+        res.status(StatusCodes.OK).send(
+            formatResponse({
+                code: StatusCodes.OK,
+                message: 'Password changed',
+                data: null,
+                success: true,
+            }),
+        );
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.delete('/me/nuke', authenticateUser, async (req, res, next) => {
+    try {
+        const id = req.user.id;
+
+        const user = await getUserById(id);
+        if (!user) throw new NotFoundError('User not found');
+
+        await softDeleteUser(id);
+
+        res.status(StatusCodes.OK).send(
+            formatResponse({
+                code: StatusCodes.OK,
+                message: 'User deleted',
+                data: null,
+                success: true,
+            }),
+        );
+    } catch (error) {
+        next(error);
+    }
+});
 
 export default router;

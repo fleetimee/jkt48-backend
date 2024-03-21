@@ -18,4 +18,5 @@ export const users = pgTable('users', {
     tokenResetPassword: text('token_reset_password'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
+    isDeleted: boolean('is_deleted').default(false).notNull(),
 });

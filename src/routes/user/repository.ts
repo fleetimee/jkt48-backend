@@ -407,3 +407,13 @@ export const deleteUserReactToMessage = async (userId: string, messageId: string
 
     return message;
 };
+
+/**
+ * Soft deletes a user by setting the `isDeleted` flag to true.
+ * @param userId - The ID of the user to be soft deleted.
+ * @returns The updated user object after soft deletion.
+ */
+export const softDeleteUser = async (userId: string) => {
+    const [user] = await db.update(users).set({ isDeleted: true }).where(eq(users.id, userId)).returning();
+    return user;
+};
