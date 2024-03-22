@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 
 import db from '../../db';
 import { message } from '../../models/message';
@@ -17,7 +17,15 @@ export const getAllAttachmentsByConversationId = async (conversationId: string) 
         })
         .from(message)
         .innerJoin(attachment, eq(message.id, attachment.messageId))
-        .where(eq(message.conversationId, conversationId));
+        .where(
+            and(
+                eq(message.conversationId, conversationId),
+                eq(attachment.fileType, 'image/jpeg'),
+                eq(attachment.fileType, 'image/png'),
+                eq(attachment.fileType, 'image/gif'),
+                eq(attachment.fileType, 'image/jpg'),
+            ),
+        );
 
     return attachments;
 };
