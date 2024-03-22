@@ -63,6 +63,10 @@ export const verifyLogin = async (email: string, password: string) => {
     const passwordIsValid = await bcrypt.compare(password, user.passwordHash);
     if (!passwordIsValid) throw new UnauthorizedError('Invalid username or password');
 
+    const isUserDeleted = user?.isDeleted;
+    if (isUserDeleted)
+        throw new UnauthorizedError('This account has been deleted!, please contact support for more information.');
+
     return user;
 };
 
