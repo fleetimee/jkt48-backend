@@ -105,6 +105,7 @@ export const createMember = async ({
     verificationToken,
     xUrl,
     instagramUrl,
+    imgProfilePath,
 }: {
     email: string;
     password: string;
@@ -117,11 +118,13 @@ export const createMember = async ({
     verificationToken: string;
     xUrl: string;
     instagramUrl: string;
+    imgProfilePath: string;
 }) => {
     const passwordHash = await bcrypt.hash(password, 10);
 
     console.log(`Instagram URL: ${instagramUrl}`);
     console.log(`X URL: ${xUrl}`);
+    console.log(imgProfilePath);
 
     let givenName = '';
     let familyName = '';
@@ -136,8 +139,8 @@ export const createMember = async ({
     await db.transaction(async trx => {
         const [userId] = await trx.execute(
             sql.raw(
-                `INSERT INTO users (email, password_hash, name, nickname, birthday, roles, email_verified, email_verified_at, verification_token, created_at)
-                VALUES ('${email}', '${passwordHash}', '${fullName}', '${nickname}', '${birthday}', 'member', true, NOW(), '${verificationToken}', NOW())
+                `INSERT INTO users (email, password_hash, name, nickname, birthday, profile_image, roles, email_verified, email_verified_at, verification_token, created_at)
+                VALUES ('${email}', '${passwordHash}', '${fullName}', '${nickname}', '${birthday}', '${imgProfilePath}', 'member', true, NOW(), '${verificationToken}', NOW())
                 RETURNING id`,
             ),
         );

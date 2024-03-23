@@ -49,6 +49,22 @@ const storageUserProfile = multer.diskStorage({
 });
 
 /**
+ * Multer disk storage destination to tmp.
+ */
+const storageUserProfileMember = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const dir = `./static/profileImages/tmp/`;
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+        cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+        cb(null, file.originalname);
+    },
+});
+
+/**
  * Middleware function for handling file uploads using Multer.
  * @param {Object} req - The Express request object.
  * @param {Object} file - The uploaded file object.
@@ -100,6 +116,19 @@ export const uploadMessage = multer({
  */
 export const uploadUserProfile = multer({
     storage: storageUserProfile,
+    limits: {
+        fileSize: 500 * 1024, // 500KB
+    },
+    fileFilter(req, file, callback) {
+        if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
+            return callback(new Error('Please upload an image file'));
+        }
+        callback(null, true);
+    },
+});
+
+export const uploadUserProfileMember = multer({
+    storage: storageUserProfileMember,
     limits: {
         fileSize: 500 * 1024, // 500KB
     },
