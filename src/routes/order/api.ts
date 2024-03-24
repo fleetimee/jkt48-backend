@@ -19,8 +19,6 @@ router.get('/:orderId', authenticateUser, async (req, res, next) => {
 
         if (!order) throw new NotFoundError('Order not found');
 
-        console.log('order', order);
-
         res.status(StatusCodes.OK).send(
             formatResponse({
                 success: true,
@@ -30,7 +28,6 @@ router.get('/:orderId', authenticateUser, async (req, res, next) => {
             }),
         );
     } catch (error) {
-        console.error(error);
         next(error);
     }
 });
@@ -54,7 +51,6 @@ router.get('/inquiry/:orderId', authenticateUser, async (req, res, next) => {
             }),
         );
     } catch (error) {
-        console.error(error);
         next(error);
     }
 });
@@ -78,7 +74,6 @@ router.get('/inquiry/:orderId/idol', authenticateUser, async (req, res, next) =>
             }),
         );
     } catch (error) {
-        console.error(error);
         next(error);
     }
 });
@@ -104,7 +99,6 @@ router.post('/', validateSchema(createOrderSchema), authenticateUser, async (req
             }),
         );
     } catch (error) {
-        console.error(error);
         next(error);
     }
 });

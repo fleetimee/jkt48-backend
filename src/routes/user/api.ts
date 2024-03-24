@@ -1,4 +1,3 @@
-import console from 'console';
 import express from 'express';
 import { StatusCodes } from 'http-status-codes';
 import path from 'path';
@@ -94,7 +93,6 @@ router.get('/me/cancelSubscription', authenticateUser, async (req, res, next) =>
             }),
         );
     } catch (error) {
-        console.log(error);
         next(error);
     }
 });
@@ -149,7 +147,6 @@ router.get('/me/transactionDetail/:orderId', authenticateUser, async (req, res, 
             }),
         );
     } catch (error) {
-        console.log(error);
         next(error);
     }
 });
@@ -172,7 +169,6 @@ router.get('/me/conversationList', authenticateUser, async (req, res, next) => {
             }),
         );
     } catch (error) {
-        console.log(error);
         next(error);
     }
 });
@@ -222,7 +218,6 @@ router.get('/me/conversation/:conversationId', authenticateUser, async (req, res
             }),
         );
     } catch (error) {
-        console.log(error);
         next(error);
     }
 });
@@ -250,7 +245,6 @@ router.get('/me/conversation/:conversationId/images', authenticateUser, async (r
             }),
         );
     } catch (error) {
-        console.log(error);
         next(error);
     }
 });
@@ -274,7 +268,6 @@ router.get('/me/getActiveIdols', authenticateUser, async (req, res, next) => {
             }),
         );
     } catch (error) {
-        console.log(error);
         next(error);
     }
 });
@@ -301,7 +294,6 @@ router.post('/me/reactMessage/:messageId', validateSchema(postReaction), authent
             }),
         );
     } catch (error) {
-        console.log(error);
         next(error);
     }
 });
@@ -328,7 +320,6 @@ router.delete('/me/unReactMessage/:messageId/reaction/:reactionId', authenticate
             }),
         );
     } catch (error) {
-        console.log(error);
         next(error);
     }
 });

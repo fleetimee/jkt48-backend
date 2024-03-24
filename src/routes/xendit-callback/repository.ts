@@ -19,8 +19,6 @@ export const updateOrderStatusXenditCallback = async (orderId: string, status: s
 
     currentDate.setMonth(currentDate.getMonth() + 1);
 
-    console.log('currentDate', currentDate);
-
     await db
         .update(order)
         .set({ orderStatus: status, expiredAt: currentDate, callbackData: callbackData })

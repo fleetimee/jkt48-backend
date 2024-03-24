@@ -11,8 +11,6 @@ import { order } from '../../models/order';
 export const getOrderById = async (orderId: string) => {
     const [orderItem] = await db.select().from(order).where(eq(order.id, orderId));
 
-    console.log('orderItem', orderItem);
-
     return orderItem;
 };
 

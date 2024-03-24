@@ -17,16 +17,12 @@ router.post('/', async (req, res, next) => {
         }
 
         if (body.status === 'PAID') {
-            console.log('Xendit callback:', body);
-
             await updateOrderStatusXenditCallback(body.external_id, 'success', body);
 
             res.status(StatusCodes.OK).send({
                 message: 'Xendit callback received',
             });
         } else if (body.status === 'FAILED') {
-            console.log('Xendit callback:', body);
-
             await updateOrderStatusXenditCallback(body.external_id, 'failed', body);
         }
 
@@ -34,8 +30,6 @@ router.post('/', async (req, res, next) => {
             message: 'Invalid status',
         });
     } catch (error) {
-        console.error('Xendit callback error:', error);
-
         next(error);
     }
 });

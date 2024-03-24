@@ -24,7 +24,6 @@ router.get('/', authenticateUser, async (req, res, next) => {
             }),
         );
     } catch (error) {
-        console.error(error);
         next(error);
     }
 });
@@ -48,7 +47,6 @@ router.get('/:id', authenticateUser, async (req, res, next) => {
             }),
         );
     } catch (error) {
-        console.error(error);
         next(error);
     }
 });
@@ -89,7 +87,6 @@ router.patch(
                 }),
             );
         } catch (error) {
-            console.error(error);
             next(error);
         }
     },

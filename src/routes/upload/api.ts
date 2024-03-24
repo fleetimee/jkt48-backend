@@ -26,8 +26,6 @@ router.post('/:urlParam(news|profile)', upload.single('file'), (req, res, next) 
             }),
         );
     } catch (error) {
-        console.log(error);
-
         if (error instanceof multer.MulterError && error.code === 'LIMIT_FILE_SIZE') {
             res.status(StatusCodes.FORBIDDEN).send({ error: 'File size exceeds the limit' });
         } else {

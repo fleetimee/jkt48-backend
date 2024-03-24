@@ -22,7 +22,6 @@ router.get('/:id', authenticateUser, async (req, res, next) => {
             }),
         );
     } catch (error) {
-        console.error(error);
         next(error);
     }
 });

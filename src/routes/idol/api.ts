@@ -5,14 +5,21 @@ import path from 'path';
 
 import { authenticateUser, requireAdminRole } from '../../middlewares/authenticate-user';
 import { validateSchema } from '../../middlewares/validate-request';
-import { NotFoundError, UnprocessableEntityError } from '../../utils/errors';
+import { BadRequestError, NotFoundError, UnprocessableEntityError } from '../../utils/errors';
 import { generateVerificationCode } from '../../utils/lib';
 import { uploadUserProfileMember } from '../../utils/multer';
 import { formatResponsePaginated } from '../../utils/response-formatter';
 import { validateMemberId, validateUuid } from '../../utils/validate';
 import { getUser } from '../auth/repository';
 import { getUserById } from '../user/repository';
-import { createMember, deleteMemberById, getMemberById, getMembers, updateMemberById } from './repository';
+import {
+    createMember,
+    deleteMemberById,
+    getMemberById,
+    getMembers,
+    updateMemberById,
+    updateProfileImageMemberById,
+} from './repository';
 import { createIdolSchema, updateIdolSchema } from './schema';
 
 const router = express.Router();
@@ -44,7 +51,6 @@ router.get('/', async (req, res, next) => {
             }),
         );
     } catch (error) {
-        console.error(error);
         next(error);
     }
 });
@@ -79,11 +85,14 @@ router.post(
         try {
             const { email, password, fullName, nickname, birthday, height, bloodType, horoscope, instagramUrl, xUrl } =
                 req.body;
+
             // Check if the email is already registered
             const user = await getUser(email);
             if (user) throw new UnprocessableEntityError('Email is already registered');
+
             // Generate verification token
             const verificationToken = generateVerificationCode();
+
             // File path image
             const ext = req.file?.originalname || '';
             const oldPath = `./static/profileImages/tmp/${req.file?.originalname}`;
@@ -104,13 +113,16 @@ router.post(
                 xUrl,
                 imgProfilePath,
             });
+
             // Handle move image from tmp to specific folder by member nickname
             if (!fs.existsSync(destPath)) {
                 fs.mkdirSync(destPath, { recursive: true });
             }
+
             fs.rename(oldPath, newPath, function (err) {
                 if (err) throw err;
             });
+
             res.status(StatusCodes.CREATED).send({
                 success: true,
                 code: StatusCodes.CREATED,
@@ -118,7 +130,6 @@ router.post(
                 data: newMember,
             });
         } catch (error) {
-            console.error(error);
             next(error);
         }
     },
@@ -132,8 +143,6 @@ router.patch(
     async (req, res, next) => {
         try {
             const userId = req.params.userId;
-
-            console.log('userId', userId);
 
             if (!validateUuid(userId)) throw new UnprocessableEntityError('User id is not valid');
 
@@ -162,8 +171,59 @@ router.patch(
                 data: updatedMember,
             });
         } catch (error) {
-            console.error(error);
+            next(error);
+        }
+    },
+);
 
+router.patch(
+    '/:idolId/profileImage',
+    uploadUserProfileMember.single('profileImage'),
+    authenticateUser,
+    requireAdminRole,
+    async (req, res, next) => {
+        try {
+            const idolId = req.params.idolId;
+
+            if (!validateMemberId(idolId))
+                throw new UnprocessableEntityError('The member ID is not valid JKT48 member ID');
+
+            const member = await getMemberById(idolId);
+            if (!member) throw new NotFoundError('User not found');
+
+            const user = await getUserById(member.user_id as string);
+            if (!user) throw new NotFoundError('User not found');
+
+            if (user.nickname === null) throw new UnprocessableEntityError('User nickname is not set');
+
+            if (!req.file) throw new BadRequestError('No file uploaded');
+
+            const ext = req.file?.originalname || '';
+            const oldPath = `./static/profileImages/tmp/${req.file?.originalname}`;
+            const destPath = `./static/profileImages/member/${user.nickname.toLowerCase()}`;
+            const newPath = `./static/profileImages/member/${user.nickname.toLowerCase()}/${
+                user.nickname.toLowerCase() + path.extname(ext)
+            }`;
+            const imgProfilePath = newPath.substring(1);
+
+            // Handle move image from tmp to specific folder by member nickname
+            if (!fs.existsSync(destPath)) {
+                fs.mkdirSync(destPath, { recursive: true });
+            }
+
+            fs.rename(oldPath, newPath, function (err) {
+                if (err) throw err;
+            });
+
+            const updatedMember = await updateProfileImageMemberById(idolId, imgProfilePath);
+
+            res.status(StatusCodes.OK).send({
+                success: true,
+                code: StatusCodes.OK,
+                message: 'Success update member profile image',
+                data: updatedMember,
+            });
+        } catch (error) {
             next(error);
         }
     },
@@ -186,7 +246,6 @@ router.delete('/:userId', authenticateUser, requireAdminRole, async (req, res, n
             message: 'Success delete member',
         });
     } catch (error) {
-        console.error(error);
         next(error);
     }
 });

@@ -30,7 +30,6 @@ router.get('/', async (req, res, next) => {
             );
         }
     } catch (error) {
-        console.error(error);
         next(error);
     }
 });
@@ -79,7 +78,6 @@ router.get('/by-week', async (req, res, next) => {
             );
         }
     } catch (error) {
-        console.error(error);
         next(error);
     }
 });

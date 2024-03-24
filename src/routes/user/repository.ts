@@ -295,8 +295,6 @@ export const getUserConversationMessages = async (
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let messages: any[] = [];
 
-    console.log(userId, conversationId, limit, offset);
-
     await db.transaction(async trx => {
         // Fetch the conversation messages
         messages = await trx.execute(sql`

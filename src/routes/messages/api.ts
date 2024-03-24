@@ -22,8 +22,6 @@ router.get('/:id', authenticateUser, requireAdminRole, async (req, res, next) =>
 
         const message = await getMessagesById(messageId);
 
-        console.log('message', message);
-
         res.status(StatusCodes.OK).send({
             success: true,
             code: StatusCodes.OK,
@@ -31,7 +29,6 @@ router.get('/:id', authenticateUser, requireAdminRole, async (req, res, next) =>
             data: message,
         });
     } catch (error) {
-        console.error(error);
         next(error);
     }
 });
@@ -63,7 +60,6 @@ router.get('/conversation/:id', authenticateUser, requireAdminRole, async (req, 
             }),
         );
     } catch (error) {
-        console.error(error);
         next(error);
     }
 });
@@ -103,8 +99,6 @@ router.post('/', authenticateUser, requireMemberRole, uploadMessage.array('attac
             },
         });
     } catch (error) {
-        console.error(error);
-
         next(error);
     }
 });
@@ -134,7 +128,6 @@ router.delete('/:id', authenticateUser, requireMemberRole, async (req, res, next
             data: null,
         });
     } catch (error) {
-        console.error(error);
         next(error);
     }
 });
@@ -160,7 +153,6 @@ router.patch(
                 data: null,
             });
         } catch (error) {
-            console.error(error);
             next(error);
         }
     },

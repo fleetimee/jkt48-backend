@@ -130,10 +130,6 @@ export const createMember = async ({
 }) => {
     const passwordHash = await bcrypt.hash(password, 10);
 
-    console.log(`Instagram URL: ${instagramUrl}`);
-    console.log(`X URL: ${xUrl}`);
-    console.log(imgProfilePath);
-
     let givenName = '';
     let familyName = '';
 
@@ -206,6 +202,29 @@ export const updateMemberById = async (
                 horoscope = '${horoscope}'
             WHERE user_id = '${userId}'
             `,
+            ),
+        );
+    });
+};
+
+/**
+ * Updates the profile image of a member by their idol ID.
+ * @param idolId - The ID of the idol.
+ * @param imgProfilePath - The path of the new profile image.
+ */
+export const updateProfileImageMemberById = async (idolId: string, imgProfilePath: string) => {
+    await db.transaction(async trx => {
+        await trx.execute(
+            sql.raw(
+                `
+                UPDATE users
+                SET profile_image = '${imgProfilePath}'
+                WHERE id = (
+                    SELECT user_id
+                    FROM idol
+                    WHERE id = '${idolId}'
+                )
+                `,
             ),
         );
     });

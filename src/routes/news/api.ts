@@ -38,7 +38,6 @@ router.get('/', async (req, res, next) => {
             }),
         );
     } catch (error) {
-        console.error(error);
         next(error);
     }
 });
@@ -57,7 +56,6 @@ router.get('/latest', async (req, res, next) => {
             }),
         );
     } catch (error) {
-        console.error(error);
         next(error);
     }
 });
@@ -101,7 +99,6 @@ router.get('/slug/:slug', async (req, res, next) => {
             }),
         );
     } catch (error) {
-        console.error(error);
         next(error);
     }
 });
@@ -128,7 +125,6 @@ router.post('/', validateSchema(createNewsSchema), authenticateUser, async (req,
             }),
         );
     } catch (error) {
-        console.error(error);
         next(error);
     }
 });
@@ -159,7 +155,6 @@ router.put('/:newsId', validateSchema(updateNewsSchema), authenticateUser, requi
             }),
         );
     } catch (error) {
-        console.error(error);
         next(error);
     }
 });
@@ -185,7 +180,6 @@ router.delete('/:id', authenticateUser, requireAdminRole, async (req, res, next)
             }),
         );
     } catch (error) {
-        console.error(error);
         next(error);
     }
 });

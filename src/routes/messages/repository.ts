@@ -133,8 +133,6 @@ export const createMessage = async (
         `);
 
         if (attachments) {
-            console.log('attachments', attachments);
-
             for (const attachment of attachments) {
                 await trx.execute(sql`
                 INSERT INTO message_attachment (message_id, file_path, file_type, created_at, file_size, checksum)

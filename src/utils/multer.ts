@@ -77,8 +77,6 @@ export const upload = multer({
         fileSize: 500 * 1024, // 500KB
     },
     fileFilter(req, file, callback) {
-        console.log(file);
-
         if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
             return callback(new Error('Please upload an image file'));
         }
@@ -98,8 +96,6 @@ export const uploadMessage = multer({
         fileSize: 100 * 1024 * 1024, // 100MB
     },
     fileFilter(req, file, callback) {
-        console.log(file);
-
         if (!file.originalname.match(/\.(jpg|jpeg|png|gif|opus|mp3|wav|mp4)$/)) {
             return callback(new Error('Please upload an image, audio, or video file'));
         }
@@ -127,11 +123,20 @@ export const uploadUserProfile = multer({
     },
 });
 
+/**
+ * Middleware for uploading user profile member images.
+ */
 export const uploadUserProfileMember = multer({
     storage: storageUserProfileMember,
     limits: {
         fileSize: 500 * 1024, // 500KB
     },
+    /**
+     * File filter function to check if the uploaded file is an image.
+     * @param req - The HTTP request object.
+     * @param file - The uploaded file object.
+     * @param callback - The callback function to handle the file filter result.
+     */
     fileFilter(req, file, callback) {
         if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
             return callback(new Error('Please upload an image file'));
