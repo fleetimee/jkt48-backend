@@ -170,7 +170,7 @@ export const createMember = async ({
  * @param horoscope - The updated horoscope.
  */
 export const updateMemberById = async (
-    userId: string,
+    idolId: string,
     email: string,
     fullName: string,
     nickName: string,
@@ -188,7 +188,7 @@ export const updateMemberById = async (
                 name = '${fullName}',
                 nickname = '${nickName}',
                 birthday = '${birthday}'
-            WHERE id = '${userId}'
+            WHERE id = (SELECT user_id FROM idol WHERE id = '${idolId}')
             `,
             ),
         );
@@ -200,7 +200,7 @@ export const updateMemberById = async (
             SET height = ${height},
                 blood_type = '${bloodType}',
                 horoscope = '${horoscope}'
-            WHERE user_id = '${userId}'
+            WHERE id = '${idolId}'
             `,
             ),
         );

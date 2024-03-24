@@ -136,25 +136,26 @@ router.post(
 );
 
 router.patch(
-    '/:userId',
+    '/:idolId',
     validateSchema(updateIdolSchema),
     authenticateUser,
     requireAdminRole,
     async (req, res, next) => {
         try {
-            const userId = req.params.userId;
+            const idolId = req.params.idolId;
 
-            if (!validateUuid(userId)) throw new UnprocessableEntityError('User id is not valid');
+            if (!validateMemberId(idolId))
+                throw new UnprocessableEntityError('The member ID is not valid JKT48 member ID');
 
             const { email, fullName, nickname, birthday, height, bloodType, horoscope } = req.body;
 
-            const user = await getUserById(userId);
-            if (!user) throw new NotFoundError('User not found');
+            const user = await getMemberById(idolId);
+            if (!user) throw new NotFoundError('Idol not found');
 
             // const birthdayDate = new Date(birthday);
 
             const updatedMember = await updateMemberById(
-                userId,
+                idolId,
                 email,
                 fullName,
                 nickname,
