@@ -66,9 +66,17 @@ export const getMemberById = async (memberId: string) => {
             i.blood_type,
             i.height,
             i.instagram_url,
-            i.x_url
+            i.x_url,
+            (
+                SELECT COUNT(DISTINCT o.user_id)
+                FROM order_idol oi
+                INNER JOIN "order" o ON oi.order_id = o.id
+                WHERE o.order_status = 'success'
+                AND o.expired_at > NOW()
+                AND oi.idol_id = i.id
+            ) AS subscriber_count
         FROM users u
-                INNER JOIN idol i ON u.id = i.user_id
+        INNER JOIN idol i ON u.id = i.user_id
         WHERE u.roles = 'member'
         AND i.id = ${memberId}
         `,
