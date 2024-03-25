@@ -30,6 +30,35 @@ export const getUserById = async (id: string) => {
 };
 
 /**
+ * Retrieves a user by their ID along with the count of unread news.
+ * @param id - The ID of the user.
+ * @returns A Promise that resolves to the user object with the unread news count.
+ */
+export const getUserByIdWithUnreadNewsCount = async (id: string) => {
+    const [user] = await db.execute(sql`
+    WITH unread_news AS (SELECT COUNT(*) AS unread_news_count
+                     FROM news n
+                     WHERE n.created_at > (SELECT last_read_at
+                                           FROM users_news
+                                           WHERE user_id = ${id})
+                        OR (SELECT last_read_at
+                            FROM users_news
+                            WHERE user_id = ${id}) IS NULL)
+    SELECT 
+        unread_news.unread_news_count,
+        CASE
+            WHEN unread_news.unread_news_count = 0 THEN TRUE
+            ELSE FALSE
+            END         AS is_news_read
+    FROM users u,
+        unread_news
+    WHERE u.id = ${id};
+    `);
+
+    return user;
+};
+
+/**
  * Updates a user's information in the database.
  * @param id - The ID of the user to update.
  * @param email - The updated email of the user.
