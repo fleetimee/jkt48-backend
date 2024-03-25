@@ -15,4 +15,6 @@ export const message = pgTable('message', {
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow(),
     isApproved: boolean('approved').notNull().default(false),
+    isBirthdayMessage: boolean('is_birthday_message').notNull().default(false),
+    receiverId: uuid('receiver_id').references(() => users.id),
 });
