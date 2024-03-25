@@ -164,7 +164,7 @@ router.post('/forgot_password', validateSchema(forgotPasswordSchema), rateLimite
             return res.status(StatusCodes.BAD_REQUEST).json({ error: emailResult.error });
         }
 
-        res.status(StatusCodes.BAD_REQUEST).json({ message: 'Success send token to reset password' });
+        res.status(StatusCodes.OK).json({ message: 'Success send token to reset password' });
     } catch (error) {
         next(error);
     }
