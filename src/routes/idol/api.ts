@@ -24,7 +24,7 @@ import { createIdolSchema, updateIdolSchema } from './schema';
 
 const router = express.Router();
 
-router.get('/', async (req, res, next) => {
+router.get('/', authenticateUser, async (req, res, next) => {
     try {
         const page = parseInt(req.query.page as string) || 1;
         const pageSize = parseInt(req.query.pageSize as string) || 10;
@@ -55,7 +55,7 @@ router.get('/', async (req, res, next) => {
     }
 });
 
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', authenticateUser, async (req, res, next) => {
     try {
         const id = req.params.id;
 
