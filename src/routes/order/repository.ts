@@ -1,4 +1,4 @@
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, lt, sql } from 'drizzle-orm';
 
 import db from '../../db';
 import { order } from '../../models/order';
@@ -86,4 +86,11 @@ export const getInquiryOrderListIdol = async (orderId: string) => {
     const idolNicknames = order.map(row => row.idol_nickname);
 
     return idolNicknames;
+};
+
+export const updateExpiredOrderStatus = async () => {
+    await db
+        .update(order)
+        .set({ orderStatus: 'expired' })
+        .where(and(eq(order.orderStatus, 'success'), lt(order.expiredAt, new Date())));
 };

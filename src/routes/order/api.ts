@@ -6,7 +6,13 @@ import { validateSchema } from '../../middlewares/validate-request';
 import { NotFoundError } from '../../utils/errors';
 import { formatResponse } from '../../utils/response-formatter';
 import { checkUserSubscription } from '../user/repository';
-import { createOrder, getInquiryOrder, getInquiryOrderListIdol, getOrderById } from './repository';
+import {
+    createOrder,
+    getInquiryOrder,
+    getInquiryOrderListIdol,
+    getOrderById,
+    updateExpiredOrderStatus,
+} from './repository';
 import { createOrderSchema } from './schema';
 
 const router = express.Router();
@@ -71,6 +77,23 @@ router.get('/inquiry/:orderId/idol', authenticateUser, async (req, res, next) =>
                 code: StatusCodes.OK,
                 message: 'Inquiry order fetched',
                 data: order,
+            }),
+        );
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.get('/check-expired', async (req, res, next) => {
+    try {
+        await updateExpiredOrderStatus();
+
+        res.status(StatusCodes.OK).send(
+            formatResponse({
+                success: true,
+                code: StatusCodes.OK,
+                message: 'Expired order status updated',
+                data: null,
             }),
         );
     } catch (error) {
