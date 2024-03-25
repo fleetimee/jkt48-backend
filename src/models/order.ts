@@ -19,7 +19,10 @@ export const order = pgTable('order', {
     id: uuid('id').primaryKey().unique().notNull().defaultRandom(),
     userId: uuid('user_id')
         .notNull()
-        .references(() => users.id),
+        .references(() => users.id, {
+            onDelete: 'cascade',
+            onUpdate: 'cascade',
+        }),
     packageId: uuid('package_id')
         .notNull()
         .references(() => packagePayment.id),
