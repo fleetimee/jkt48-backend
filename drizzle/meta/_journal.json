@@ -351,6 +351,13 @@
             "when": 1711347859006,
             "tag": "0049_cloudy_sabretooth",
             "breakpoints": true
+        },
+        {
+            "idx": 50,
+            "version": "5",
+            "when": 1711358162663,
+            "tag": "0050_fast_nighthawk",
+            "breakpoints": true
         }
     ]
 }
