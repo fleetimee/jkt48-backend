@@ -123,6 +123,20 @@ cron.schedule('0 0 * * 0', function () {
     }
 });
 
+// This cron job will run at 00:00 every day.
+cron.schedule('0 0 * * 0', function () {
+    console.log('Running check for expired orders every Sunday at midnight');
+    try {
+        // Replace with the correct endpoint that handles checking and updating of expired orders
+        fetch(`${BASE_URL}/api/order/check-expired`)
+            .then(res => res.json())
+            .then(data => console.log(data))
+            .catch(err => console.error(err));
+    } catch (error) {
+        console.error('Error checking for expired orders:', error);
+    }
+});
+
 /**
  * Rate limiter middleware.
  * This middleware function is used to limit repeated requests to public APIs and/or endpoints such as password reset.

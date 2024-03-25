@@ -17,6 +17,23 @@ import { createOrderSchema } from './schema';
 
 const router = express.Router();
 
+router.get('/check-expired', async (req, res, next) => {
+    try {
+        await updateExpiredOrderStatus();
+
+        res.status(StatusCodes.OK).send(
+            formatResponse({
+                success: true,
+                code: StatusCodes.OK,
+                message: 'Expired order status updated',
+                data: null,
+            }),
+        );
+    } catch (error) {
+        next(error);
+    }
+});
+
 router.get('/:orderId', authenticateUser, async (req, res, next) => {
     try {
         const orderId = req.params.orderId;
@@ -77,23 +94,6 @@ router.get('/inquiry/:orderId/idol', authenticateUser, async (req, res, next) =>
                 code: StatusCodes.OK,
                 message: 'Inquiry order fetched',
                 data: order,
-            }),
-        );
-    } catch (error) {
-        next(error);
-    }
-});
-
-router.get('/check-expired', async (req, res, next) => {
-    try {
-        await updateExpiredOrderStatus();
-
-        res.status(StatusCodes.OK).send(
-            formatResponse({
-                success: true,
-                code: StatusCodes.OK,
-                message: 'Expired order status updated',
-                data: null,
             }),
         );
     } catch (error) {
