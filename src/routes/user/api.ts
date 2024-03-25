@@ -23,6 +23,7 @@ import {
     deleteUserReactToMessage,
     getUserActiveIdols,
     getUserById,
+    getUserByIdWithUnreadNewsCount,
     getUserConversationList,
     getUserConversationMessages,
     getUserTransactionDetail,
@@ -43,6 +44,25 @@ router.get('/me', authenticateUser, async (req, res, next) => {
         if (!user) throw new NotFoundError('User not found');
 
         res.status(StatusCodes.OK).send({ user });
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.get('/me/newsCheck', authenticateUser, async (req, res, next) => {
+    try {
+        const id = req.user.id;
+
+        const userWithNews = await getUserByIdWithUnreadNewsCount(id);
+
+        res.status(StatusCodes.OK).send(
+            formatResponse({
+                code: StatusCodes.OK,
+                message: 'News checked',
+                data: userWithNews,
+                success: true,
+            }),
+        );
     } catch (error) {
         next(error);
     }
