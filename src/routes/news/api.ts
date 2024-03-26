@@ -12,8 +12,10 @@ import { createNewsSchema, updateNewsSchema } from './schema';
 
 const router = express.Router();
 
-router.get('/', async (req, res, next) => {
+router.get('/', authenticateUser, async (req, res, next) => {
     try {
+        const id = req.user.id;
+
         const page = parseInt(req.query.page as string) || 1;
         const pageSize = parseInt(req.query.pageSize as string) || 10;
         const orderBy = (req.query.orderBy as string) || 'created_at';
@@ -21,7 +23,7 @@ router.get('/', async (req, res, next) => {
 
         const offset = (page - 1) * pageSize;
 
-        const newsList = await getNewsList(orderBy, orderDirection, pageSize, offset);
+        const newsList = await getNewsList(id, orderBy, orderDirection, pageSize, offset);
 
         res.status(StatusCodes.OK).send(
             formatResponsePaginated({
@@ -38,6 +40,8 @@ router.get('/', async (req, res, next) => {
             }),
         );
     } catch (error) {
+        console.log(error);
+
         next(error);
     }
 });

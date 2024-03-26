@@ -24,15 +24,34 @@ export const getNews = async (newsId: string) => {
  * @returns A promise that resolves to an array of news articles.
  * @throws An error if the orderBy parameter is not a valid column.
  */
-export const getNewsList = async (orderBy: string, orderDirection: string, limit: number, offset: number) => {
+export const getNewsList = async (
+    userId: string,
+    orderBy: string,
+    orderDirection: string,
+    limit: number,
+    offset: number,
+) => {
     const validColumns = ['created_at', 'updated_at', 'title', 'body'];
     if (!validColumns.includes(orderBy)) {
         throw new Error('Invalid order by column');
     }
 
-    const newsList = await db.execute(
-        sql.raw(`SELECT * FROM news ORDER BY ${orderBy} ${orderDirection} LIMIT ${limit} OFFSET ${offset}`),
-    );
+    let newsList = [] as any[];
+
+    await db.transaction(async trx => {
+        newsList = await trx.execute(
+            sql.raw(`SELECT * FROM news ORDER BY ${orderBy} ${orderDirection} LIMIT ${limit} OFFSET ${offset}`),
+        );
+
+        await trx.execute(
+            sql.raw(
+                `INSERT INTO users_news (user_id, last_read_at)
+                VALUES ('${userId}', NOW())
+                ON CONFLICT (user_id) 
+                DO UPDATE SET last_read_at = NOW()`,
+            ),
+        );
+    });
 
     return newsList;
 };
