@@ -37,7 +37,9 @@ export const getConversations = async (limit: number, offset: number, searchQuer
     const conversation = await db.execute(
         sql.raw(
             `
-        SELECT DISTINCT ON (i.id) u.id         AS user_id,
+        SELECT DISTINCT ON (i.id)
+        c.id        AS conversation_id,
+        u.id         AS user_id,
                           i.id         AS idol_id,
                           u.nickname   AS idol_name,
                           U.name       AS idol_name,
