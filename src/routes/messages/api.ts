@@ -35,6 +35,8 @@ router.get('/:id', authenticateUser, requireAdminRole, async (req, res, next) =>
 
 router.get('/conversation/:id', authenticateUser, requireAdminRole, async (req, res, next) => {
     try {
+        const id = req.user.id;
+
         const conversationId = req.params.id;
         if (!validateUuid(conversationId)) throw new UnprocessableEntityError('The conversation ID is not valid UUID');
 
@@ -43,7 +45,7 @@ router.get('/conversation/:id', authenticateUser, requireAdminRole, async (req, 
 
         const offset = (page - 1) * pageSize;
 
-        const messages = await getMessages(conversationId, pageSize, offset);
+        const messages = await getMessages(id, conversationId, pageSize, offset);
 
         res.status(StatusCodes.OK).send(
             formatResponsePaginated({
