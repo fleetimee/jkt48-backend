@@ -11,13 +11,15 @@ const router = express.Router();
 
 router.get('/', authenticateUser, requireAdminRole, async (req, res, next) => {
     try {
+        const id = req.user.id;
+
         const page = parseInt(req.query.page as string) || 1;
         const pageSize = parseInt(req.query.pageSize as string) || 10;
         const searchQuery = req.query.searchQuery as string;
 
         const offset = (page - 1) * pageSize;
 
-        const conversationList = await getConversations(pageSize, offset, searchQuery);
+        const conversationList = await getConversations(id, pageSize, offset, searchQuery);
 
         res.status(StatusCodes.OK).send(
             formatResponsePaginated({
@@ -35,6 +37,8 @@ router.get('/', authenticateUser, requireAdminRole, async (req, res, next) => {
             }),
         );
     } catch (error) {
+        console.log(error);
+
         next(error);
     }
 });

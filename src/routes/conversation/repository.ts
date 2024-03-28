@@ -28,7 +28,7 @@ export const markConversationAsRead = async (userId: string, conversationId: str
  * @param searchQuery - The optional search query to filter conversations by user nickname.
  * @returns A promise that resolves to an array of conversations.
  */
-export const getConversations = async (limit: number, offset: number, searchQuery?: string) => {
+export const getConversations = async (userId: string, limit: number, offset: number, searchQuery?: string) => {
     let whereClause = '';
     if (searchQuery) {
         whereClause = `WHERE u.nickname ILIKE '%${searchQuery}%'`;
@@ -37,23 +37,35 @@ export const getConversations = async (limit: number, offset: number, searchQuer
     const conversation = await db.execute(
         sql.raw(
             `
-        SELECT DISTINCT ON (i.id)
-        c.id        AS conversation_id,
-        u.id         AS user_id,
-                          i.id         AS idol_id,
-                          u.nickname   AS idol_name,
-                          U.name       AS idol_name,
-                          u.profile_image,
-                          m.message    AS last_message,
-                          m.created_at AS last_message_time
-        FROM conversation c
-                LEFT JOIN idol i ON c.idol_id = i.id
-                LEFT JOIN users u ON i.user_id = u.id
-                LEFT JOIN message m ON c.id = m.conversation_id
-        ${whereClause}
-        ORDER BY i.id, m.created_at DESC
-        LIMIT ${limit} OFFSET ${offset}
-        `,
+            SELECT *
+                FROM (SELECT DISTINCT ON (i.id) c.id            AS conversation_id,
+                                                u.id            AS user_id,
+                                                i.id            AS idol_id,
+                                                u.nickname      AS idol_name,
+                                                U.profile_image AS idol_image,
+                                                m.message       AS last_message,
+                                                m.created_at    AS last_message_time,
+                                                (SELECT COUNT(*)
+                                                FROM message
+                                                WHERE conversation_id = c.id
+                                                AND (
+                                                    created_at > (SELECT last_read_at
+                                                                FROM users_conversation
+                                                                WHERE user_id = '${userId}'
+                                                                    AND conversation_id = c.id) OR (SELECT last_read_at
+                                                                                                    FROM users_conversation
+                                                                                                    WHERE user_id = '${userId}'
+                                                                                                    AND conversation_id = c.id) IS NULL
+                                                    ))         AS unread_count
+                    FROM idol i
+                            INNER JOIN conversation c ON i.id = c.idol_id
+                            INNER JOIN users u ON i.user_id = u.id
+                            LEFT JOIN message m ON c.id = m.conversation_id
+                    ${whereClause}
+                    ORDER BY i.id, m.created_at DESC) AS subquery
+            ORDER BY unread_count DESC, idol_name
+            LIMIT ${limit} OFFSET ${offset}
+            `,
         ),
     );
 

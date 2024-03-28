@@ -265,7 +265,7 @@ export const getUserTransactionDetail = async (userId: string, orderId: string) 
  */
 export const getUserConversationList = async (userId: string) => {
     const conversation = await db.execute(sql`
-  SELECT *
+    SELECT *
         FROM (
             SELECT DISTINCT ON (i.id)
             c.id            AS conversation_id,
