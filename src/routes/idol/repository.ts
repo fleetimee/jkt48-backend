@@ -60,6 +60,7 @@ export const getMemberById = async (memberId: string) => {
             u.nickname,
             u.birthday,
             u.profile_image,
+            i.bio,
             i.family_name,
             i.given_name,
             i.horoscope,
