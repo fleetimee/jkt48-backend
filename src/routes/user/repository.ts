@@ -278,7 +278,9 @@ export const getUserConversationList = async (userId: string) => {
             (
                 SELECT COUNT(*)
                 FROM message
-                WHERE conversation_id = c.id AND (
+                WHERE conversation_id = c.id 
+                AND message.approved = TRUE
+                AND (
                     created_at > (
                         SELECT last_read_at
                         FROM users_conversation
