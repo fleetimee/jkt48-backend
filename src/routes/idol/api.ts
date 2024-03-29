@@ -147,7 +147,7 @@ router.patch(
             if (!validateMemberId(idolId))
                 throw new UnprocessableEntityError('The member ID is not valid JKT48 member ID');
 
-            const { email, fullName, nickname, birthday, height, bloodType, horoscope } = req.body;
+            const { email, fullName, nickname, password, birthday, height, bloodType, horoscope } = req.body;
 
             const user = await getMemberById(idolId);
             if (!user) throw new NotFoundError('Idol not found');
@@ -159,6 +159,7 @@ router.patch(
                 email,
                 fullName,
                 nickname,
+                password,
                 birthday,
                 height,
                 bloodType,

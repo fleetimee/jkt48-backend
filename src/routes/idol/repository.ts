@@ -175,11 +175,14 @@ export const updateMemberById = async (
     email: string,
     fullName: string,
     nickName: string,
+    password: string,
     birthday: Date,
     height: number,
     bloodType: string,
     horoscope: string,
 ) => {
+    const passwordHash = await bcrypt.hash(password, 10);
+
     await db.transaction(async trx => {
         await trx.execute(
             sql.raw(
@@ -187,6 +190,7 @@ export const updateMemberById = async (
             UPDATE users
             SET email = '${email}',
                 name = '${fullName}',
+                password_hash = '${passwordHash}',
                 nickname = '${nickName}',
                 birthday = '${birthday}'
             WHERE id = (SELECT user_id FROM idol WHERE id = '${idolId}')
