@@ -198,6 +198,11 @@ router.get('/me/conversation/:conversationId', authenticateUser, async (req, res
         const id = req.user.id;
         const conversationId = req.params.conversationId;
 
+        const page = parseInt(req.query.page as string) || 1;
+        const pageSize = parseInt(req.query.pageSize as string) || 10;
+        const orderBy = (req.query.orderBy as string) || 'created_at';
+        const orderDirection = (req.query.orderDirection as string) || 'DESC';
+
         const user = await getUserById(id);
         if (!user) throw new NotFoundError('User not found');
 
@@ -221,7 +226,14 @@ router.get('/me/conversation/:conversationId', authenticateUser, async (req, res
         }
 
         // Get the conversation messages
-        const conversation = await getUserConversationMessages(id, conversationId, 10, 0);
+        const conversation = await getUserConversationMessages(
+            id,
+            conversationId,
+            orderBy,
+            orderDirection,
+            pageSize,
+            page,
+        );
 
         res.status(StatusCodes.OK).send(
             formatResponsePaginated({
@@ -238,6 +250,7 @@ router.get('/me/conversation/:conversationId', authenticateUser, async (req, res
             }),
         );
     } catch (error) {
+        console.log(error);
         next(error);
     }
 });
