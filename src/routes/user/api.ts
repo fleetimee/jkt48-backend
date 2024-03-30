@@ -458,11 +458,9 @@ router.patch(
 
             const { email, password } = req.body;
 
-            // Check if the user exists
             const user = await getUserById(id);
             if (!user) throw new NotFoundError('User not found');
 
-            // Change the password
             await updateAdminCredentials(id, email, password);
 
             res.status(StatusCodes.OK).send(

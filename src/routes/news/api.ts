@@ -138,7 +138,7 @@ router.put('/:newsId', validateSchema(updateNewsSchema), authenticateUser, requi
         const isValidUuid = validateUuid(req.params.newsId);
         if (!isValidUuid) throw new NotFoundError('Not valid UUID format');
 
-        const { title, body } = req.body;
+        const { title, body, image } = req.body;
 
         const newsId = req.params.newsId;
         const userId = req.user.id;
@@ -148,7 +148,7 @@ router.put('/:newsId', validateSchema(updateNewsSchema), authenticateUser, requi
 
         if (news.userId !== userId) throw new UnauthorizedError('News does not belong to user');
 
-        const updatedNews = await updateNews(title, body, newsId);
+        const updatedNews = await updateNews(title, body, image, newsId);
 
         res.status(StatusCodes.OK).send(
             formatResponse({

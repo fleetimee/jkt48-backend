@@ -107,7 +107,7 @@ export const createNews = async (
  * @param newsId - The ID of the news item to update.
  * @returns The updated news item.
  */
-export const updateNews = async (title: string, body: string, newsId: string) => {
+export const updateNews = async (title: string, body: string, image: string, newsId: string) => {
     // Update date of the news
     const currentDate = new Date();
     const sluggify = slugify(title, {
@@ -116,7 +116,7 @@ export const updateNews = async (title: string, body: string, newsId: string) =>
 
     const [newsItem] = await db
         .update(news)
-        .set({ title, body, updatedAt: currentDate, slug: sluggify })
+        .set({ title, body, image, updatedAt: currentDate, slug: sluggify })
         .where(eq(news.id, newsId))
         .returning();
 
