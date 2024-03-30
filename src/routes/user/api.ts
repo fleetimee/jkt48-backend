@@ -9,7 +9,7 @@ import { uploadUserProfile } from '../../utils/multer';
 import { formatResponse, formatResponsePaginated } from '../../utils/response-formatter';
 import { validateUuid } from '../../utils/validate';
 import { getAllAttachmentsByConversationId } from '../attachment/repository';
-import { changePasswordSchema } from '../auth/schema';
+import { changeAdminCredentialsSchema, changePasswordSchema } from '../auth/schema';
 import { getConversationsById } from '../conversation/repository';
 import { getMessagesById } from '../messages/repository';
 import { getOrderById } from '../order/repository';
@@ -30,6 +30,7 @@ import {
     getUserTransactionList,
     postUserReactToMessage,
     softDeleteUser,
+    updateAdminCredentials,
     updateUser,
     updateUserPassword,
 } from './repository';
@@ -445,6 +446,38 @@ router.patch('/me/changePassword', validateSchema(changePasswordSchema), authent
         next(error);
     }
 });
+
+router.patch(
+    '/me/changeAdminCredentials',
+    validateSchema(changeAdminCredentialsSchema),
+    authenticateUser,
+    requireAdminRole,
+    async (req, res, next) => {
+        try {
+            const id = req.user.id;
+
+            const { email, password } = req.body;
+
+            // Check if the user exists
+            const user = await getUserById(id);
+            if (!user) throw new NotFoundError('User not found');
+
+            // Change the password
+            await updateAdminCredentials(id, email, password);
+
+            res.status(StatusCodes.OK).send(
+                formatResponse({
+                    code: StatusCodes.OK,
+                    message: 'Admin credentials changed',
+                    data: null,
+                    success: true,
+                }),
+            );
+        } catch (error) {
+            next(error);
+        }
+    },
+);
 
 router.delete('/me/nuke', authenticateUser, async (req, res, next) => {
     try {
