@@ -29,6 +29,17 @@ export const getUserById = async (id: string) => {
     return user;
 };
 
+export const isEmailExist = async (email: string): Promise<boolean> => {
+    const [user] = await db
+        .select({
+            email: users.email,
+        })
+        .from(users)
+        .where(eq(users.email, email))
+        .limit(1);
+
+    return user ? true : false;
+};
 /**
  * Retrieves a user by their ID along with the count of unread news.
  * @param id - The ID of the user.

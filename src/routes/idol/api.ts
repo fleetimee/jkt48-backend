@@ -11,7 +11,7 @@ import { uploadUserProfileMember } from '../../utils/multer';
 import { formatResponsePaginated } from '../../utils/response-formatter';
 import { validateMemberId, validateUuid } from '../../utils/validate';
 import { getUser } from '../auth/repository';
-import { getUserById } from '../user/repository';
+import { getUserById, isEmailExist } from '../user/repository';
 import {
     createMember,
     deleteMemberById,
@@ -149,6 +149,10 @@ router.patch(
 
             const { email, fullName, nickname, password, birthday, height, bloodType, horoscope } = req.body;
 
+            // Check if the email is already registered
+            const emailExist = await isEmailExist(email);
+            if (emailExist) throw new UnprocessableEntityError('Email is already registered');
+
             const user = await getMemberById(idolId);
             if (!user) throw new NotFoundError('Idol not found');
 
@@ -173,6 +177,7 @@ router.patch(
                 data: updatedMember,
             });
         } catch (error) {
+            console.log(error);
             next(error);
         }
     },
