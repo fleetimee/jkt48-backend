@@ -40,6 +40,7 @@ export const isEmailExist = async (email: string): Promise<boolean> => {
 
     return user ? true : false;
 };
+
 /**
  * Retrieves a user by their ID along with the count of unread news.
  * @param id - The ID of the user.
