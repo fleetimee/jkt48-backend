@@ -79,6 +79,8 @@ export const getMessages = async (userId: string, conversationId: string, limit:
         LIMIT ${limit} OFFSET ${offset}
         `);
 
+        console.log(messages);
+
         await trx.execute(
             sql.raw(
                 `
@@ -91,26 +93,10 @@ export const getMessages = async (userId: string, conversationId: string, limit:
         );
     });
 
-    // const messages = await db.execute(
-    //     sql.raw(
-    //         `
-    //    SELECT m.id         AS message_id,
-    //    m.message    AS message,
-    //    m.created_at AS created_at,
-    //    u2.name      AS idol_name,
-    //    u2.nickname  AS idol_nickname,
-    //    m.approved  AS approved
-    //     FROM message m
-    //             INNER JOIN users u ON m.user_id = u.id
-    //             INNER JOIN conversation c ON m.conversation_id = c.id
-    //             INNER JOIN idol i ON c.idol_id = i.id
-    //             INNER JOIN users u2 ON i.user_id = u2.id
-    //     WHERE conversation_id = '${conversationId}'
-    //     ORDER BY created_at
-    //     LIMIT ${limit} OFFSET ${offset}
-    //     `,
-    //     ),
-    // );
+    // If messages is empty, return it immediately
+    if (messages.length === 0) {
+        return messages;
+    }
 
     const messageIds = messages.map(message => message.message_id);
     const reactions = await getMessageReactions(messageIds as string[]);
