@@ -47,6 +47,8 @@ router.get('/conversation/:id', authenticateUser, requireAdminRole, async (req, 
 
         const messages = await getMessages(id, conversationId, pageSize, offset);
 
+        console.log(messages);
+
         res.status(StatusCodes.OK).send(
             formatResponsePaginated({
                 success: true,
@@ -62,6 +64,8 @@ router.get('/conversation/:id', authenticateUser, requireAdminRole, async (req, 
             }),
         );
     } catch (error) {
+        console.log(error);
+
         next(error);
     }
 });
