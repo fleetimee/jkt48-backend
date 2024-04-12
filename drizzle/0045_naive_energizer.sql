@@ -1,1 +1,0 @@
-ALTER TABLE "users_conversation" ADD COLUMN "last_read_at" timestamp;
