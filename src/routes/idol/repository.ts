@@ -150,10 +150,22 @@ export const createMember = async ({
             ),
         );
 
-        await trx.execute(
+        const [idolId] = await trx.execute(
             sql.raw(
                 `INSERT INTO idol (user_id, instagram_url, x_url, height, blood_type, horoscope, family_name, given_name)
-                VALUES ('${userId.id}', '${instagramUrl}', '${xUrl}', ${height}, '${bloodType}', '${horoscope}', '${familyName}', '${givenName}')`,
+                VALUES ('${userId.id}', '${instagramUrl}', '${xUrl}', ${height}, '${bloodType}', '${horoscope}', '${familyName}', '${givenName}')
+                RETURNING id
+                `,
+            ),
+        );
+
+        console.log('userId', userId);
+        console.log('idolId', idolId);
+
+        await trx.execute(
+            sql.raw(
+                `INSERT INTO conversation (idol_id)
+                VALUES ('${idolId.id}')`,
             ),
         );
     });
