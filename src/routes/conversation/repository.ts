@@ -22,6 +22,25 @@ export const markConversationAsRead = async (userId: string, conversationId: str
 };
 
 /**
+ * Retrieves the conversation ID by the given idol ID.
+ * @param idolId - The ID of the idol.
+ * @returns The conversation item with the matching idol ID, or undefined if not found.
+ */
+export const getConversationIdByIdolId = async (idolId: string) => {
+    const [conversationItem] = await db
+        .select({
+            id: conversation.id,
+        })
+        .from(conversation)
+        .where(eq(conversation.idolId, idolId));
+
+    if (!conversationItem) {
+        throw new Error(`No conversation found with idol id ${idolId}`);
+    }
+
+    return conversationItem;
+};
+/**
  * Retrieves conversations with optional search query, limited by a specified number and offset.
  * @param limit - The maximum number of conversations to retrieve.
  * @param offset - The number of conversations to skip before starting to retrieve.

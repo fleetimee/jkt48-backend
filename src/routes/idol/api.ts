@@ -1,21 +1,25 @@
+import crypto from 'crypto';
 import express from 'express';
 import fs from 'fs';
 import { StatusCodes } from 'http-status-codes';
 import path from 'path';
 
-import { authenticateUser, requireAdminRole } from '../../middlewares/authenticate-user';
+import { authenticateUser, requireAdminRole, requireMemberRole } from '../../middlewares/authenticate-user';
 import { validateSchema } from '../../middlewares/validate-request';
 import { BadRequestError, NotFoundError, UnprocessableEntityError } from '../../utils/errors';
 import { generateVerificationCode } from '../../utils/lib';
-import { uploadUserProfileMember } from '../../utils/multer';
+import { uploadMessage, uploadUserProfileMember } from '../../utils/multer';
 import { formatResponsePaginated } from '../../utils/response-formatter';
 import { validateMemberId, validateUuid } from '../../utils/validate';
 import { getUser } from '../auth/repository';
 import { getUserById } from '../user/repository';
 import {
     createMember,
+    createMemberMessage,
     deleteMemberById,
     getMemberById,
+    getMemberIdByUserId,
+    getMemberMessage,
     getMembers,
     updateMemberById,
     updateProfileImageMemberById,
@@ -51,6 +55,31 @@ router.get('/', authenticateUser, async (req, res, next) => {
             }),
         );
     } catch (error) {
+        next(error);
+    }
+});
+
+router.get('/getIdolMessage', authenticateUser, requireMemberRole, async (req, res, next) => {
+    try {
+        const id = req.user.id;
+
+        console.log(id);
+
+        const idolId = await getMemberIdByUserId(id);
+
+        console.log(idolId.idol_id);
+
+        const chat = await getMemberMessage(idolId.idol_id as string);
+
+        res.status(StatusCodes.OK).send({
+            success: true,
+            code: StatusCodes.OK,
+            message: 'Success fetch member message',
+            data: chat,
+        });
+    } catch (error) {
+        console.log(error);
+
         next(error);
     }
 });
@@ -128,6 +157,50 @@ router.post(
                 code: StatusCodes.CREATED,
                 message: 'Success create new member',
                 data: newMember,
+            });
+        } catch (error) {
+            next(error);
+        }
+    },
+);
+
+router.post(
+    '/createMessage',
+    authenticateUser,
+    requireMemberRole,
+    uploadMessage.array('attachments'),
+    async (req, res, next) => {
+        try {
+            const userId = req.user.id;
+
+            const { messages } = req.body;
+
+            const attachments = req.files as Express.Multer.File[];
+
+            const formattedAttachments = attachments?.map(attachment => {
+                const fileBuffer = fs.readFileSync(attachment.path);
+                const hashSum = crypto.createHash('sha1');
+                hashSum.update(fileBuffer);
+                const checksum = hashSum.digest('hex');
+
+                return {
+                    filePath: attachment.path, // path where the file is stored
+                    fileType: attachment.mimetype, // file type
+                    fileSize: attachment.size, // file size
+                    originalName: attachment.originalname, // original file name
+                    checksum: checksum, // checksum of the file
+                };
+            });
+
+            const sendMessage = await createMemberMessage(userId, messages, formattedAttachments);
+
+            res.status(StatusCodes.OK).send({
+                success: true,
+                code: StatusCodes.OK,
+                message: 'Success create message',
+                data: {
+                    sendMessage,
+                },
             });
         } catch (error) {
             next(error);

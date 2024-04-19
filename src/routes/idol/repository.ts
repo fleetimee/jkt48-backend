@@ -3,6 +3,8 @@ import { eq, sql } from 'drizzle-orm';
 
 import db from '../../db';
 import { users } from '../../models/users';
+import { getConversationIdByIdolId } from '../conversation/repository';
+import { getMessageAttachments, getMessageReactions } from '../messages/repository';
 
 /**
  * Retrieves a list of members with optional filtering and pagination.
@@ -84,6 +86,62 @@ export const getMemberById = async (memberId: string) => {
     );
 
     return member;
+};
+
+export const getMemberIdByUserId = async (userId: string) => {
+    const [member] = await db.execute(
+        sql`
+        SELECT i.id AS idol_id
+        FROM idol i
+        WHERE i.user_id = ${userId}
+        `,
+    );
+
+    if (!member) {
+        throw new Error(`No user found with id ${userId}`);
+    }
+
+    return member;
+};
+
+/**
+ * Retrieves the member messages for a given idol.
+ * @param idolId - The ID of the idol.
+ * @returns A Promise that resolves to an array of member messages.
+ */
+export const getMemberMessage = async (idolId: string) => {
+    const messages = await db.execute(
+        sql`
+     SELECT m.id         AS message_id,
+       m.message    AS message,
+       i.id         AS idol_id,
+       m.approved   AS approved,
+       m.created_at AS created_at
+    FROM message m
+            INNER JOIN users u ON m.user_id = u.id
+            INNER JOIN idol i ON u.id = i.user_id
+            INNER JOIN conversation c ON m.conversation_id = c.id
+    WHERE i.id = ${idolId}
+    ORDER BY m.created_at DESC
+        `,
+    );
+
+    const messageIds = messages.map(message => message.message_id);
+    const reactions = await getMessageReactions(messageIds as string[]);
+    const attachments = await getMessageAttachments(messageIds as string[]);
+
+    for (const message of messages) {
+        message.reactions = reactions
+            .filter(reaction => reaction.message_id === message.message_id)
+            .map(reaction => ({ ...reaction, reaction_count: parseInt(reaction.reaction_count as string, 10) }));
+
+        message.attachments = attachments.filter(attachment => {
+            attachment.file_size = Number(attachment.file_size);
+            return attachment.message_id === message.message_id;
+        });
+    }
+
+    return messages;
 };
 
 /**
@@ -168,6 +226,42 @@ export const createMember = async ({
                 VALUES ('${idolId.id}')`,
             ),
         );
+    });
+};
+
+export const createMemberMessage = async (
+    userId: string,
+    message: string,
+    attachments?: Array<{ filePath: string; fileType: string; fileSize: number; checksum: string }>,
+) => {
+    const idolId = await getMemberIdByUserId(userId);
+
+    console.log('idolId', idolId);
+
+    const conversationId = await getConversationIdByIdolId(idolId.idol_id as string);
+
+    console.log('conversationId', conversationId);
+
+    await db.transaction(async trx => {
+        const [messageId] = await trx.execute(
+            sql.raw(
+                `INSERT INTO message (user_id, conversation_id, message, created_at)
+                VALUES ('${userId}', '${conversationId.id}', '${message}', NOW())
+                RETURNING id`,
+            ),
+        );
+
+        if (attachments) {
+            for (const attachment of attachments) {
+                await trx.execute(
+                    sql.raw(
+                        `INSERT INTO message_attachment (message_id, file_path, file_type, file_size, checksum)
+                        VALUES ('${messageId.id}', '${attachment.filePath}', '${attachment.fileType}', ${attachment.fileSize}, '${attachment.checksum}')
+                        `,
+                    ),
+                );
+            }
+        }
     });
 };
 
