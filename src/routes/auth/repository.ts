@@ -55,10 +55,10 @@ export const getUserByResetToken = async (token: string) => {
 export const verifyLogin = async (email: string, password: string) => {
     const user = await getUser(email);
 
+    if (!user) throw new UnauthorizedError('Invalid username or password');
+
     const isUserVerified = user?.emailVerified;
     if (!isUserVerified) throw new ForbiddenError('Email is not verified yet!');
-
-    if (!user) throw new UnauthorizedError('Invalid username or password');
 
     const passwordIsValid = await bcrypt.compare(password, user.passwordHash);
     if (!passwordIsValid) throw new UnauthorizedError('Invalid username or password');
