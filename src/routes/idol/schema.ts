@@ -33,3 +33,10 @@ export const updateIdolSchema = z.object({
         horoscope: z.string(),
     }),
 });
+
+export const updateLoggedOnIdolSchema = z.object({
+    body: z.object({
+        fullName: z.string().optional(),
+        bio: z.string().optional(),
+    }),
+});

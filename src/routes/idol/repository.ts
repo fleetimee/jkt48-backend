@@ -88,6 +88,12 @@ export const getMemberById = async (memberId: string) => {
     return member;
 };
 
+/**
+ * Retrieves the member ID by user ID.
+ * @param {string} userId - The user ID.
+ * @returns {Promise<string>} The member ID.
+ * @throws {Error} If no user is found with the given ID.
+ */
 export const getMemberIdByUserId = async (userId: string) => {
     const [member] = await db.execute(
         sql`
@@ -234,6 +240,8 @@ export const createMemberMessage = async (
     message: string,
     attachments?: Array<{ filePath: string; fileType: string; fileSize: number; checksum: string }>,
 ) => {
+    let postedMessage;
+
     const idolId = await getMemberIdByUserId(userId);
 
     console.log('idolId', idolId);
@@ -256,13 +264,19 @@ export const createMemberMessage = async (
                 await trx.execute(
                     sql.raw(
                         `INSERT INTO message_attachment (message_id, file_path, file_type, file_size, checksum)
-                        VALUES ('${messageId.id}', '${attachment.filePath}', '${attachment.fileType}', ${attachment.fileSize}, '${attachment.checksum}')
-                        `,
+                        VALUES ('${messageId.id}', '${attachment.filePath}', '${attachment.fileType}', ${attachment.fileSize}, '${attachment.checksum}')`,
                     ),
                 );
             }
         }
+
+        // Fetch the posted message
+        [postedMessage] = await trx.execute(sql.raw(`SELECT * FROM message WHERE id = '${messageId.id}'`));
     });
+
+    console.log('postedMessage', postedMessage);
+
+    return postedMessage;
 };
 
 /**
@@ -312,6 +326,30 @@ export const updateMemberById = async (
                 blood_type = '${bloodType}',
                 horoscope = '${horoscope}'
             WHERE id = '${idolId}'
+            `,
+            ),
+        );
+    });
+};
+
+export const updateLoggedMember = async (userId: string, fullName: string, bio: string) => {
+    await db.transaction(async trx => {
+        await trx.execute(
+            sql.raw(
+                `
+            UPDATE users
+            SET name = '${fullName}'
+            WHERE id = '${userId}'
+            `,
+            ),
+        );
+
+        await trx.execute(
+            sql.raw(
+                `
+            UPDATE idol
+            SET bio = '${bio}'
+            WHERE user_id = '${userId}'
             `,
             ),
         );

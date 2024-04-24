@@ -21,10 +21,11 @@ import {
     getMemberIdByUserId,
     getMemberMessage,
     getMembers,
+    updateLoggedMember,
     updateMemberById,
     updateProfileImageMemberById,
 } from './repository';
-import { createIdolSchema, updateIdolSchema } from './schema';
+import { createIdolSchema, updateIdolSchema, updateLoggedOnIdolSchema } from './schema';
 
 const router = express.Router();
 
@@ -80,6 +81,25 @@ router.get('/getIdolMessage', authenticateUser, requireMemberRole, async (req, r
     } catch (error) {
         console.log(error);
 
+        next(error);
+    }
+});
+
+router.get('/getLoggedOnIdol', authenticateUser, requireMemberRole, async (req, res, next) => {
+    try {
+        const id = req.user.id;
+
+        const idolId = await getMemberIdByUserId(id);
+
+        const member = await getMemberById(idolId.idol_id as string);
+
+        res.status(StatusCodes.OK).send({
+            success: true,
+            code: StatusCodes.OK,
+            message: 'Success fetch member',
+            data: member,
+        });
+    } catch (error) {
         next(error);
     }
 });
@@ -194,15 +214,42 @@ router.post(
 
             const sendMessage = await createMemberMessage(userId, messages, formattedAttachments);
 
+            console.log(sendMessage);
+
             res.status(StatusCodes.OK).send({
                 success: true,
                 code: StatusCodes.OK,
                 message: 'Success create message',
-                data: {
-                    sendMessage,
-                },
+                data: sendMessage,
             });
         } catch (error) {
+            next(error);
+        }
+    },
+);
+
+router.patch(
+    '/getLoggedOnIdol/update',
+    validateSchema(updateLoggedOnIdolSchema),
+    authenticateUser,
+    requireMemberRole,
+    async (req, res, next) => {
+        try {
+            const id = req.user.id;
+
+            const { fullName, bio } = req.body;
+
+            const updatedMember = await updateLoggedMember(id, fullName, bio);
+
+            res.status(StatusCodes.OK).send({
+                success: true,
+                code: StatusCodes.OK,
+                message: 'Success update member',
+                data: updatedMember,
+            });
+        } catch (error) {
+            console.log(error);
+
             next(error);
         }
     },
