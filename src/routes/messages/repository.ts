@@ -58,6 +58,7 @@ export const getMessageAttachments = async (messageIds: string[]) => {
  * @returns A Promise that resolves to an array of messages.
  */
 export const getMessages = async (userId: string, conversationId: string, limit: number, offset: number) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let messages: any[] = [];
 
     await db.transaction(async trx => {
@@ -78,8 +79,6 @@ export const getMessages = async (userId: string, conversationId: string, limit:
         ORDER BY created_at
         LIMIT ${limit} OFFSET ${offset}
         `);
-
-        console.log(messages);
 
         await trx.execute(
             sql.raw(

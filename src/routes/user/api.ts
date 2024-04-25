@@ -251,7 +251,6 @@ router.get('/me/conversation/:conversationId', authenticateUser, async (req, res
             }),
         );
     } catch (error) {
-        console.log(error);
         next(error);
     }
 });
@@ -410,8 +409,7 @@ router.patch(
             const filePath = `/static/profileImages/${req.user.roles}/${id}/`;
             const fileName = filePath + 'profile-img-' + id + path.extname(req.file.originalname);
 
-            const { name, email, nickName, birthday, profileImage } = req.body;
-            console.log(name, email, nickName, birthday, profileImage);
+            const { name, email, nickName, birthday } = req.body;
 
             const user = await updateUser(id, email, nickName, name, birthday, fileName);
             res.status(StatusCodes.OK).send({ user });

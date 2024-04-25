@@ -223,9 +223,6 @@ export const createMember = async ({
             ),
         );
 
-        console.log('userId', userId);
-        console.log('idolId', idolId);
-
         await trx.execute(
             sql.raw(
                 `INSERT INTO conversation (idol_id)
@@ -244,11 +241,7 @@ export const createMemberMessage = async (
 
     const idolId = await getMemberIdByUserId(userId);
 
-    console.log('idolId', idolId);
-
     const conversationId = await getConversationIdByIdolId(idolId.idol_id as string);
-
-    console.log('conversationId', conversationId);
 
     await db.transaction(async trx => {
         const [messageId] = await trx.execute(
@@ -273,8 +266,6 @@ export const createMemberMessage = async (
         // Fetch the posted message
         [postedMessage] = await trx.execute(sql.raw(`SELECT * FROM message WHERE id = '${messageId.id}'`));
     });
-
-    console.log('postedMessage', postedMessage);
 
     return postedMessage;
 };

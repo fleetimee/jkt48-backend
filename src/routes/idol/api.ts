@@ -64,11 +64,7 @@ router.get('/getIdolMessage', authenticateUser, requireMemberRole, async (req, r
     try {
         const id = req.user.id;
 
-        console.log(id);
-
         const idolId = await getMemberIdByUserId(id);
-
-        console.log(idolId.idol_id);
 
         const chat = await getMemberMessage(idolId.idol_id as string);
 
@@ -79,8 +75,6 @@ router.get('/getIdolMessage', authenticateUser, requireMemberRole, async (req, r
             data: chat,
         });
     } catch (error) {
-        console.log(error);
-
         next(error);
     }
 });
@@ -214,8 +208,6 @@ router.post(
 
             const sendMessage = await createMemberMessage(userId, messages, formattedAttachments);
 
-            console.log(sendMessage);
-
             res.status(StatusCodes.OK).send({
                 success: true,
                 code: StatusCodes.OK,
@@ -248,8 +240,6 @@ router.patch(
                 data: updatedMember,
             });
         } catch (error) {
-            console.log(error);
-
             next(error);
         }
     },
@@ -293,7 +283,6 @@ router.patch(
                 data: updatedMember,
             });
         } catch (error) {
-            console.log(error);
             next(error);
         }
     },
