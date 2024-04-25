@@ -109,6 +109,8 @@ app.use(
 // Serve Static files
 app.use('/static', express.static('static'));
 
+app.use('/robots.txt', express.static('static/robots.txt'));
+
 // Schedule tasks to be run on the server.
 // This cron job will run at 00:00 every Sunday.
 cron.schedule('0 0 * * 0', function () {
