@@ -215,6 +215,8 @@ router.post(
                 data: sendMessage,
             });
         } catch (error) {
+            console.log(error);
+
             next(error);
         }
     },

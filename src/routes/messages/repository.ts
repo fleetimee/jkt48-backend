@@ -5,6 +5,51 @@ import { message } from '../../models/message';
 import { NotFoundError } from '../../utils/errors';
 
 /**
+ * Retrieves the message reaction for a given message ID.
+ * @param messageId The ID of the message.
+ * @returns A Promise that resolves to the message reaction.
+ */
+export const getMessageReaction = async (messageId: string) => {
+    const [reaction] = await db.execute(
+        sql.raw(
+            `
+        SELECT r.emoji, COUNT(r.emoji) AS reaction_count
+        FROM reaction r
+                INNER JOIN message_reaction mr ON r.id = mr.reaction_id
+        WHERE mr.message_id = '${messageId}'
+        GROUP BY r.emoji;
+        `,
+        ),
+    );
+
+    return reaction;
+};
+
+/**
+ * Retrieves the attachment for a given message ID.
+ * @param messageId The ID of the message.
+ * @returns The attachment object.
+ */
+export const getMessageAttachment = async (messageId: string) => {
+    const [attachment] = await db.execute(
+        sql.raw(
+            `
+        SELECT ma.id        AS attachment_id,
+        ma.file_path AS file_path,
+        ma.file_type AS file_type,
+        ma.file_size AS file_size,
+        ma.checksum  AS checksum,
+        ma.created_at AS created_at
+            FROM message_attachment ma
+            WHERE ma.message_id = '${messageId}'
+            `,
+        ),
+    );
+
+    return attachment;
+};
+
+/**
  * Retrieves the reactions for the given message IDs.
  * @param messageIds An array of message IDs.
  * @returns A Promise that resolves to an array of reaction objects.

@@ -150,6 +150,59 @@ export const getMemberMessage = async (idolId: string) => {
     return messages;
 };
 
+export const getMemberMessageByMessageId = async (messageId: string) => {
+    const [message] = await db.execute(
+        sql`
+     SELECT m.id         AS message_id,
+       m.message    AS message,
+       i.id         AS idol_id,
+       m.approved   AS approved,
+       m.created_at AS created_at
+    FROM message m
+            INNER JOIN users u ON m.user_id = u.id
+            INNER JOIN idol i ON u.id = i.user_id
+            INNER JOIN conversation c ON m.conversation_id = c.id
+    WHERE m.id = ${messageId}
+    ORDER BY m.created_at DESC
+        `,
+    );
+
+    return message;
+};
+
+// export const getMemberMessageByMessageId = async (messageId: string) => {
+//     const [message] = await db.execute(
+//         sql`
+//      SELECT m.id         AS message_id,
+//        m.message    AS message,
+//        i.id         AS idol_id,
+//        m.approved   AS approved,
+//        m.created_at AS created_at
+//     FROM message m
+//             INNER JOIN users u ON m.user_id = u.id
+//             INNER JOIN idol i ON u.id = i.user_id
+//             INNER JOIN conversation c ON m.conversation_id = c.id
+//     WHERE m.id = ${messageId}
+//     ORDER BY m.created_at DESC
+//         `,
+//     );
+
+//     const messageIds = message.message_id;
+//     const reactions = await getMessageReactions(messageId as string);
+//     const attachments = await getMessageAttachments([messageIds]);
+
+//     message.reactions = reactions
+//         .filter(reaction => reaction.message_id === message.message_id)
+//         .map(reaction => ({ ...reaction, reaction_count: parseInt(reaction.reaction_count as string, 10) }));
+
+//     message.attachments = attachments.filter(attachment => {
+//         attachment.file_size = Number(attachment.file_size);
+//         return attachment.message_id === message.message_id;
+//     });
+
+//     return message;
+// };
+
 /**
  * Creates a new member in the database.
  * @param {Object} memberData - The data of the member to be created.
@@ -264,7 +317,35 @@ export const createMemberMessage = async (
         }
 
         // Fetch the posted message
-        [postedMessage] = await trx.execute(sql.raw(`SELECT * FROM message WHERE id = '${messageId.id}'`));
+        [postedMessage] = await trx.execute(
+            sql.raw(`
+        
+            SELECT m.id         AS message_id,
+            m.message    AS message,
+            i.id         AS idol_id,
+            m.approved   AS approved,
+            m.created_at AS created_at
+            FROM message m
+                    INNER JOIN users u ON m.user_id = u.id
+                    INNER JOIN idol i ON u.id = i.user_id
+                    INNER JOIN conversation c ON m.conversation_id = c.id
+            WHERE m.id = '${messageId.id}'
+            ORDER BY m.created_at DESC
+        `),
+        );
+
+        // Fetch the attachments
+        const attachmentsResult = await trx.execute(
+            sql.raw(`
+                SELECT file_path, file_type, file_size, checksum
+                FROM message_attachment
+                WHERE message_id = '${messageId.id}'
+            `),
+        );
+
+        // Add empty arrays for reactions and attachments
+        postedMessage.reactions = [];
+        postedMessage.attachments = attachmentsResult;
     });
 
     return postedMessage;

@@ -2,6 +2,9 @@ import fs from 'fs';
 import multer from 'multer';
 import path from 'path';
 
+import { getConversationIdByIdolId } from '../routes/conversation/repository';
+import { getMemberIdByUserId } from '../routes/idol/repository';
+
 /**
  * Multer disk storage configuration.
  */
@@ -20,9 +23,11 @@ const storage = multer.diskStorage({
  * Multer disk storage configuration for storing messages.
  */
 const storageMessage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        const { conversationId } = req.body;
-        const dir = `./static/conversation/${conversationId}`;
+    destination: async (req, file, cb) => {
+        const userId = req.user.id;
+        const idolId = await getMemberIdByUserId(userId);
+        const conversation = await getConversationIdByIdolId(idolId.idol_id as string);
+        const dir = `./static/conversation/${conversation.id}`;
 
         fs.mkdirSync(dir, { recursive: true });
         cb(null, dir);
