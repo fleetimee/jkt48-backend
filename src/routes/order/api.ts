@@ -12,8 +12,9 @@ import {
     getInquiryOrderListIdol,
     getOrderById,
     updateExpiredOrderStatus,
+    updateOrderStatusGpay,
 } from './repository';
-import { createOrderSchema } from './schema';
+import { createOrderSchema, updateOrderStatusSchema } from './schema';
 
 const router = express.Router();
 
@@ -119,6 +120,29 @@ router.post('/', validateSchema(createOrderSchema), authenticateUser, async (req
                 code: StatusCodes.OK,
                 message: 'Order created',
                 data: createOrderItem,
+            }),
+        );
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.patch('/updateStatus', validateSchema(updateOrderStatusSchema), authenticateUser, async (req, res, next) => {
+    try {
+        const { orderId } = req.body;
+
+        const order = await getOrderById(orderId);
+
+        if (!order) throw new NotFoundError('Order not found');
+
+        await updateOrderStatusGpay(orderId);
+
+        res.status(StatusCodes.OK).send(
+            formatResponse({
+                success: true,
+                code: StatusCodes.OK,
+                message: 'Order status updated',
+                data: null,
             }),
         );
     } catch (error) {

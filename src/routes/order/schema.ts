@@ -10,3 +10,9 @@ export const createOrderSchema = z.object({
         idolIds: z.array(z.string()).optional(),
     }),
 });
+
+export const updateOrderStatusSchema = z.object({
+    body: z.object({
+        orderId: z.string().min(1, 'Order ID cannot be empty'),
+    }),
+});

@@ -94,3 +94,13 @@ export const updateExpiredOrderStatus = async () => {
         .set({ orderStatus: 'expired' })
         .where(and(eq(order.orderStatus, 'success'), lt(order.expiredAt, new Date())));
 };
+
+export const updateOrderStatusGpay = async (orderId: string) => {
+    const currentDate = new Date();
+
+    currentDate.setMonth(currentDate.getMonth() + 1);
+
+    await db.update(order).set({ orderStatus: 'success', expiredAt: currentDate }).where(eq(order.id, orderId));
+
+    return order;
+};
