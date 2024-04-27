@@ -236,6 +236,8 @@ router.get('/me/conversation/:conversationId', authenticateUser, async (req, res
             page,
         );
 
+        if (!conversation) throw new NotFoundError('Conversation not found');
+
         res.status(StatusCodes.OK).send(
             formatResponsePaginated({
                 code: StatusCodes.OK,
@@ -251,6 +253,7 @@ router.get('/me/conversation/:conversationId', authenticateUser, async (req, res
             }),
         );
     } catch (error) {
+        console.log(error);
         next(error);
     }
 });

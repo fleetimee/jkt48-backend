@@ -340,30 +340,34 @@ export const getUserConversationMessages = async (
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let messages: any[] = [];
 
+    // const userIdTest = userId;y
+
     await db.transaction(async trx => {
         // Fetch the conversation messages
         messages = await trx.execute(
             sql.raw(
                 `
-            SELECT m.id         AS message_id,
-            m.message    AS message,
-            m.created_at AS created_at,
-            i.id         AS idol_id,
-            u2.name      AS idol_name,
-            u2.nickname  AS idol_nickname,
-            m.approved  AS approved
-            FROM message m
-                    INNER JOIN users u ON m.user_id = u.id
-                    INNER JOIN conversation c ON m.conversation_id = c.id
-                    INNER JOIN idol i ON c.idol_id = i.id
-                    INNER JOIN users u2 ON i.user_id = u2.id
-            WHERE c.id = '${conversationId}'
-            AND m.approved = TRUE
-            ORDER BY ${oderBy} ${sortDirection}
-            LIMIT '${limit}' OFFSET '${offset}';
-            `,
+        SELECT m.id         AS message_id,
+        m.message    AS message,
+        m.created_at AS created_at,
+        i.id         AS idol_id,
+        u2.name      AS idol_name,
+        u2.nickname  AS idol_nickname,
+        m.approved  AS approved
+        FROM message m
+                INNER JOIN users u ON m.user_id = u.id
+                INNER JOIN conversation c ON m.conversation_id = c.id
+                INNER JOIN idol i ON c.idol_id = i.id
+                INNER JOIN users u2 ON i.user_id = u2.id
+        WHERE c.id = '${conversationId}'
+        AND m.approved = TRUE
+        AND m.created_at > (SELECT created_at FROM users WHERE id = '${userId}')
+        ORDER BY ${oderBy} ${sortDirection}
+        LIMIT '${limit}' OFFSET '${offset}'`,
             ),
         );
+
+        console.log('messages', messages);
 
         await trx.execute(
             sql.raw(
@@ -378,8 +382,13 @@ export const getUserConversationMessages = async (
     });
 
     const messageIds = messages.map(message => message.message_id);
-    const reactions = await getMessageReactions(messageIds as string[]);
-    const attachments = await getMessageAttachments(messageIds as string[]);
+
+    let reactions = [] as any[];
+    let attachments = [] as any[];
+    if (messageIds.length > 0) {
+        reactions = await getMessageReactions(messageIds);
+        attachments = await getMessageAttachments(messageIds);
+    }
 
     for (const message of messages) {
         message.reactions = reactions
