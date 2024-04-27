@@ -285,7 +285,10 @@ export const getUserConversationList = async (userId: string) => {
             i.id            AS idol_id,
             u.nickname      AS idol_name,
             U.profile_image AS idol_image,
-            m.message       AS last_message,
+                    CASE 
+            WHEN m.created_at < (SELECT created_at FROM users WHERE id = ${userId}) THEN ''
+            ELSE m.message
+        END AS last_message,
             m.created_at    AS last_message_time,
             (
                 SELECT COUNT(*)
