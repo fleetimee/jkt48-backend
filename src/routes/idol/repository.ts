@@ -428,6 +428,20 @@ export const updateLoggedMember = async (userId: string, fullName: string, bio: 
     });
 };
 
+export const updateLoggedMemberProfileImage = async (userId: string, imgProfilePath: string) => {
+    await db.transaction(async trx => {
+        await trx.execute(
+            sql.raw(
+                `
+            UPDATE users
+            SET profile_image = '${imgProfilePath}'
+            WHERE id = '${userId}'
+            `,
+            ),
+        );
+    });
+};
+
 /**
  * Updates the profile image of a member by their idol ID.
  * @param idolId - The ID of the idol.
