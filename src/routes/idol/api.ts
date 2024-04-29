@@ -197,10 +197,12 @@ router.post(
                 hashSum.update(fileBuffer);
                 const checksum = hashSum.digest('hex');
 
+                const fileSizeToNumber = Number(attachment.size);
+
                 return {
                     filePath: attachment.path, // path where the file is stored
                     fileType: attachment.mimetype, // file type
-                    fileSize: attachment.size, // file size
+                    fileSize: fileSizeToNumber, // file size
                     originalName: attachment.originalname, // original file name
                     checksum: checksum, // checksum of the file
                 };
@@ -282,6 +284,53 @@ router.patch(
                 success: true,
                 code: StatusCodes.OK,
                 message: 'Success update member',
+                data: updatedMember,
+            });
+        } catch (error) {
+            next(error);
+        }
+    },
+);
+
+router.patch(
+    '/getLoggedOnIdol/updateProfileImage',
+    uploadUserProfileMember.single('profileImage'),
+    authenticateUser,
+    requireMemberRole,
+    async (req, res, next) => {
+        try {
+            const id = req.user.id;
+
+            const user = await getUserById(id);
+            if (!user) throw new NotFoundError('User not found');
+
+            if (user.nickname === null) throw new UnprocessableEntityError('User nickname is not set');
+
+            if (!req.file) throw new BadRequestError('No file uploaded');
+
+            const ext = req.file?.originalname || '';
+            const oldPath = `./static/profileImages/tmp/${req.file?.originalname}`;
+            const destPath = `./static/profileImages/member/${user.nickname.toLowerCase()}`;
+            const newPath = `./static/profileImages/member/${user.nickname.toLowerCase()}/${
+                user.nickname.toLowerCase() + path.extname(ext)
+            }`;
+            const imgProfilePath = newPath.substring(1);
+
+            // Handle move image from tmp to specific folder by member nickname
+            if (!fs.existsSync(destPath)) {
+                fs.mkdirSync(destPath, { recursive: true });
+            }
+
+            fs.rename(oldPath, newPath, function (err) {
+                if (err) throw err;
+            });
+
+            const updatedMember = await updateProfileImageMemberById(user.id, imgProfilePath);
+
+            res.status(StatusCodes.OK).send({
+                success: true,
+                code: StatusCodes.OK,
+                message: 'Success update member profile image',
                 data: updatedMember,
             });
         } catch (error) {
