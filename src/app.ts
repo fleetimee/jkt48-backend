@@ -4,6 +4,7 @@ import cookies from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
+import { StatusCodes } from 'http-status-codes';
 import morgan from 'morgan';
 import cron from 'node-cron';
 import swaggerUi from 'swagger-ui-express';
@@ -146,11 +147,31 @@ cron.schedule('0 0 * * 0', function () {
  */
 app.use(rateLimiter);
 
+// Set timeout on all requests
+app.use((req, res, next) => {
+    res.setTimeout(65 * 1000, () => {
+        res.status(StatusCodes.REQUEST_TIMEOUT).json({ message: 'Request timed out' });
+    });
+    next();
+});
+
 /**
  * Root Route Introduction.
  */
 app.get('/', infoMiddleware, (req, res) => {
     res.json(res.locals.info);
+});
+
+app.use((req, res, next) => {
+    const timeout = setTimeout(() => {
+        res.status(408).send('Request timed out');
+    }, 10000); // Set timeout to 10 seconds
+
+    res.on('finish', () => {
+        clearTimeout(timeout);
+    });
+
+    next();
 });
 
 /**
