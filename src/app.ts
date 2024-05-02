@@ -8,6 +8,7 @@ import { StatusCodes } from 'http-status-codes';
 import morgan from 'morgan';
 import cron from 'node-cron';
 import responseTime from 'response-time';
+import swStat from 'swagger-stats';
 import swaggerUi from 'swagger-ui-express';
 
 import { BASE_URL } from './config';
@@ -176,6 +177,8 @@ app.use((req, res, next) => {
 
     next();
 });
+
+app.use(swStat.getMiddleware({ swaggerSpec: specs }));
 
 /**
  * Routes middleware.
