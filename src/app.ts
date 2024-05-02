@@ -7,6 +7,7 @@ import helmet from 'helmet';
 import { StatusCodes } from 'http-status-codes';
 import morgan from 'morgan';
 import cron from 'node-cron';
+import responseTime from 'response-time';
 import swaggerUi from 'swagger-ui-express';
 
 import { BASE_URL } from './config';
@@ -40,6 +41,8 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, { explorer: true })
  * Here 'dev' format is used which is a pre-defined format provided by Morgan.
  */
 app.use(morgan('dev'));
+
+app.use(responseTime());
 
 /**
  * My logging middleware.
