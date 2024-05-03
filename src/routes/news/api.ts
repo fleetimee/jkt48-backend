@@ -1,5 +1,6 @@
 import express from 'express';
 import { StatusCodes } from 'http-status-codes';
+import { nanoid } from 'nanoid';
 import slugify from 'slugify';
 
 import { authenticateUser, requireAdminRole } from '../../middlewares/authenticate-user';
@@ -116,7 +117,9 @@ router.post('/', validateSchema(createNewsSchema), authenticateUser, async (req,
             lower: true,
         });
 
-        const newsItem = await createNews(title, body, userId, image, sluggify, now, now);
+        const slugWithRandomString = `${sluggify}-${nanoid(7)}`;
+
+        const newsItem = await createNews(title, body, userId, image, slugWithRandomString, now, now);
 
         res.status(StatusCodes.CREATED).send(
             formatResponse({
