@@ -386,7 +386,9 @@ export const getUserConversationMessages = async (
 
     const messageIds = messages.map(message => message.message_id);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let reactions = [] as any[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let attachments = [] as any[];
     if (messageIds.length > 0) {
         reactions = await getMessageReactions(messageIds);

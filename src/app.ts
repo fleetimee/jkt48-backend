@@ -3,6 +3,7 @@ import compression from 'compression';
 import cookies from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
+import monitor from 'express-status-monitor';
 import helmet from 'helmet';
 import { StatusCodes } from 'http-status-codes';
 import morgan from 'morgan';
@@ -44,6 +45,13 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, { explorer: true })
 app.use(morgan('dev'));
 
 app.use(responseTime());
+
+app.use(
+    monitor({
+        path: '/health-check',
+        title: 'JKT48 API PM Status',
+    }),
+);
 
 /**
  * My logging middleware.

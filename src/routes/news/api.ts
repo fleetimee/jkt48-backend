@@ -127,6 +127,7 @@ router.post('/', validateSchema(createNewsSchema), authenticateUser, async (req,
             }),
         );
     } catch (error) {
+        console.log(error);
         next(error);
     }
 });
