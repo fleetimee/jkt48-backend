@@ -219,19 +219,30 @@ export const deleteMessage = async (messageId: string) => {
  * Approves or disapproves a message.
  * @param messageId - The ID of the message to be approved or disapproved.
  * @param isApproved - A boolean indicating whether the message should be approved or disapproved.
- * @returns The updated message item.
+ * @returns The updated message item or null if the message was deleted.
  */
 export const approveMessage = async (messageId: string, isApproved: boolean) => {
-    const [messageItem] = await db.execute(
-        sql`
-    UPDATE message
-    SET approved = ${isApproved}
-    WHERE id = ${messageId}
-    RETURNING *;
-    `,
-    );
+    if (isApproved) {
+        const [messageItem] = await db.execute(
+            sql`
+        UPDATE message
+        SET approved = ${isApproved}
+        WHERE id = ${messageId}
+        RETURNING *;
+        `,
+        );
 
-    return messageItem;
+        return messageItem;
+    } else {
+        await db.execute(
+            sql`
+        DELETE FROM message
+        WHERE id = ${messageId};
+        `,
+        );
+
+        return null;
+    }
 };
 
 export const getAttachmentsByConversationId = async (conversationId: string) => {
