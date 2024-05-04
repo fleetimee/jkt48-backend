@@ -433,21 +433,35 @@ export const getUserActiveIdols = async (userId: string) => {
 };
 
 /**
- * Inserts a user's reaction to a message into the database.
+ * Toggles a user's reaction to a message in the database.
  *
  * @param {string} userId - The ID of the user reacting to the message.
  * @param {string} messageId - The ID of the message being reacted to.
- * @param {string} reaction - The reaction being added by the user.
- * @returns {Promise<any>} - A promise that resolves to the inserted message reaction.
+ * @param {string} reactionId - The reaction being toggled by the user.
+ * @returns {Promise<any>} - A promise that resolves to the inserted or deleted message reaction.
  */
-export const postUserReactToMessage = async (userId: string, messageId: string, reactionId: string) => {
-    const [message] = await db.execute(sql`
-    INSERT INTO message_reaction (users_id, message_id, reaction_id)
-    VALUES (${userId}, ${messageId}, ${reactionId})
-    RETURNING *;
+export const toggleUserReactionToMessage = async (userId: string, messageId: string, reactionId: string) => {
+    const [existingReaction] = await db.execute(sql`
+    SELECT * FROM message_reaction
+    WHERE users_id = ${userId} AND message_id = ${messageId} AND reaction_id = ${reactionId};
     `);
 
-    return message;
+    if (existingReaction) {
+        await db.execute(sql`
+        DELETE FROM message_reaction
+        WHERE users_id = ${userId} AND message_id = ${messageId} AND reaction_id = ${reactionId};
+        `);
+
+        return null;
+    } else {
+        const [newReaction] = await db.execute(sql`
+        INSERT INTO message_reaction (users_id, message_id, reaction_id)
+        VALUES (${userId}, ${messageId}, ${reactionId})
+        RETURNING *;
+        `);
+
+        return newReaction;
+    }
 };
 
 /**
