@@ -153,6 +153,7 @@ router.patch(
                 data: null,
             });
         } catch (error) {
+            console.log(error);
             next(error);
         }
     },

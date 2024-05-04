@@ -286,7 +286,7 @@ export const getUserConversationList = async (userId: string) => {
             u.nickname      AS idol_name,
             U.profile_image AS idol_image,
                     CASE 
-            WHEN m.created_at < (SELECT created_at FROM users WHERE id = ${userId}) THEN ''
+            WHEN m.created_at < (SELECT created_at FROM users WHERE id = ${userId}) OR m.approved = FALSE THEN ''
             ELSE m.message
         END AS last_message,
             m.created_at    AS last_message_time,
@@ -312,7 +312,7 @@ export const getUserConversationList = async (userId: string) => {
                 INNER JOIN idol i ON order_idol.idol_id = i.id
                 INNER JOIN conversation c ON i.id = c.idol_id
                 INNER JOIN users u ON i.user_id = u.id
-                LEFT JOIN message m ON c.id = m.conversation_id
+                LEFT JOIN message m ON c.id = m.conversation_id AND m.approved = TRUE
             WHERE o.user_id = ${userId}
             AND o.order_status = 'success'
             ORDER BY i.id, m.created_at DESC
