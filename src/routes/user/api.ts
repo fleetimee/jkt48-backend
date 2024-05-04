@@ -238,6 +238,8 @@ router.get('/me/conversation/:conversationId', authenticateUser, async (req, res
             page,
         );
 
+        console.log(conversation);
+
         if (!conversation) throw new NotFoundError('Conversation not found');
 
         res.status(StatusCodes.OK).send(
@@ -246,10 +248,10 @@ router.get('/me/conversation/:conversationId', authenticateUser, async (req, res
                 message: 'User conversation',
                 data: conversation,
                 meta: {
-                    page: 1,
-                    pageSize: 10,
-                    orderBy: 'created_at',
-                    orderDirection: 'DESC',
+                    page,
+                    pageSize,
+                    orderBy,
+                    orderDirection,
                 },
                 success: true,
             }),

@@ -1,3 +1,5 @@
+import * as Sentry from '@sentry/node';
+import { nodeProfilingIntegration } from '@sentry/profiling-node';
 import bodyParser from 'body-parser';
 import compression from 'compression';
 import cookies from 'cookie-parser';
@@ -33,6 +35,27 @@ import { specs } from './utils/swagger-options';
  * It is a minimal, fast, and unopinionated web framework for Node.js.
  */
 const app = express();
+
+Sentry.init({
+    dsn: 'https://d02e5c085e63bf791fac8ca3f3cc4589@o4507197243981824.ingest.us.sentry.io/4507197246144512',
+    integrations: [
+        // enable HTTP calls tracing
+        new Sentry.Integrations.Http({ tracing: true }),
+        // enable Express.js middleware tracing
+        new Sentry.Integrations.Express({ app }),
+        nodeProfilingIntegration(),
+    ],
+    // Performance Monitoring
+    tracesSampleRate: 1.0, //  Capture 100% of the transactions
+    // Set sampling rate for profiling - this is relative to tracesSampleRate
+    profilesSampleRate: 1.0,
+});
+
+// The request handler must be the first middleware on the app
+app.use(Sentry.Handlers.requestHandler());
+
+// TracingHandler creates a trace for every incoming request
+app.use(Sentry.Handlers.tracingHandler());
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, { explorer: true }));
 
@@ -192,6 +215,9 @@ app.use(swStat.getMiddleware({ swaggerSpec: specs }));
  * Routes middleware.
  */
 app.use('/api', routes);
+
+// The error handler must be registered before any other error middleware and after all controllers
+app.use(Sentry.Handlers.errorHandler());
 
 /**
  * Error handling middleware.
