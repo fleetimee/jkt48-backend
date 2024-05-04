@@ -440,20 +440,14 @@ export const getUserActiveIdols = async (userId: string) => {
  * @param {string} reactionId - The reaction being toggled by the user.
  * @returns {Promise<any>} - A promise that resolves to the inserted or deleted message reaction.
  */
-export const toggleUserReactionToMessage = async (userId: string, messageId: string, reactionId: string) => {
+export const setUserReactionToMessage = async (userId: string, messageId: string, reactionId: string) => {
     const [existingReaction] = await db.execute(sql`
     SELECT * FROM message_reaction
-    WHERE users_id = ${userId} AND message_id = ${messageId} AND reaction_id = ${reactionId};
+    WHERE users_id = ${userId} AND message_id = ${messageId};
     `);
 
-    if (existingReaction) {
-        await db.execute(sql`
-        DELETE FROM message_reaction
-        WHERE users_id = ${userId} AND message_id = ${messageId} AND reaction_id = ${reactionId};
-        `);
-
-        return null;
-    } else {
+    if (!existingReaction) {
+        // If no reaction exists, insert the new reaction
         const [newReaction] = await db.execute(sql`
         INSERT INTO message_reaction (users_id, message_id, reaction_id)
         VALUES (${userId}, ${messageId}, ${reactionId})
@@ -461,6 +455,24 @@ export const toggleUserReactionToMessage = async (userId: string, messageId: str
         `);
 
         return newReaction;
+    } else if (existingReaction.reaction_id === reactionId) {
+        // If a reaction exists and it's the same as the new reaction, delete it
+        await db.execute(sql`
+        DELETE FROM message_reaction
+        WHERE users_id = ${userId} AND message_id = ${messageId};
+        `);
+
+        return null;
+    } else {
+        // If a reaction exists and it's different from the new reaction, update it
+        const [updatedReaction] = await db.execute(sql`
+        UPDATE message_reaction
+        SET reaction_id = ${reactionId}
+        WHERE users_id = ${userId} AND message_id = ${messageId}
+        RETURNING *;
+        `);
+
+        return updatedReaction;
     }
 };
 

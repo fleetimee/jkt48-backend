@@ -28,8 +28,8 @@ import {
     getUserConversationMessages,
     getUserTransactionDetail,
     getUserTransactionList,
+    setUserReactionToMessage,
     softDeleteUser,
-    toggleUserReactionToMessage,
     updateAdminCredentials,
     updateUser,
     updateUserPassword,
@@ -321,7 +321,7 @@ router.post('/me/reactMessage/:messageId', validateSchema(postReaction), authent
         await getReactionById(reactionId);
 
         // Post the reaction
-        await await toggleUserReactionToMessage(id, messageId, reactionId);
+        await await setUserReactionToMessage(id, messageId, reactionId);
 
         res.status(StatusCodes.OK).send(
             formatResponse({
