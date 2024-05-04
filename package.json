@@ -10,7 +10,7 @@
     "scripts": {
         "dev": "nodemon src/index.ts",
         "clean": "rm -rf dist",
-        "build": "tsc",
+        "build": "tsc && npm run sentry:sourcemaps",
         "start": "pm2 start ./dist/index.js --no-daemon",
         "generate": "drizzle-kit generate:pg",
         "generate:custom": "drizzle-kit generate:pg --custom",
@@ -18,9 +18,13 @@
         "studio": "drizzle-kit studio",
         "commit": "cz",
         "prepare": "husky install",
-        "typecheck": "tsc --noEmit"
+        "typecheck": "tsc --noEmit",
+        "sentry:sourcemaps": "sentry-cli sourcemaps inject --org novians --project node-express ./dist && sentry-cli sourcemaps upload --org novians --project node-express ./dist"
     },
     "dependencies": {
+        "@sentry/cli": "^2.31.2",
+        "@sentry/node": "^7.113.0",
+        "@sentry/profiling-node": "^7.113.0",
         "bcrypt": "^5.1.1",
         "body-parser": "^1.20.2",
         "compression": "^1.7.4",
