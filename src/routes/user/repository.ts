@@ -433,12 +433,14 @@ export const getUserActiveIdols = async (userId: string) => {
 };
 
 /**
- * Toggles a user's reaction to a message in the database.
- *
- * @param {string} userId - The ID of the user reacting to the message.
- * @param {string} messageId - The ID of the message being reacted to.
- * @param {string} reactionId - The reaction being toggled by the user.
- * @returns {Promise<any>} - A promise that resolves to the inserted or deleted message reaction.
+ * Sets the user's reaction to a message.
+ * If the user has not reacted to the message before, a new reaction is created.
+ * If the user has already reacted to the message with a different reaction, the reaction is updated.
+ * If the user has already reacted to the message with the same reaction, the reaction is removed.
+ * @param userId The ID of the user.
+ * @param messageId The ID of the message.
+ * @param reactionId The ID of the reaction.
+ * @returns The newly created reaction, the updated reaction, or null if the reaction was removed.
  */
 export const setUserReactionToMessage = async (userId: string, messageId: string, reactionId: string) => {
     const [existingReaction] = await db.execute(sql`
@@ -447,7 +449,6 @@ export const setUserReactionToMessage = async (userId: string, messageId: string
     `);
 
     if (!existingReaction) {
-        // If no reaction exists, insert the new reaction
         const [newReaction] = await db.execute(sql`
         INSERT INTO message_reaction (users_id, message_id, reaction_id)
         VALUES (${userId}, ${messageId}, ${reactionId})
@@ -456,7 +457,6 @@ export const setUserReactionToMessage = async (userId: string, messageId: string
 
         return newReaction;
     } else if (existingReaction.reaction_id === reactionId) {
-        // If a reaction exists and it's the same as the new reaction, delete it
         await db.execute(sql`
         DELETE FROM message_reaction
         WHERE users_id = ${userId} AND message_id = ${messageId};
@@ -464,7 +464,6 @@ export const setUserReactionToMessage = async (userId: string, messageId: string
 
         return null;
     } else {
-        // If a reaction exists and it's different from the new reaction, update it
         const [updatedReaction] = await db.execute(sql`
         UPDATE message_reaction
         SET reaction_id = ${reactionId}
