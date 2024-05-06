@@ -79,7 +79,7 @@ const storageUserProfileMember = multer.diskStorage({
 export const upload = multer({
     storage: storage,
     limits: {
-        fileSize: 500 * 1024, // 500KB
+        fileSize: 100 * 1024 * 1024, // 100MB
     },
     fileFilter(req, file, callback) {
         if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
@@ -118,7 +118,7 @@ export const uploadMessage = multer({
 export const uploadUserProfile = multer({
     storage: storageUserProfile,
     limits: {
-        fileSize: 500 * 1024, // 500KB
+        fileSize: 100 * 1024 * 1024, // 100MB
     },
     fileFilter(req, file, callback) {
         if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
@@ -134,7 +134,7 @@ export const uploadUserProfile = multer({
 export const uploadUserProfileMember = multer({
     storage: storageUserProfileMember,
     limits: {
-        fileSize: 500 * 1024, // 500KB
+        fileSize: 100 * 1024 * 1024, // 100MB
     },
     /**
      * File filter function to check if the uploaded file is an image.
