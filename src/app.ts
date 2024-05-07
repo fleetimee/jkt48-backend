@@ -6,6 +6,7 @@ import cookies from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
 import monitor from 'express-status-monitor';
+import { applicationDefault, initializeApp } from 'firebase-admin/app';
 import helmet from 'helmet';
 import { StatusCodes } from 'http-status-codes';
 import morgan from 'morgan';
@@ -36,6 +37,10 @@ import { specs } from './utils/swagger-options';
  */
 const app = express();
 
+initializeApp({
+    credential: applicationDefault(),
+});
+
 Sentry.init({
     dsn: 'https://d02e5c085e63bf791fac8ca3f3cc4589@o4507197243981824.ingest.us.sentry.io/4507197246144512',
     integrations: [
@@ -56,6 +61,23 @@ app.use(Sentry.Handlers.requestHandler());
 
 // TracingHandler creates a trace for every incoming request
 app.use(Sentry.Handlers.tracingHandler());
+
+app.use((req, res, next) => {
+    const userAgent = req.headers['user-agent'];
+
+    if (userAgent) {
+        if (
+            !userAgent.includes('Postman') &&
+            !userAgent.includes('axios') &&
+            !userAgent.includes('Chrome') &&
+            !userAgent.includes('Firefox')
+        ) {
+            return res.status(403).send('User agent is not allowed');
+        }
+    }
+
+    next();
+});
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, { explorer: true }));
 
