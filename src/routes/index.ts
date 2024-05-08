@@ -13,6 +13,7 @@ import posts from './posts/api';
 import privacyPolicy from './privacy-policy/api';
 import reaction from './reaction/api';
 import terms from './terms/api';
+import token from './token/api';
 import topIdol from './top-idol/api';
 import upload from './upload/api';
 import user from './user/api';
@@ -37,6 +38,7 @@ router.use('/invoice', invoice);
 router.use('/xendit-callback', xenditCallback);
 router.use('/reaction', reaction);
 router.use('/upload', upload);
+router.use('/token', token);
 
 // Handle 404
 router.use((req, res) => {

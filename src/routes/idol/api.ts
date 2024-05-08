@@ -75,6 +75,8 @@ router.get('/getIdolMessage', authenticateUser, requireMemberRole, async (req, r
             data: chat,
         });
     } catch (error) {
+        console.log(error);
+
         next(error);
     }
 });
