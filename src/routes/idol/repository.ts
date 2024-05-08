@@ -132,6 +132,10 @@ export const getMemberMessage = async (idolId: string) => {
         `,
     );
 
+    if (messages.length === 0) {
+        return []; // Return an empty array if there are no messages
+    }
+
     const messageIds = messages.map(message => message.message_id);
     const reactions = await getMessageReactions(messageIds as string[]);
     const attachments = await getMessageAttachments(messageIds as string[]);
