@@ -44,6 +44,21 @@ export const getUserByResetToken = async (token: string) => {
 };
 
 /**
+ * Retrieves a user by their delete token.
+ * @param {string} token - The delete token of the user.
+ * @returns {Promise<object>} - A promise that resolves to the user object.
+ */
+export const getUserByDeleteToken = async (token: string) => {
+    const [user] = await db
+        .select({ id: users.id, name: users.name, email: users.email, tokenDeleteAccount: users.tokenDeleteAccount })
+        .from(users)
+        .where(eq(users.tokenDeleteAccount, token))
+        .limit(1);
+
+    return user;
+};
+
+/**
  * Verifies the login credentials of a user.
  *
  * @param email - The email address of the user.
@@ -141,6 +156,23 @@ export const forgotPasswordUser = async (email: string, token: string) => {
 };
 
 /**
+ * Requests deletion of a user account.
+ * @param email - The email of the user.
+ * @param token - The deletion token.
+ * @throws UnauthorizedError if no user is registered with the provided email.
+ */
+export const requestDeletionUser = async (email: string, token: string) => {
+    const user = await getUser(email);
+
+    if (!user) throw new UnauthorizedError('No user registered!');
+
+    await db
+        .update(users)
+        .set({ tokenDeleteAccount: token, deleteAccountStep: 'request' })
+        .where(eq(users.email, email));
+};
+
+/**
  * Resets the password for a user using a token and a new password.
  * @param {string} token - The token used for password reset.
  * @param {string} password - The new password to set for the user.
@@ -155,4 +187,39 @@ export const resetPasswordUser = async (token: string, password: string) => {
         .update(users)
         .set({ passwordHash: passwordHash, tokenResetPassword: null })
         .where(eq(users.email, user.email));
+};
+
+/**
+ * Deletes the user account.
+ * @param token - The reset token for the user.
+ * @throws {UnauthorizedError} If the token is invalid or expired.
+ */
+export const deleteAccountUser = async (token: string) => {
+    const user = await getUserByDeleteToken(token);
+    if (!user) throw new UnauthorizedError('Token invalid / expired!');
+
+    await db
+        .update(users)
+        .set({ isDeleted: true, tokenDeleteAccount: null, deleteAccountStep: 'done' })
+        .where(eq(users.email, user.email));
+};
+
+/**
+ * Checks the delete step for a user.
+ * @param userId - The ID of the user.
+ * @returns The user object with the delete step.
+ * @throws UnauthorizedError if no user is registered.
+ */
+export const checkDeleteStep = async (userId: string) => {
+    const [user] = await db
+        .select({
+            step: users.deleteAccountStep,
+        })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+
+    if (!user) throw new UnauthorizedError('No user registered!');
+
+    return user;
 };

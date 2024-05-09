@@ -57,3 +57,15 @@ export const changeAdminCredentialsSchema = z.object({
         password: z.string().min(8, 'Password must be at least 8 characters'),
     }),
 });
+
+export const requestDeletionSchema = z.object({
+    body: z.object({
+        email: z.string().min(1, 'Please enter your email').email(),
+    }),
+});
+
+export const verifyDeletionSchema = z.object({
+    body: z.object({
+        token: z.string().min(1, 'Please enter token for deletion'),
+    }),
+});

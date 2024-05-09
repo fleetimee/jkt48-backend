@@ -15,6 +15,13 @@
       "when": 1715218157386,
       "tag": "0001_classy_banshee",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1715291405378,
+      "tag": "0002_demonic_king_bedlam",
+      "breakpoints": true
     }
   ]
 }

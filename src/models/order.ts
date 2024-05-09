@@ -3,7 +3,7 @@ import { jsonb, numeric, pgEnum, pgTable, timestamp, uuid } from 'drizzle-orm/pg
 import { packagePayment } from './package';
 import { users } from './users';
 
-export const oderStatusEnum = pgEnum('order_status', ['pending', 'success', 'failed', 'expired']);
+export const oderStatusEnum = pgEnum('order_status', ['pending', 'success', 'failed', 'expired', 'cancelled']);
 
 export const paymentMethodEnum = pgEnum('payment_method', [
     'xendit',

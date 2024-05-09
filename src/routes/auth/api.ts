@@ -6,12 +6,17 @@ import { rateLimiterStrict } from '../../middlewares/rate-limiter';
 import { validateSchema } from '../../middlewares/validate-request';
 import { ConflictError } from '../../utils/errors';
 import { generateResetTokenPassword, generateVerificationCode } from '../../utils/lib';
+import { formatResponse } from '../../utils/response-formatter';
 import { sendEmail } from '../../utils/send-emails';
 import {
+    checkDeleteStep,
+    deleteAccountUser,
     forgotPasswordUser,
     getUser,
+    getUserByDeleteToken,
     getUserByResetToken,
     registerUser,
+    requestDeletionUser,
     resetPasswordUser,
     updateUserVerificationToken,
     verifyLogin,
@@ -21,13 +26,34 @@ import {
     forgotPasswordSchema,
     loginSchema,
     registerSchema,
+    requestDeletionSchema,
     resendVerificationSchema,
     resetPasswordSchema,
+    verifyDeletionSchema,
     verifySchema,
 } from './schema';
 import { createAccessToken, createRefreshToken, setRefreshCookie, verifyRefreshToken } from './utils';
 
 const router = express.Router();
+
+router.get('/checkAccountDeletionStatus', authenticateUser, async (req, res, next) => {
+    try {
+        const id = req.user.id;
+
+        const deletionStatus = await checkDeleteStep(id);
+
+        res.status(StatusCodes.OK).send(
+            formatResponse({
+                code: StatusCodes.OK,
+                message: 'Success get deletion status',
+                data: deletionStatus,
+                success: true,
+            }),
+        );
+    } catch (error) {
+        next(error);
+    }
+});
 
 router.post('/register', validateSchema(registerSchema), rateLimiterStrict, async (req, res, next) => {
     try {
@@ -170,6 +196,43 @@ router.post('/forgot_password', validateSchema(forgotPasswordSchema), rateLimite
     }
 });
 
+router.post(
+    '/request_deletion',
+    validateSchema(requestDeletionSchema),
+    rateLimiterStrict,
+    authenticateUser,
+    async (req, res, next) => {
+        try {
+            const emailLoggedOn = req.user.email;
+
+            const { email } = req.body;
+
+            if (email !== emailLoggedOn) {
+                return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Email not match with logged on email' });
+            }
+
+            const randomStringToken = generateResetTokenPassword();
+
+            const user = await getUser(email);
+            if (user) await requestDeletionUser(email, randomStringToken);
+
+            const emailResult = await sendEmail({
+                to: [email],
+                subject: 'Your Delete Account Token',
+                text: `Your delete account token is: ${randomStringToken}, use this token to delete your account.`,
+            });
+
+            if (emailResult.error) {
+                return res.status(StatusCodes.BAD_REQUEST).json({ error: emailResult.error });
+            }
+
+            res.status(StatusCodes.OK).json({ message: 'Success send token to delete account' });
+        } catch (error) {
+            next(error);
+        }
+    },
+);
+
 router.post('/reset_password', validateSchema(resetPasswordSchema), rateLimiterStrict, async (req, res, next) => {
     try {
         const { token, password } = req.body;
@@ -191,6 +254,42 @@ router.post('/reset_password', validateSchema(resetPasswordSchema), rateLimiterS
         next(error);
     }
 });
+
+router.post(
+    '/verify_deletion',
+    validateSchema(verifyDeletionSchema),
+    rateLimiterStrict,
+    authenticateUser,
+    async (req, res, next) => {
+        try {
+            const emailLoggedOn = req.user.email;
+
+            const { token } = req.body;
+
+            const user = await getUserByDeleteToken(token);
+
+            if (emailLoggedOn !== user.email) {
+                return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Email not match with logged on email' });
+            }
+
+            if (token) await deleteAccountUser(token);
+
+            const emailResult = await sendEmail({
+                to: [user.email],
+                subject: 'Account Deleted!',
+                text: `Your Account successfully deleted`,
+            });
+
+            if (emailResult.error) {
+                return res.status(StatusCodes.BAD_REQUEST).json({ error: emailResult.error });
+            }
+
+            res.status(StatusCodes.OK).json({ message: 'Success delete account' });
+        } catch (error) {
+            next(error);
+        }
+    },
+);
 
 // Temporary
 router.get('/user/detail/:email', rateLimiterStrict, async (req, res, next) => {
