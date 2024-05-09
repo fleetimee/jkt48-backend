@@ -34,15 +34,22 @@ export const sendTokenToServer = async (token: string, userId: string) => {
         `,
     );
 
+    const currentTime = new Date();
+
     if (!existingToken) {
         // If the token doesn't exist, insert it into the database
         await db.execute(
             sql`
-            INSERT INTO fcm_token (token, user_id)
-            VALUES (${token}, ${userId})
+            INSERT INTO fcm_token (token, user_id, last_accessed)
+            VALUES (${token}, ${userId}, ${currentTime})
+            `,
+        );
+    } else {
+        // If the token already exists, update the last_accessed time
+        await db.execute(
+            sql`
+            UPDATE fcm_token SET last_accessed = ${currentTime} WHERE token = ${token} AND user_id = ${userId}
             `,
         );
     }
-
-    // If the token already exists, no need to do anything
 };
