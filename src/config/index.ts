@@ -46,3 +46,5 @@ export const AUTHOR_SOCIAL_MEDIA = {
 };
 export const AUTHOR_WEBSITE = process.env.AUTHOR_WEBSITE;
 export const AUTHOR_DOCUMENTATION = process.env.AUTHOR_DOCUMENTATION;
+
+export const FCM_DEFAULT_IMAGE_LOGO = BASE_URL + '/static/logo_jkt48pm_2.png';

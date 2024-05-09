@@ -7,6 +7,7 @@ import fs from 'fs';
 import { StatusCodes } from 'http-status-codes';
 import path from 'path';
 
+import { FCM_DEFAULT_IMAGE_LOGO } from '../../config';
 import { authenticateUser, requireAdminRole, requireMemberRole } from '../../middlewares/authenticate-user';
 import { validateSchema } from '../../middlewares/validate-request';
 import { BadRequestError, NotFoundError, UnprocessableEntityError } from '../../utils/errors';
@@ -217,18 +218,22 @@ router.post(
                 getMemberIdByUserId(userId),
             ]);
 
-            const arrayOfStrings = adminFcmTokens.map(obj => obj.token);
-            const idol = await getMemberById(idolId.idol_id as string);
+            if (adminFcmTokens.length > 0) {
+                const arrayOfStrings = adminFcmTokens.map(token => token.token);
 
-            const notificationMessage: Notification = {
-                title: `${idol.nickname} - Approve Message`,
-                body: `${messages}`,
-            };
+                const idol = await getMemberById(idolId.idol_id as string);
 
-            await messaging().sendMulticast({
-                tokens: arrayOfStrings as unknown as string[],
-                notification: notificationMessage,
-            });
+                const notificationMessage: Notification = {
+                    title: `${idol.nickname}`,
+                    body: 'New Message!',
+                    imageUrl: FCM_DEFAULT_IMAGE_LOGO,
+                };
+
+                await messaging().sendEachForMulticast({
+                    tokens: arrayOfStrings as unknown as string[],
+                    notification: notificationMessage,
+                });
+            }
 
             res.status(StatusCodes.OK).send({
                 success: true,
