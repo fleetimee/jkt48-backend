@@ -53,3 +53,16 @@ export const sendTokenToServer = async (token: string, userId: string) => {
         );
     }
 };
+
+export const fetchAllAdminFcmToken = async () => {
+    const tokens = await db.execute(
+        sql`
+        SELECT token
+        FROM fcm_token ft
+                INNER JOIN users u ON ft.user_id = u.id
+        WHERE u.roles = 'admin';
+        `,
+    );
+
+    return tokens;
+};
