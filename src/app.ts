@@ -6,7 +6,8 @@ import cookies from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
 import monitor from 'express-status-monitor';
-import { applicationDefault, initializeApp } from 'firebase-admin/app';
+import { credential } from 'firebase-admin';
+import { initializeApp, ServiceAccount } from 'firebase-admin/app';
 import helmet from 'helmet';
 import { StatusCodes } from 'http-status-codes';
 import morgan from 'morgan';
@@ -15,6 +16,7 @@ import responseTime from 'response-time';
 import swStat from 'swagger-stats';
 import swaggerUi from 'swagger-ui-express';
 
+import serviceAccount from '../service-account.json';
 import { BASE_URL } from './config';
 import { infoMiddleware } from './middlewares/author-info';
 import { errorHandler } from './middlewares/error-handler';
@@ -38,7 +40,7 @@ import { specs } from './utils/swagger-options';
 const app = express();
 
 initializeApp({
-    credential: applicationDefault(),
+    credential: credential.cert(serviceAccount as ServiceAccount),
 });
 
 Sentry.init({
