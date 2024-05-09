@@ -7,7 +7,6 @@ import fs from 'fs';
 import { StatusCodes } from 'http-status-codes';
 import path from 'path';
 
-import { FCM_DEFAULT_IMAGE_LOGO } from '../../config';
 import { authenticateUser, requireAdminRole, requireMemberRole } from '../../middlewares/authenticate-user';
 import { validateSchema } from '../../middlewares/validate-request';
 import { BadRequestError, NotFoundError, UnprocessableEntityError } from '../../utils/errors';
@@ -225,8 +224,8 @@ router.post(
 
                 const notificationMessage: Notification = {
                     title: `${idol.nickname}`,
-                    body: 'New Message!',
-                    imageUrl: FCM_DEFAULT_IMAGE_LOGO,
+                    body: 'Need Approval!',
+                    imageUrl: 'https://avatars.githubusercontent.com/u/45744788?v=4',
                 };
 
                 await messaging().sendEachForMulticast({

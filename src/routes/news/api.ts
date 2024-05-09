@@ -8,7 +8,7 @@ import { validateSchema } from '../../middlewares/validate-request';
 import { NotFoundError, UnauthorizedError } from '../../utils/errors';
 import { formatResponse, formatResponsePaginated } from '../../utils/response-formatter';
 import { validateUuid } from '../../utils/validate';
-import { createNews, getLatestNews, getNews, getNewsBySlug, getNewsList, updateNews } from './repository';
+import { createNews, deleteNews, getLatestNews, getNews, getNewsBySlug, getNewsList, updateNews } from './repository';
 import { createNewsSchema, updateNewsSchema } from './schema';
 
 const router = express.Router();
@@ -177,6 +177,8 @@ router.delete('/:id', authenticateUser, requireAdminRole, async (req, res, next)
         if (!news) throw new NotFoundError('News not found');
         if (news.userId !== req.user.id) throw new UnauthorizedError('News does not belong to user');
 
+        await deleteNews(id);
+
         res.status(StatusCodes.OK).send(
             formatResponse({
                 success: true,
@@ -186,6 +188,7 @@ router.delete('/:id', authenticateUser, requireAdminRole, async (req, res, next)
             }),
         );
     } catch (error) {
+        console.log;
         next(error);
     }
 });
