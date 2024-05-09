@@ -70,7 +70,11 @@ app.use((req, res, next) => {
             !userAgent.includes('Postman') &&
             !userAgent.includes('axios') &&
             !userAgent.includes('Chrome') &&
-            !userAgent.includes('Firefox')
+            !userAgent.includes('Firefox') &&
+            !userAgent.includes('Safari') &&
+            !userAgent.includes('Edge') &&
+            !userAgent.includes('Opera') &&
+            !userAgent.includes('Dart')
         ) {
             return res.status(403).send('User agent is not allowed');
         }
