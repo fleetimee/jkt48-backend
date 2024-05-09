@@ -1,5 +1,8 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import crypto from 'crypto';
 import express from 'express';
+import { messaging } from 'firebase-admin';
+import { Notification } from 'firebase-admin/lib/messaging/messaging-api';
 import fs from 'fs';
 import { StatusCodes } from 'http-status-codes';
 import path from 'path';
@@ -12,6 +15,7 @@ import { uploadMessage, uploadUserProfileMember } from '../../utils/multer';
 import { formatResponsePaginated } from '../../utils/response-formatter';
 import { validateMemberId, validateUuid } from '../../utils/validate';
 import { getUser } from '../auth/repository';
+import { fetchAllAdminFcmToken } from '../token/repository';
 import { getUserById } from '../user/repository';
 import {
     createMember,
@@ -188,9 +192,7 @@ router.post(
     async (req, res, next) => {
         try {
             const userId = req.user.id;
-
             const { messages } = req.body;
-
             const attachments = req.files as Express.Multer.File[];
 
             const formattedAttachments = attachments?.map(attachment => {
@@ -198,19 +200,35 @@ router.post(
                 const hashSum = crypto.createHash('sha1');
                 hashSum.update(fileBuffer);
                 const checksum = hashSum.digest('hex');
-
                 const fileSizeToNumber = Number(attachment.size);
 
                 return {
-                    filePath: attachment.path, // path where the file is stored
-                    fileType: attachment.mimetype, // file type
-                    fileSize: fileSizeToNumber, // file size
-                    originalName: attachment.originalname, // original file name
-                    checksum: checksum, // checksum of the file
+                    filePath: attachment.path,
+                    fileType: attachment.mimetype,
+                    fileSize: fileSizeToNumber,
+                    originalName: attachment.originalname,
+                    checksum: checksum,
                 };
             });
 
-            const sendMessage = await createMemberMessage(userId, messages, formattedAttachments);
+            const [sendMessage, adminFcmTokens, idolId] = await Promise.all([
+                createMemberMessage(userId, messages, formattedAttachments),
+                fetchAllAdminFcmToken(),
+                getMemberIdByUserId(userId),
+            ]);
+
+            const arrayOfStrings = adminFcmTokens.map(obj => obj.token);
+            const idol = await getMemberById(idolId.idol_id as string);
+
+            const notificationMessage: Notification = {
+                title: `${idol.nickname} - Approve Message`,
+                body: `${messages}`,
+            };
+
+            await messaging().sendMulticast({
+                tokens: arrayOfStrings as unknown as string[],
+                notification: notificationMessage,
+            });
 
             res.status(StatusCodes.OK).send({
                 success: true,
@@ -220,7 +238,6 @@ router.post(
             });
         } catch (error) {
             console.log(error);
-
             next(error);
         }
     },
