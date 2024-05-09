@@ -62,27 +62,6 @@ app.use(Sentry.Handlers.requestHandler());
 // TracingHandler creates a trace for every incoming request
 app.use(Sentry.Handlers.tracingHandler());
 
-// app.use((req, res, next) => {
-//     const userAgent = req.headers['user-agent'];
-
-//     if (userAgent) {
-//         if (
-//             !userAgent.includes('Postman') &&
-//             !userAgent.includes('axios') &&
-//             !userAgent.includes('Chrome') &&
-//             !userAgent.includes('Firefox') &&
-//             !userAgent.includes('Safari') &&
-//             !userAgent.includes('Edge') &&
-//             !userAgent.includes('Opera') &&
-//             !userAgent.includes('Dart')
-//         ) {
-//             return res.status(403).send('User agent is not allowed');
-//         }
-//     }
-
-//     next();
-// });
-
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, { explorer: true }));
 
 /**
@@ -225,8 +204,8 @@ app.get('/', infoMiddleware, (req, res) => {
 
 app.use((req, res, next) => {
     const timeout = setTimeout(() => {
-        res.status(408).send('Request timed out');
-    }, 10000); // Set timeout to 10 seconds
+        res.status(408).json({ message: 'Request timed out' });
+    }, 60000); // Set timeout to 10 seconds
 
     res.on('finish', () => {
         clearTimeout(timeout);
