@@ -16,8 +16,8 @@ import responseTime from 'response-time';
 import swStat from 'swagger-stats';
 import swaggerUi from 'swagger-ui-express';
 
-import serviceAccount from '../service-account.json';
 import { BASE_URL } from './config';
+import serviceAccount from './config/service-account.json';
 import { infoMiddleware } from './middlewares/author-info';
 import { errorHandler } from './middlewares/error-handler';
 import loggingMiddleware from './middlewares/logging';
