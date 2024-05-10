@@ -15,4 +15,5 @@ export const fcmTokens = pgTable('fcm_token', {
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow(),
     lastAccessed: timestamp('last_accessed').notNull().defaultNow(),
+    model: text('model'),
 });

@@ -10,7 +10,7 @@ import db from '../../db';
  * @param {string} userId - The user ID associated with the token.
  * @returns {Promise<void>} - A promise that resolves when the operation is complete.
  */
-export const sendTokenToServer = async (token: string, userId: string) => {
+export const sendTokenToServer = async (token: string, userId: string, model: string) => {
     const [existingToken] = await db.execute(
         sql`
         SELECT * FROM fcm_token WHERE token = ${token} AND user_id = ${userId}
@@ -20,18 +20,16 @@ export const sendTokenToServer = async (token: string, userId: string) => {
     const currentTime = new Date();
 
     if (!existingToken) {
-        // If the token doesn't exist, insert it into the database
         await db.execute(
             sql`
-            INSERT INTO fcm_token (token, user_id, last_accessed)
-            VALUES (${token}, ${userId}, ${currentTime})
+            INSERT INTO fcm_token (token, user_id, last_accessed, model)
+            VALUES (${token}, ${userId}, ${currentTime}, ${model})
             `,
         );
     } else {
-        // If the token already exists, update the last_accessed time
         await db.execute(
             sql`
-            UPDATE fcm_token SET last_accessed = ${currentTime} WHERE token = ${token} AND user_id = ${userId}
+            UPDATE fcm_token SET last_accessed = ${currentTime}, model = ${model} WHERE token = ${token} AND user_id = ${userId}
             `,
         );
     }
@@ -77,4 +75,15 @@ export const fetchSubscribedFcmTokens = async (messageId: string) => {
     );
 
     return tokens;
+};
+
+export const deleteStaleFcmTokens = async () => {
+    const currentTime = new Date();
+    currentTime.setDate(currentTime.getDate() - 30);
+
+    await db.execute(
+        sql`
+        DELETE FROM fcm_token WHERE last_accessed < ${currentTime}
+        `,
+    );
 };

@@ -11,9 +11,9 @@ const router = express.Router();
 
 router.post('/', validateSchema(sendTokenSchema), authenticateUser, async (req, res, next) => {
     try {
-        const { fcmToken } = req.body;
+        const { fcmToken, model } = req.body;
 
-        await sendTokenToServer(fcmToken, req.user.id);
+        await sendTokenToServer(fcmToken, req.user.id, model || '');
 
         res.status(StatusCodes.OK).send(
             formatResponse({
