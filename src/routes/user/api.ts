@@ -29,7 +29,6 @@ import {
     getUserTransactionDetail,
     getUserTransactionList,
     setUserReactionToMessage,
-    softDeleteUser,
     updateAdminCredentials,
     updateUser,
     updateUserPassword,
@@ -482,26 +481,26 @@ router.patch(
     },
 );
 
-router.delete('/me/nuke', authenticateUser, async (req, res, next) => {
-    try {
-        const id = req.user.id;
+// router.delete('/me/nuke', authenticateUser, async (req, res, next) => {
+//     try {
+//         const id = req.user.id;
 
-        const user = await getUserById(id);
-        if (!user) throw new NotFoundError('User not found');
+//         const user = await getUserById(id);
+//         if (!user) throw new NotFoundError('User not found');
 
-        await softDeleteUser(id);
+//         await softDeleteUser(id);
 
-        res.status(StatusCodes.OK).send(
-            formatResponse({
-                code: StatusCodes.OK,
-                message: 'User deleted',
-                data: null,
-                success: true,
-            }),
-        );
-    } catch (error) {
-        next(error);
-    }
-});
+//         res.status(StatusCodes.OK).send(
+//             formatResponse({
+//                 code: StatusCodes.OK,
+//                 message: 'User deleted',
+//                 data: null,
+//                 success: true,
+//             }),
+//         );
+//     } catch (error) {
+//         next(error);
+//     }
+// });
 
 export default router;
