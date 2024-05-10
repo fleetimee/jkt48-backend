@@ -86,13 +86,17 @@ export const updateUser = async (
     nickName: string,
     name: string,
     birthday: Date,
-    profileImage: string,
+    profileImage: string | null,
 ) => {
     const currentDate = new Date();
 
+    const [existingUser] = await db.select().from(users).where(eq(users.id, id)).limit(1);
+
+    const updatedProfileImage = profileImage ? profileImage : existingUser.profileImage;
+
     const [user] = await db
         .update(users)
-        .set({ email, nickName, name, birthday, profileImage, updatedAt: currentDate })
+        .set({ email, nickName, name, birthday, profileImage: updatedProfileImage, updatedAt: currentDate })
         .where(eq(users.id, id))
         .returning();
 

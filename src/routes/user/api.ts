@@ -408,12 +408,11 @@ router.patch(
             if (!isValidUuid) throw new NotFoundError('UserId not valid (uuid)');
             const id = req.user.id;
 
-            if (!req.file) {
-                res.status(StatusCodes.BAD_REQUEST).send({ error: 'No file uploaded' });
-                return;
+            let fileName = null;
+            if (req.file) {
+                const filePath = `/static/profileImages/${req.user.roles}/${id}/`;
+                fileName = filePath + 'profile-img-' + id + path.extname(req.file.originalname);
             }
-            const filePath = `/static/profileImages/${req.user.roles}/${id}/`;
-            const fileName = filePath + 'profile-img-' + id + path.extname(req.file.originalname);
 
             const { name, email, nickName, birthday } = req.body;
 
