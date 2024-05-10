@@ -225,7 +225,7 @@ router.post(
                 const notificationMessage: Notification = {
                     title: `${idol.nickname}`,
                     body: 'Need Approval!',
-                    imageUrl: 'https://avatars.githubusercontent.com/u/45744788?v=4',
+                    imageUrl: 'https://i.postimg.cc/htCBMk81/logo-jkt48pm-2.png',
                 };
 
                 await messaging().sendEachForMulticast({

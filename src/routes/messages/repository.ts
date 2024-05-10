@@ -245,6 +245,20 @@ export const approveMessage = async (messageId: string, isApproved: boolean) => 
     }
 };
 
+export const getMessageDetail = async (messageId: string) => {
+    const [messageItem] = await db.execute(
+        sql`
+        SELECT u.nickname AS nickname,
+        m.message  AS message
+        FROM users u
+                INNER JOIN message m ON u.id = m.user_id
+        WHERE m.id = ${messageId};
+        `,
+    );
+
+    return messageItem;
+};
+
 export const getAttachmentsByConversationId = async (conversationId: string) => {
     const attachments = await db.execute(
         sql.raw(

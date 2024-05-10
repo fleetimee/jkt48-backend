@@ -1,4 +1,6 @@
 import express from 'express';
+import { messaging } from 'firebase-admin';
+import { Notification } from 'firebase-admin/lib/messaging/messaging-api';
 import fs from 'fs';
 import { StatusCodes } from 'http-status-codes';
 
@@ -8,7 +10,8 @@ import { UnprocessableEntityError } from '../../utils/errors';
 import { formatResponsePaginated } from '../../utils/response-formatter';
 import { validateUuid } from '../../utils/validate';
 import { deleteAttachment, getAttachmentsByMessageId } from '../attachment/repository';
-import { approveMessage, deleteMessage, getMessages, getMessagesById } from './repository';
+import { fetchSubscribedFcmTokens } from '../token/repository';
+import { approveMessage, deleteMessage, getMessageDetail, getMessages, getMessagesById } from './repository';
 import { approveOrRejectMessageSchema } from './schema';
 
 const router = express.Router();
@@ -139,18 +142,42 @@ router.patch(
     requireAdminRole,
     async (req, res, next) => {
         try {
-            const conversationId = req.params.id;
-            if (!validateUuid(conversationId)) throw new UnprocessableEntityError('The message is not valid UUID');
+            const messageId = req.params.id;
+            if (!validateUuid(messageId)) throw new UnprocessableEntityError('The message is not valid UUID');
 
             const { isApproved } = req.body;
 
-            await approveMessage(conversationId, isApproved);
+            // await approveMessage(messageId, isApproved);
+
+            const [approveMessageRes, userFcmTokens, messageDetail] = await Promise.all([
+                approveMessage(messageId, isApproved),
+                fetchSubscribedFcmTokens(messageId),
+                getMessageDetail(messageId),
+            ]);
+
+            if (userFcmTokens.length > 0 && isApproved) {
+                const arrayOfStrings = userFcmTokens.map(item => item.token);
+
+                console.log(arrayOfStrings);
+
+                const notificationMessage: Notification = {
+                    title: messageDetail.nickname as string,
+                    body: messageDetail.message as string,
+                };
+
+                console.log(notificationMessage);
+
+                await messaging().sendEachForMulticast({
+                    tokens: arrayOfStrings as unknown as string[],
+                    notification: notificationMessage,
+                });
+            }
 
             res.status(StatusCodes.OK).send({
                 success: true,
                 code: StatusCodes.OK,
                 message: isApproved === true ? 'Success approve message' : 'Success reject message',
-                data: null,
+                data: approveMessageRes,
             });
         } catch (error) {
             console.log(error);
