@@ -198,12 +198,21 @@ export const deleteAccountUser = async (token: string) => {
     const user = await getUserByDeleteToken(token);
     if (!user) throw new UnauthorizedError('Token invalid / expired!');
 
+    const randomString = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
+    const emailParts = user.email.split('@');
+    const newEmail = `${emailParts[0]}-deleted-${randomString}@${emailParts[1]}`;
+
     await db
         .update(users)
-        .set({ isDeleted: true, tokenDeleteAccount: null, deleteAccountStep: 'done' })
+        .set({
+            isDeleted: true,
+            tokenDeleteAccount: null,
+            deleteAccountStep: 'done',
+            email: newEmail,
+        })
         .where(eq(users.email, user.email));
 };
-
 /**
  * Checks the delete step for a user.
  * @param userId - The ID of the user.
