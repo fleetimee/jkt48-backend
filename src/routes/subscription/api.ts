@@ -117,11 +117,11 @@ router.post('/createPlan', async (req, res, next) => {
                 },
                 {
                     type: ItemType.FEES,
-                    name: 'order_tax',
+                    name: 'Pajak 11%',
                     net_unit_amount: Number(inquiryOrder.order_tax),
                     quantity: 1,
                     category: 'tax',
-                    description: 'Pajak atas pembelian',
+                    description: 'Pajak atas pembelian produk digital',
                 },
             ],
             notification_config: {
