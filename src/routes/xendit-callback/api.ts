@@ -190,6 +190,10 @@ router.post('/handlePaymentMethod', async (req, res, next) => {
 
         if (body.event === XenditRecurringStatus.PAYMENT_ACTIVATED) {
             console.log(`Payment method created ${body.data.type}`);
+
+            res.status(StatusCodes.OK).send({
+                message: 'Payment Method Linked Successfully',
+            });
         }
     } catch (error) {
         console.log(error);
