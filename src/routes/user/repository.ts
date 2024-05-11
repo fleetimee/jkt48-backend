@@ -218,7 +218,7 @@ export const checkUserSubscriptionOderIdol = async (userId: string, idolId: stri
 export const cancelSubscription = async (userId: string) => {
     const [subscription] = await db
         .update(order)
-        .set({ orderStatus: 'failed' })
+        .set({ orderStatus: 'cancelled' })
         .where(eq(order.userId, userId))
         .returning();
 
