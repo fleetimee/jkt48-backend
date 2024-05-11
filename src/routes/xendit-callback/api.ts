@@ -45,7 +45,7 @@ router.post('/', async (req, res, next) => {
 });
 
 router.post('/handleRecurringPayment', async (req, res, next) => {
-    const webhookToken = 'gzx5Y8CUbh6Mm4FmwITYrW9kV39VBD1x8i4Iodvisy03x3M1';
+    const webhookToken = 'yPA3KQkzCl7lPNNTrGy2dmOOwmH18FPb4P9XUole67Q0UrvA';
 
     try {
         const { body } = req;
