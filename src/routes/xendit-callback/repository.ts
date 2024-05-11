@@ -28,8 +28,7 @@ export const updateOrderStatusXenditCallback = async (orderId: string, status: s
 
 export const updateOrderStatusXenditSubscriptionCallback = async (
     orderId: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    status: any,
+    status: XenditRecurringStatus,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     callbackData: any,
 ) => {
