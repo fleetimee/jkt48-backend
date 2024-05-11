@@ -7,9 +7,10 @@ import { validateSchema } from '../../middlewares/validate-request';
 import { XenditCreateCustomer } from '../../types/xendit-create-customer';
 import {
     Currency,
-    ImmediateActionType,
+    FailedCycleAction,
     Interval,
     ItemType,
+    Locale,
     NotificationChannel,
     RecurringAction,
     XenditCreatePlan,
@@ -94,7 +95,6 @@ router.post('/createPlan', async (req, res, next) => {
             customer_id: customer_id,
             recurring_action: RecurringAction.PAYMENT,
             currency: Currency.IDR,
-            immediate_action_type: ImmediateActionType.FULL_AMOUNT,
             amount: Number(inquiryOrder.order_total),
             schedule: {
                 reference_id: referenceIdWithTimestamp,
@@ -102,6 +102,7 @@ router.post('/createPlan', async (req, res, next) => {
                 interval_count: 1,
                 anchor_date: date.toISOString(),
             },
+            failed_cycle_action: FailedCycleAction.STOP,
             description: `Pembayaran Langganan JKT48 Private Message - 1 bulan - ${inquiryOrder.package_name} - Recurring Payment`,
             items: [
                 {
@@ -125,6 +126,7 @@ router.post('/createPlan', async (req, res, next) => {
                 recurring_created: [NotificationChannel.EMAIL],
                 recurring_succeeded: [NotificationChannel.EMAIL],
                 recurring_failed: [NotificationChannel.EMAIL],
+                locale: Locale.ID,
             },
         };
 
