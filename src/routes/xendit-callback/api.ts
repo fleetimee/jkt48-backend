@@ -53,123 +53,41 @@ router.post('/handleRecurringPayment', async (req, res, next) => {
         const xCallbackToken = req.headers['x-callback-token'];
         const webhookId = req.headers['webhook-id'];
 
-        // Check if body is empty
         if (!body) {
             res.status(StatusCodes.BAD_REQUEST).send({
                 message: 'Invalid body',
             });
         }
 
-        // Check if x-callback-token is empty
-        if (!xCallbackToken) {
-            res.status(StatusCodes.BAD_REQUEST).send({
+        if (!xCallbackToken || xCallbackToken !== webhookToken) {
+            return res.status(StatusCodes.BAD_REQUEST).send({
                 message: 'Invalid x-callback-token',
             });
         }
 
-        // Check if webhook-id is empty
         if (!webhookId) {
-            res.status(StatusCodes.BAD_REQUEST).send({
+            return res.status(StatusCodes.BAD_REQUEST).send({
                 message: 'Invalid webhook-id',
             });
         }
 
-        // Check if x-callback-token is invalid
-        if (xCallbackToken !== webhookToken) {
-            res.status(StatusCodes.UNAUTHORIZED).send({
-                message: 'Invalid x-callback-token',
+        if (
+            body.event === XenditRecurringStatus.ACTIVATED ||
+            body.event === XenditRecurringStatus.INACTIVATED ||
+            body.event === XenditRecurringStatus.CYCLE_SUCCEED ||
+            body.event === XenditRecurringStatus.CYCLE_CREATED ||
+            body.event === XenditRecurringStatus.CYCLE_RETRY ||
+            body.event === XenditRecurringStatus.CYCLE_FAILED
+        ) {
+            await updateOrderStatusXenditSubscriptionCallback(body.data.reference_id, body.event, body);
+
+            console.log(`Xendit callback received for order ${body.data.reference_id} with status ${body.event}`);
+
+            res.status(StatusCodes.OK).send({
+                message: 'Success Updating Order Status',
             });
-        }
-
-        if (webhookId !== webhookId) {
-            res.status(StatusCodes.BAD_REQUEST).send({
-                message: 'Invalid webhook-id',
-            });
-        }
-
-        switch (body.event) {
-            case XenditRecurringStatus.ACTIVATED:
-                await updateOrderStatusXenditSubscriptionCallback(
-                    body.data.reference_id,
-                    XenditRecurringStatus.ACTIVATED,
-                    body,
-                );
-
-                console.log(`Xendit callback received for order ${body.data.reference_id} with status ${body.event}`);
-
-                res.status(StatusCodes.OK).send({
-                    message: 'Success Updating Order Status',
-                });
-
-                break;
-            case XenditRecurringStatus.INACTIVATED:
-                await updateOrderStatusXenditSubscriptionCallback(
-                    body.data.reference_id,
-                    XenditRecurringStatus.INACTIVATED,
-                    body,
-                );
-
-                console.log(`Xendit callback received for order ${body.data.reference_id} with status ${body.event}`);
-
-                res.status(StatusCodes.OK).send({
-                    message: 'Success Updating Order Status',
-                });
-                break;
-            case XenditRecurringStatus.CYCLE_SUCCEED:
-                await updateOrderStatusXenditSubscriptionCallback(
-                    body.data.reference_id,
-                    XenditRecurringStatus.CYCLE_SUCCEED,
-                    body,
-                );
-
-                console.log(`Xendit callback received for order ${body.data.reference_id} with status ${body.event}`);
-
-                res.status(StatusCodes.OK).send({
-                    message: 'Success Updating Order Status',
-                });
-
-                break;
-            case XenditRecurringStatus.CYCLE_CREATED:
-                await updateOrderStatusXenditSubscriptionCallback(
-                    body.data.reference_id,
-                    XenditRecurringStatus.CYCLE_CREATED,
-                    body,
-                );
-
-                console.log(`Xendit callback received for order ${body.data.reference_id} with status ${body.event}`);
-
-                res.status(StatusCodes.OK).send({
-                    message: 'Success Updating Order Status',
-                });
-
-                break;
-            case XenditRecurringStatus.CYCLE_RETRY:
-                await updateOrderStatusXenditSubscriptionCallback(
-                    body.data.reference_id,
-                    XenditRecurringStatus.CYCLE_RETRY,
-                    body,
-                );
-
-                console.log(`Xendit callback received for order ${body.data.reference_id} with status ${body.event}`);
-
-                res.status(StatusCodes.OK).send({
-                    message: 'Success Updating Order Status',
-                });
-
-                break;
-            case XenditRecurringStatus.CYCLE_FAILED:
-                await updateOrderStatusXenditSubscriptionCallback(
-                    body.data.reference_id,
-                    XenditRecurringStatus.CYCLE_FAILED,
-                    body,
-                );
-
-                console.log(`Xendit callback received for order ${body.data.reference_id} with status ${body.event}`);
-
-                res.status(StatusCodes.OK).send({
-                    message: 'Success Updating Order Status',
-                });
-                break;
+        } else {
+            throw new Error(`Invalid event: ${body.event}`);
         }
     } catch (error) {
         console.log(error);
