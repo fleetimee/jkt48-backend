@@ -7,6 +7,7 @@ import { validateSchema } from '../../middlewares/validate-request';
 import { XenditCreateCustomer } from '../../types/xendit-create-customer';
 import {
     Currency,
+    ImmediateActionType,
     Interval,
     ItemType,
     NotificationChannel,
@@ -93,6 +94,7 @@ router.post('/createPlan', async (req, res, next) => {
             customer_id: customer_id,
             recurring_action: RecurringAction.PAYMENT,
             currency: Currency.IDR,
+            immediate_action_type: ImmediateActionType.FULL_AMOUNT,
             amount: Number(inquiryOrder.order_total),
             schedule: {
                 reference_id: referenceIdWithTimestamp,
