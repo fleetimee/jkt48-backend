@@ -1,11 +1,11 @@
 import express from 'express';
 import { StatusCodes } from 'http-status-codes';
 
-import { updateOrderStatusXenditCallback } from './repository';
+import { updateOrderStatusXenditCallback, updateOrderStatusXenditSubscriptionCallback } from './repository';
 
 const router = express.Router();
 
-enum XenditRecurringStatus {
+export enum XenditRecurringStatus {
     ACTIVATED = 'recurring.plan.activated',
     INACTIVATED = 'recurring.plan.inactivated',
     CYCLE_SUCCEED = 'recurring.cycle.succeeded',
@@ -56,7 +56,7 @@ router.post('/handleRecurringPayment', async (req, res, next) => {
 
         switch (body.event) {
             case XenditRecurringStatus.ACTIVATED:
-                await updateOrderStatusXenditCallback(body.data.reference_id, 'success', body);
+                await updateOrderStatusXenditSubscriptionCallback(body.data.reference_id, 'success', body);
 
                 console.log(`Xendit callback received for order ${body.data.reference_id} with status ${body.event}`);
 
@@ -66,7 +66,7 @@ router.post('/handleRecurringPayment', async (req, res, next) => {
 
                 break;
             case XenditRecurringStatus.INACTIVATED:
-                await updateOrderStatusXenditCallback(body.data.reference_id, 'failed', body);
+                await updateOrderStatusXenditSubscriptionCallback(body.data.reference_id, 'failed', body);
 
                 console.log(`Xendit callback received for order ${body.data.reference_id} with status ${body.event}`);
 
@@ -75,7 +75,7 @@ router.post('/handleRecurringPayment', async (req, res, next) => {
                 });
                 break;
             case XenditRecurringStatus.CYCLE_SUCCEED:
-                await updateOrderStatusXenditCallback(body.data.reference_id, 'success', body);
+                await updateOrderStatusXenditSubscriptionCallback(body.data.reference_id, 'success', body);
 
                 console.log(`Xendit callback received for order ${body.data.reference_id} with status ${body.event}`);
 
@@ -85,7 +85,7 @@ router.post('/handleRecurringPayment', async (req, res, next) => {
 
                 break;
             case XenditRecurringStatus.CYCLE_CREATED:
-                await updateOrderStatusXenditCallback(body.data.reference_id, 'success', body);
+                await updateOrderStatusXenditSubscriptionCallback(body.data.reference_id, 'success', body);
 
                 console.log(`Xendit callback received for order ${body.data.reference_id} with status ${body.event}`);
 
@@ -95,7 +95,7 @@ router.post('/handleRecurringPayment', async (req, res, next) => {
 
                 break;
             case XenditRecurringStatus.CYCLE_RETRY:
-                await updateOrderStatusXenditCallback(body.data.reference_id, 'failed', body);
+                await updateOrderStatusXenditSubscriptionCallback(body.data.reference_id, 'failed', body);
 
                 console.log(`Xendit callback received for order ${body.data.reference_id} with status ${body.event}`);
 
@@ -105,7 +105,7 @@ router.post('/handleRecurringPayment', async (req, res, next) => {
 
                 break;
             case XenditRecurringStatus.CYCLE_FAILED:
-                await updateOrderStatusXenditCallback(body.data.reference_id, 'failed', body);
+                await updateOrderStatusXenditSubscriptionCallback(body.data.reference_id, 'failed', body);
 
                 console.log(`Xendit callback received for order ${body.data.reference_id} with status ${body.event}`);
 
@@ -115,6 +115,8 @@ router.post('/handleRecurringPayment', async (req, res, next) => {
                 break;
         }
     } catch (error) {
+        console.log(error);
+
         next(error);
     }
 });

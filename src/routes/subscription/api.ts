@@ -10,6 +10,7 @@ import {
     ImmediateActionType,
     Interval,
     ItemType,
+    NotificationChannel,
     RecurringAction,
     XenditCreatePlan,
 } from '../../types/xendit-create-plan';
@@ -119,6 +120,11 @@ router.post('/createPlan', async (req, res, next) => {
                     description: 'Pajak atas pembelian',
                 },
             ],
+            notification_config: {
+                recurring_created: [NotificationChannel.EMAIL],
+                recurring_succeeded: [NotificationChannel.EMAIL],
+                recurring_failed: [NotificationChannel.EMAIL],
+            },
             immediate_action_type: ImmediateActionType.FULL_AMOUNT,
         };
 

@@ -2,6 +2,7 @@ import { eq } from 'drizzle-orm';
 
 import db from '../../db';
 import { order } from '../../models/order';
+import { XenditRecurringStatus } from './api';
 
 /**
  * Updates the order status for Xendit callback.
@@ -23,4 +24,57 @@ export const updateOrderStatusXenditCallback = async (orderId: string, status: s
         .update(order)
         .set({ orderStatus: status, expiredAt: currentDate, callbackData: callbackData })
         .where(eq(order.id, orderId));
+};
+
+export const updateOrderStatusXenditSubscriptionCallback = async (
+    orderId: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    status: any,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    callbackData: any,
+) => {
+    const currentDate = new Date();
+
+    currentDate.setMonth(currentDate.getMonth() + 1);
+
+    switch (status) {
+        case XenditRecurringStatus.ACTIVATED:
+            await db
+                .update(order)
+                .set({ orderStatus: 'success', expiredAt: currentDate, callbackData: callbackData })
+                .where(eq(order.id, orderId));
+            break;
+        case XenditRecurringStatus.INACTIVATED:
+            await db
+                .update(order)
+                .set({ orderStatus: 'failed', expiredAt: currentDate, callbackData: callbackData })
+                .where(eq(order.id, orderId));
+            break;
+        case XenditRecurringStatus.CYCLE_CREATED:
+            await db
+                .update(order)
+                .set({ orderStatus: 'success', expiredAt: currentDate, callbackData: callbackData })
+                .where(eq(order.id, orderId));
+            break;
+        case XenditRecurringStatus.CYCLE_SUCCEED:
+            await db
+                .update(order)
+                .set({ orderStatus: 'success', expiredAt: currentDate, callbackData: callbackData })
+                .where(eq(order.id, orderId));
+            break;
+        case XenditRecurringStatus.CYCLE_RETRY:
+            await db
+                .update(order)
+                .set({ orderStatus: 'failed', expiredAt: currentDate, callbackData: callbackData })
+                .where(eq(order.id, orderId));
+            break;
+        case XenditRecurringStatus.CYCLE_FAILED:
+            await db
+                .update(order)
+                .set({ orderStatus: 'failed', expiredAt: currentDate, callbackData: callbackData })
+                .where(eq(order.id, orderId));
+            break;
+        default:
+            throw new Error(`Invalid status: ${status}`);
+    }
 };
