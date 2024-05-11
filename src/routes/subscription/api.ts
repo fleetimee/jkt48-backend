@@ -8,6 +8,7 @@ import { XenditCreateCustomer } from '../../types/xendit-create-customer';
 import {
     Currency,
     FailedCycleAction,
+    ImmediateActionType,
     Interval,
     ItemType,
     Locale,
@@ -102,6 +103,7 @@ router.post('/createPlan', async (req, res, next) => {
                 interval_count: 1,
                 anchor_date: date.toISOString(),
             },
+            immediate_action_type: ImmediateActionType.FULL_AMOUNT,
             failed_cycle_action: FailedCycleAction.STOP,
             description: `Pembayaran Langganan JKT48 Private Message - 1 bulan - ${inquiryOrder.package_name} - Recurring Payment`,
             items: [
