@@ -7,7 +7,6 @@ import { validateSchema } from '../../middlewares/validate-request';
 import { XenditCreateCustomer } from '../../types/xendit-create-customer';
 import {
     Currency,
-    ImmediateActionType,
     Interval,
     ItemType,
     NotificationChannel,
@@ -125,7 +124,6 @@ router.post('/createPlan', async (req, res, next) => {
                 recurring_succeeded: [NotificationChannel.EMAIL],
                 recurring_failed: [NotificationChannel.EMAIL],
             },
-            immediate_action_type: ImmediateActionType.FULL_AMOUNT,
         };
 
         console.log(xenditPlanData);
