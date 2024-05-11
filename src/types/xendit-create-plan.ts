@@ -1,44 +1,48 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-enum Currency {
+export enum Currency {
     IDR = 'IDR',
     PHP = 'PHP',
 }
 
-enum RecurringAction {
+export enum RecurringAction {
     PAYMENT = 'PAYMENT',
 }
 
-enum Interval {
+export enum ImmediateActionType {
+    FULL_AMOUNT = 'FULL_AMOUNT',
+}
+
+export enum Interval {
     DAY = 'DAY',
     WEEK = 'WEEK',
     MONTH = 'MONTH',
 }
 
-enum RetryInterval {
+export enum RetryInterval {
     DAY = 'DAY',
 }
 
-enum NotificationChannel {
+export enum NotificationChannel {
     WHATSAPP = 'WHATSAPP',
     EMAIL = 'EMAIL',
 }
 
-enum Locale {
+export enum Locale {
     EN = 'en',
     ID = 'id',
 }
 
-enum FailedCycleAction {
+export enum FailedCycleAction {
     RESUME = 'RESUME',
     STOP = 'STOP',
 }
 
-enum ItemType {
+export enum ItemType {
     DIGITAL_PRODUCT = 'DIGITAL_PRODUCT',
     PHYSICAL_PRODUCT = 'PHYSICAL_PRODUCT',
     DIGITAL_SERVICE = 'DIGITAL_SERVICE',
     PHYSICAL_SERVICE = 'PHYSICAL_SERVICE',
-    FEE = 'FEE',
+    FEES = 'FEES',
     DISCOUNT = 'DISCOUNT',
 }
 
@@ -63,7 +67,7 @@ export interface XenditCreatePlan {
         payment_method_id: string;
         rank: number;
     }[];
-    immediate_action_type?: string;
+    immediate_action_type?: ImmediateActionType;
     notification_config?: {
         recurring_created?: NotificationChannel[];
         recurring_succeeded?: NotificationChannel[];

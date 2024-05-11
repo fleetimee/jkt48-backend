@@ -95,6 +95,11 @@ export const updateExpiredOrderStatus = async () => {
         .where(and(eq(order.orderStatus, 'success'), lt(order.expiredAt, new Date())));
 };
 
+/**
+ * Updates the order status and expiration date for a given order ID using Google Pay.
+ * @param orderId - The ID of the order to update.
+ * @returns The updated order object.
+ */
 export const updateOrderStatusGpay = async (orderId: string) => {
     const currentDate = new Date();
 

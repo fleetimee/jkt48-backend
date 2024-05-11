@@ -4,7 +4,7 @@ import { XENDIT_SECRET_KEY } from '../../config';
 import db from '../../db';
 import { users } from '../../models/users';
 import { XenditCreateCustomer } from '../../types/xendit-create-customer';
-import { XenditSubscription } from '../../utils/xendit-types';
+import { XenditCreatePlan } from '../../types/xendit-create-plan';
 
 /**
  * Creates a customer using Xendit API.
@@ -39,8 +39,8 @@ export const createCustomer = async (xenditData: XenditCreateCustomer) => {
     return customerData;
 };
 
-export const createSubscription = async (xenditData: XenditSubscription) => {
-    const url = 'https://api.xendit.co/recurring';
+export const createSubscription = async (xenditData: XenditCreatePlan) => {
+    const url = 'https://api.xendit.co/recurring/plans';
 
     const base64ApiKey = Buffer.from(`${XENDIT_SECRET_KEY}:`).toString('base64');
 
@@ -52,10 +52,6 @@ export const createSubscription = async (xenditData: XenditSubscription) => {
             Authorization: `Basic ${base64ApiKey}`,
         },
     });
-
-    if (!response.ok) {
-        throw new Error('Failed to create subscription');
-    }
 
     return response.json();
 };

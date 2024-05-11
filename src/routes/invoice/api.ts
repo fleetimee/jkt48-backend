@@ -126,6 +126,7 @@ router.post('/', validateSchema(createInvoiceSchema), authenticateUser, async (r
             }),
         );
     } catch (error) {
+        console.log(error);
         next(error);
     }
 });
