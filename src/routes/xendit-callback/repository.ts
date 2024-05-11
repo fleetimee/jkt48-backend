@@ -64,7 +64,7 @@ export const updateOrderStatusXenditSubscriptionCallback = async (
         case XenditRecurringStatus.CYCLE_RETRY:
             await db
                 .update(order)
-                .set({ orderStatus: 'failed', expiredAt: currentDate, callbackData: callbackData })
+                .set({ orderStatus: 'pending', expiredAt: currentDate, callbackData: callbackData })
                 .where(eq(order.id, orderId));
             break;
         case XenditRecurringStatus.CYCLE_FAILED:
