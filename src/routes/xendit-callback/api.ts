@@ -12,6 +12,7 @@ export enum XenditRecurringStatus {
     CYCLE_CREATED = 'recurring.cycle.created',
     CYCLE_RETRY = 'recurring.cycle.retrying',
     CYCLE_FAILED = 'recurring.cycle.failed',
+    PAYMENT_ACTIVATED = 'payment_method.activated',
 }
 
 router.post('/', async (req, res, next) => {
@@ -169,6 +170,26 @@ router.post('/handleRecurringPayment', async (req, res, next) => {
                     message: 'Success Updating Order Status',
                 });
                 break;
+        }
+    } catch (error) {
+        console.log(error);
+
+        next(error);
+    }
+});
+
+router.post('/handlePaymentMethod', async (req, res, next) => {
+    try {
+        const { body } = req;
+
+        if (!body) {
+            res.status(StatusCodes.BAD_REQUEST).send({
+                message: 'Invalid body',
+            });
+        }
+
+        if (body.event === XenditRecurringStatus.PAYMENT_ACTIVATED) {
+            console.log(`Payment method created ${body.data.type}`);
         }
     } catch (error) {
         console.log(error);
