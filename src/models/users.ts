@@ -23,4 +23,5 @@ export const users = pgTable('users', {
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
     isDeleted: boolean('is_deleted').default(false).notNull(),
+    xenditCustomerId: text('xendit_customer_id'),
 });

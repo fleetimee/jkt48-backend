@@ -15,6 +15,7 @@ export const getUserById = async (id: string) => {
     const [user] = await db
         .select({
             id: users.id,
+            xenditCustomerId: users.xenditCustomerId,
             email: users.email,
             name: users.name,
             nickname: users.nickName,

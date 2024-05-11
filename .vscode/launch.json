@@ -4,7 +4,7 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "NPM RUN DEV",
+            "name": "Run Server",
             "runtimeExecutable": "npm",
             "runtimeArgs": ["run", "dev"]
         }
