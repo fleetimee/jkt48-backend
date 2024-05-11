@@ -44,13 +44,45 @@ router.post('/', async (req, res, next) => {
 });
 
 router.post('/handleRecurringPayment', async (req, res, next) => {
+    const webhookToken = 'gzx5Y8CUbh6Mm4FmwITYrW9kV39VBD1x8i4Iodvisy03x3M1';
+
     try {
         const { body } = req;
+
+        const xCallbackToken = req.headers['x-callback-token'];
+        const webhookId = req.headers['webhook-id'];
 
         // Check if body is empty
         if (!body) {
             res.status(StatusCodes.BAD_REQUEST).send({
                 message: 'Invalid body',
+            });
+        }
+
+        // Check if x-callback-token is empty
+        if (!xCallbackToken) {
+            res.status(StatusCodes.BAD_REQUEST).send({
+                message: 'Invalid x-callback-token',
+            });
+        }
+
+        // Check if webhook-id is empty
+        if (!webhookId) {
+            res.status(StatusCodes.BAD_REQUEST).send({
+                message: 'Invalid webhook-id',
+            });
+        }
+
+        // Check if x-callback-token is invalid
+        if (xCallbackToken !== webhookToken) {
+            res.status(StatusCodes.UNAUTHORIZED).send({
+                message: 'Invalid x-callback-token',
+            });
+        }
+
+        if (webhookId !== webhookId) {
+            res.status(StatusCodes.BAD_REQUEST).send({
+                message: 'Invalid webhook-id',
             });
         }
 
