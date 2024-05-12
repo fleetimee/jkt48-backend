@@ -1,3 +1,4 @@
+import console from 'console';
 import express from 'express';
 import { StatusCodes } from 'http-status-codes';
 import path from 'path';
@@ -59,7 +60,9 @@ router.get('/me/birthdayInbox', authenticateUser, async (req, res, next) => {
 
         const birthdayInbox = await getUserBirthdayMessages(id);
 
-        if (!birthdayInbox) throw new NotFoundError('Birthday inbox not found');
+        console.log(birthdayInbox);
+
+        if (birthdayInbox.length < 1) throw new NotFoundError('Birthday inbox not found');
 
         res.status(StatusCodes.OK).send(
             formatResponse({
