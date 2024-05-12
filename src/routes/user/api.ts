@@ -22,6 +22,7 @@ import {
     countRegisteredUsers,
     deleteUserReactToMessage,
     getUserActiveIdols,
+    getUserBirthdayMessages,
     getUserById,
     getUserByIdWithUnreadNewsCount,
     getUserConversationList,
@@ -44,6 +45,30 @@ router.get('/me', authenticateUser, async (req, res, next) => {
         if (!user) throw new NotFoundError('User not found');
 
         res.status(StatusCodes.OK).send({ user });
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.get('/me/birthdayInbox', authenticateUser, async (req, res, next) => {
+    try {
+        const id = req.user.id;
+
+        const user = await getUserById(id);
+        if (!user) throw new NotFoundError('User not found');
+
+        const birthdayInbox = await getUserBirthdayMessages(id);
+
+        if (!birthdayInbox) throw new NotFoundError('Birthday inbox not found');
+
+        res.status(StatusCodes.OK).send(
+            formatResponse({
+                code: StatusCodes.OK,
+                message: 'Birthday inbox',
+                data: birthdayInbox,
+                success: true,
+            }),
+        );
     } catch (error) {
         next(error);
     }
