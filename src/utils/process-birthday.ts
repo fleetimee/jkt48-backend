@@ -29,7 +29,7 @@ export const processUserBirthday = async (user: Record<string, unknown>) => {
 
             const message = birthdayMessage
                 ? birthdayMessage.message.replace('{{nickname}}', userDetails.name as string)
-                : '';
+                : 'Happy Birthday! 🎉';
 
             if (userFcmTokens.length > 0) {
                 const fcmTokens = userFcmTokens.map(item => item.token);
