@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar } from 'drizzle-orm/pg-core';
+import { pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 
 import { idol } from './idol';
 import { users } from './users';
@@ -14,4 +14,6 @@ export const messageScheduled = pgTable('message_scheduled', {
         .notNull()
         .references(() => idol.id),
     personalizedMessage: varchar('personalized_message').notNull(),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('scheduled_at').notNull().defaultNow(),
 });
