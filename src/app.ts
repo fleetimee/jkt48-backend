@@ -182,6 +182,19 @@ cron.schedule('0 0 * * 0', function () {
     }
 });
 
+// This cron job will run at 00:00 every day.
+cron.schedule('0 0 * * *', function () {
+    console.log('Running scheduled birthday messages every day at midnight');
+    try {
+        fetch(`${BASE_URL}/api/messages/executeBirthdayScheduler`)
+            .then(res => res.json())
+            .then(data => console.log(data))
+            .catch(err => console.error(err));
+    } catch (error) {
+        console.error('Error running scheduled birthday messages:', error);
+    }
+});
+
 /**
  * Rate limiter middleware.
  * This middleware function is used to limit repeated requests to public APIs and/or endpoints such as password reset.

@@ -22,3 +22,11 @@ export const approveOrRejectMessageSchema = z.object({
         isApproved: z.boolean(),
     }),
 });
+
+export const insertBirthdayMessageSchema = z.object({
+    body: z.object({
+        userId: z.string().min(1, 'User ID cannot be empty'),
+        idolId: z.string().min(1, 'Idol ID cannot be empty'),
+        personalizedMessage: z.string().min(1, 'Personalized message cannot be empty'),
+    }),
+});

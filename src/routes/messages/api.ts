@@ -7,14 +7,65 @@ import { StatusCodes } from 'http-status-codes';
 import { authenticateUser, requireAdminRole, requireMemberRole } from '../../middlewares/authenticate-user';
 import { validateSchema } from '../../middlewares/validate-request';
 import { UnprocessableEntityError } from '../../utils/errors';
+import { processUserBirthday } from '../../utils/process-birthday';
 import { formatResponsePaginated } from '../../utils/response-formatter';
 import { validateUuid } from '../../utils/validate';
 import { deleteAttachment, getAttachmentsByMessageId } from '../attachment/repository';
 import { fetchSubscribedFcmTokens } from '../token/repository';
-import { approveMessage, deleteMessage, getMessageDetail, getMessages, getMessagesById } from './repository';
-import { approveOrRejectMessageSchema } from './schema';
+import { checkBirthday, fetchTodayBirthdayUsers } from '../user/repository';
+import {
+    approveMessage,
+    deleteMessage,
+    getMessageDetail,
+    getMessages,
+    getMessagesById,
+    insertBirthdayMessage,
+} from './repository';
+import { approveOrRejectMessageSchema, insertBirthdayMessageSchema } from './schema';
 
 const router = express.Router();
+
+router.get('/executeBirthdayScheduler', async (req, res, next) => {
+    try {
+        const [userBirthday] = await checkBirthday();
+
+        if (!userBirthday.is_birthday_today) {
+            res.status(StatusCodes.OK).send({
+                success: true,
+                code: StatusCodes.OK,
+                message: 'No birthdays today',
+                data: null,
+            });
+            return;
+        }
+
+        const userIds = await fetchTodayBirthdayUsers();
+
+        if (!userIds) {
+            res.status(StatusCodes.OK).send({
+                success: true,
+                code: StatusCodes.OK,
+                message: 'No users found',
+                data: null,
+            });
+            return;
+        }
+
+        for (const user of userIds) {
+            await processUserBirthday(user);
+        }
+
+        res.status(StatusCodes.OK).send({
+            success: true,
+            code: StatusCodes.OK,
+            message: 'Success check birthday',
+            data: null,
+        });
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
+});
 
 router.get('/:id', authenticateUser, requireAdminRole, async (req, res, next) => {
     try {
@@ -105,6 +156,23 @@ router.get('/conversation/:id', authenticateUser, requireAdminRole, async (req, 
 //         next(error);
 //     }
 // });
+
+router.post('/insertBirthdayMessage', validateSchema(insertBirthdayMessageSchema), async (req, res, next) => {
+    try {
+        const { userId, idolId, personalizedMessage } = req.body;
+
+        await insertBirthdayMessage(userId, idolId, personalizedMessage);
+
+        res.status(StatusCodes.OK).send({
+            success: true,
+            code: StatusCodes.OK,
+            message: 'Success insert birthday message',
+            data: null,
+        });
+    } catch (error) {
+        next(error);
+    }
+});
 
 router.delete('/:id', authenticateUser, requireMemberRole, async (req, res, next) => {
     try {

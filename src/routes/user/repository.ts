@@ -550,7 +550,7 @@ export const fetchTodayBirthdayUsers = async () => {
  * @returns {Promise<boolean>} A promise that resolves to a boolean indicating if there is a user with a birthday today.
  */
 export const checkBirthday = async () => {
-    await db.execute(sql`
+    const result = await db.execute(sql`
         SELECT
     CASE
         WHEN EXISTS (
@@ -562,6 +562,8 @@ export const checkBirthday = async () => {
         ELSE FALSE
     END AS is_birthday_today;
         `);
+
+    return result;
 };
 
 /**
@@ -570,13 +572,16 @@ export const checkBirthday = async () => {
  * @returns A Promise that resolves to void.
  */
 export const checkSubscriptionStatus = async (userId: string) => {
-    await db.execute(sql`
-    SELECT EXISTS(
+    const [status] = await db.execute(sql`
+   SELECT EXISTS(
     SELECT 1
     FROM "order"
     WHERE user_id = ${userId}
       AND order_status = 'success'
-      AND o.expired_at > NOW();`);
+) AS is_subscribed;
+    `);
+
+    return status;
 };
 
 /**
@@ -598,4 +603,20 @@ export const getOrderedIdolsByUserId = async (userId: string) => {
     `);
 
     return idols;
+};
+
+/**
+ * Retrieves the FCM token for a given user ID.
+ * @param userId The ID of the user.
+ * @returns The FCM token associated with the user.
+ */
+export const getUserFcmToken = async (userId: string) => {
+    const token = await db.execute(sql`
+    SELECT token FROM fcm_token ft
+        INNER JOIN users u ON ft.user_id = u.id
+    WHERE u.id = ${userId};
+
+    `);
+
+    return token;
 };
