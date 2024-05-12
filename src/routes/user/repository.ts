@@ -530,3 +530,72 @@ export const getUserBirthdayMessages = async (userId: string) => {
 
     return birthdayMessage;
 };
+
+/**
+ * Fetches the user IDs of users whose birthday is today.
+ * @returns {Promise<number[]>} A promise that resolves to an array of user IDs.
+ */
+export const fetchTodayBirthdayUsers = async () => {
+    const userIds = await db.execute(sql`
+    SELECT id
+        FROM users
+        WHERE EXTRACT(MONTH FROM birthday) = EXTRACT(MONTH FROM CURRENT_DATE)
+    AND EXTRACT(DAY FROM birthday) = EXTRACT(DAY FROM CURRENT_DATE);`);
+
+    return userIds;
+};
+
+/**
+ * Checks if there is a user with a birthday today.
+ * @returns {Promise<boolean>} A promise that resolves to a boolean indicating if there is a user with a birthday today.
+ */
+export const checkBirthday = async () => {
+    await db.execute(sql`
+        SELECT
+    CASE
+        WHEN EXISTS (
+            SELECT 1 FROM users
+            WHERE (roles = 'user' OR roles = 'admin')
+            AND EXTRACT(MONTH FROM birthday) = EXTRACT(MONTH FROM CURRENT_DATE)
+            AND EXTRACT(DAY FROM birthday) = EXTRACT(DAY FROM CURRENT_DATE)
+        ) THEN TRUE
+        ELSE FALSE
+    END AS is_birthday_today;
+        `);
+};
+
+/**
+ * Checks the subscription status for a given user.
+ * @param userId - The ID of the user.
+ * @returns A Promise that resolves to void.
+ */
+export const checkSubscriptionStatus = async (userId: string) => {
+    await db.execute(sql`
+    SELECT EXISTS(
+    SELECT 1
+    FROM "order"
+    WHERE user_id = ${userId}
+      AND order_status = 'success'
+      AND o.expired_at > NOW();`);
+};
+
+/**
+ * Retrieves the list of idol IDs associated with a specific user ID.
+ * @param userId The ID of the user.
+ * @returns A Promise that resolves to the list of idol IDs.
+ */
+export const getOrderedIdolsByUserId = async (userId: string) => {
+    const idols = await db.execute(sql`
+    SELECT idol_id
+    FROM (SELECT DISTINCT ON (i.id) i.id      AS idol_id,
+                                    o.user_id AS user_id
+        FROM order_idol
+                INNER JOIN "order" o ON order_idol.order_id = o.id
+                INNER JOIN idol i ON order_idol.idol_id = i.id
+        WHERE o.user_id = ${userId}
+            AND o.order_status = 'success') AS subquery
+    WHERE user_id = ${userId};
+    `);
+
+    return idols;
+};
