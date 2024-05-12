@@ -299,9 +299,13 @@ export const getBirthdayMessages = async (idolId: string) => {
  * @returns {Promise<void>} - A promise that resolves when the message is inserted.
  */
 export const insertBirthdayMessage = async (usersId: string, idolId: string, personalizedMessage: string) => {
+    const dateNow = new Date();
+
     await db.insert(messageScheduled).values({
         usersId,
         idolId,
         personalizedMessage,
+        createdAt: dateNow,
+        updatedAt: dateNow,
     });
 };
