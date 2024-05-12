@@ -27,7 +27,9 @@ export const processUserBirthday = async (user: Record<string, unknown>) => {
                 getUserFcmToken(user.id as string),
             ]);
 
-            birthdayMessage.message = birthdayMessage.message.replace('{{nickname}}', userDetails.name as string);
+            const message = birthdayMessage
+                ? birthdayMessage.message.replace('{{nickname}}', userDetails.name as string)
+                : '';
 
             if (userFcmTokens.length > 0) {
                 const fcmTokens = userFcmTokens.map(item => item.token);
@@ -43,11 +45,7 @@ export const processUserBirthday = async (user: Record<string, unknown>) => {
                 });
             }
 
-            await insertBirthdayMessage(
-                user.id as string,
-                idol.idol_id as string,
-                (birthdayMessage.message as string) || 'Happy Birthday! 🎉',
-            );
+            await insertBirthdayMessage(user.id as string, idol.idol_id as string, message);
         }
     } catch (error) {
         console.log('Error processing user birthday:', error);
