@@ -508,3 +508,25 @@ export const softDeleteUser = async (userId: string) => {
     const [user] = await db.update(users).set({ isDeleted: true }).where(eq(users.id, userId)).returning();
     return user;
 };
+
+/**
+ * Retrieves the birthday messages for a given user.
+ * @param userId - The ID of the user.
+ * @returns A promise that resolves to an array of birthday messages.
+ */
+export const getUserBirthdayMessages = async (userId: string) => {
+    const birthdayMessage = await db.execute(sql`
+    SELECT ms.personalized_message AS message,
+       u2.name                 AS idol_name,
+       u2.nickname             AS idol_nickname,
+       u2.profile_image        AS profile_image,
+       ms.created_at           AS created_at
+    FROM message_scheduled ms
+            INNER JOIN idol i ON ms.idol_id = i.id
+            INNER JOIN users u ON ms.users_id = u.id
+            INNER JOIN users u2 ON i.user_id = u2.id
+    WHERE u.id = ${userId};
+    `);
+
+    return birthdayMessage;
+};
