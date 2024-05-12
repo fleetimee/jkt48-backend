@@ -124,6 +124,7 @@ router.post('/createPlan', async (req, res, next) => {
                     description: 'Pajak atas pembelian produk digital',
                 },
             ],
+            payment_methods: [],
             notification_config: {
                 recurring_created: [NotificationChannel.EMAIL],
                 recurring_succeeded: [NotificationChannel.EMAIL],

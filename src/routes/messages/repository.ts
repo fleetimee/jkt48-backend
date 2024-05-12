@@ -1,7 +1,9 @@
 import { eq, sql } from 'drizzle-orm';
 
 import db from '../../db';
+import { birthdayMessage } from '../../models/birthday_message';
 import { message } from '../../models/message';
+import { messageScheduled } from '../../models/message_scheduled';
 import { NotFoundError } from '../../utils/errors';
 
 /**
@@ -275,4 +277,31 @@ export const getAttachmentsByConversationId = async (conversationId: string) => 
     const filePaths = attachments.map(attachment => attachment.file_path);
 
     return filePaths;
+};
+
+/**
+ * Retrieves the birthday messages for a specific idol.
+ * @param idolId - The ID of the idol.
+ * @returns A Promise that resolves to an array of birthday messages.
+ */
+export const getBirthdayMessages = async (idolId: string) => {
+    const [messages] = await db.select().from(birthdayMessage).where(eq(birthdayMessage.idolId, idolId));
+
+    return messages;
+};
+
+/**
+ * Inserts a birthday message into the database.
+ *
+ * @param {string} usersId - The ID of the user sending the message.
+ * @param {string} idolId - The ID of the idol receiving the message.
+ * @param {string} personalizedMessage - The personalized message to be sent.
+ * @returns {Promise<void>} - A promise that resolves when the message is inserted.
+ */
+export const insertBirthdayMessage = async (usersId: string, idolId: string, personalizedMessage: string) => {
+    await db.insert(messageScheduled).values({
+        usersId,
+        idolId,
+        personalizedMessage,
+    });
 };
