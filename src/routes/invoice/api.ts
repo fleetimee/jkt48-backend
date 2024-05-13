@@ -1,3 +1,4 @@
+import { differenceInDays } from 'date-fns';
 import express from 'express';
 import { StatusCodes } from 'http-status-codes';
 
@@ -82,8 +83,17 @@ router.post('/', validateSchema(createInvoiceSchema), authenticateUser, async (r
         const order = await getOrderById(idOrder);
         if (!order) throw new UnprocessableEntityError('The order does not exist');
 
-        // Check if order status is success
-        if (order.orderStatus === 'success') throw new UnprocessableEntityError('The order has already been paid');
+        if (order.orderStatus === 'success') {
+            const currentDate = new Date();
+            const expiredAt = order.expiredAt as Date;
+            const daysUntilExpiration = differenceInDays(expiredAt, currentDate);
+
+            if (daysUntilExpiration > 7) {
+                throw new UnprocessableEntityError(
+                    'The order has already been paid and is not within 7 days of expiration',
+                );
+            }
+        }
 
         // Inquiry order to get package details
         const inquiryOrder = await getInquiryOrder(idOrder);
