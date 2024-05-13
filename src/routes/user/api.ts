@@ -36,6 +36,7 @@ import {
     updateUserPassword,
 } from './repository';
 import { postReaction, updateUserSchema } from './schema';
+
 const router = express.Router();
 
 router.get('/me', authenticateUser, async (req, res, next) => {
