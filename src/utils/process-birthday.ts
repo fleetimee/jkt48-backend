@@ -34,15 +34,19 @@ export const processUserBirthday = async (user: Record<string, unknown>) => {
             if (userFcmTokens.length > 0) {
                 const fcmTokens = userFcmTokens.map(item => item.token);
 
+                console.log(fcmTokens);
+
                 const notificationMessage: Notification = {
                     title: 'Happy Birthday!',
                     body: 'You have a birthday message! 🎉',
                 };
 
-                await messaging().sendEachForMulticast({
+                const response = await messaging().sendEachForMulticast({
                     tokens: fcmTokens as unknown as string[],
                     notification: notificationMessage,
                 });
+
+                console.log(response);
             }
 
             await insertBirthdayMessage(user.id as string, idol.idol_id as string, message);

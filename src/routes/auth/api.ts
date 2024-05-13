@@ -272,6 +272,13 @@ router.post(
                 return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Email not match with logged on email' });
             }
 
+            // Check if token is match with user
+            if (user.tokenDeleteAccount !== token) {
+                return res
+                    .status(StatusCodes.BAD_REQUEST)
+                    .json({ error: 'Token delete tidak cocok dengan yang ada di database' });
+            }
+
             if (token) await deleteAccountUser(token);
 
             const emailResult = await sendEmail({
