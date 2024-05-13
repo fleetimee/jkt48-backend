@@ -101,10 +101,11 @@ export const registerUser = async (
     nickName: string,
     birthday: Date,
     verificationToken: string,
+    phoneNumber: string,
 ) => {
     const passwordHash = await bcrypt.hash(password, 10);
 
-    await db.insert(users).values({ email, name, passwordHash, birthday, nickName, verificationToken });
+    await db.insert(users).values({ email, name, passwordHash, birthday, nickName, verificationToken, phoneNumber });
 };
 
 /**

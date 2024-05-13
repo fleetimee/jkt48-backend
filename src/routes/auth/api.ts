@@ -57,7 +57,7 @@ router.get('/checkAccountDeletionStatus', authenticateUser, async (req, res, nex
 
 router.post('/register', validateSchema(registerSchema), rateLimiterStrict, async (req, res, next) => {
     try {
-        const { email, password, name, birthday, nickName } = req.body;
+        const { email, password, name, birthday, nickName, phoneNumber } = req.body;
 
         const user = await getUser(email);
         if (user) throw new ConflictError('A user with that email already exists');
@@ -66,7 +66,7 @@ router.post('/register', validateSchema(registerSchema), rateLimiterStrict, asyn
 
         const birthdayDate = new Date(birthday);
 
-        await registerUser(email, password, name, nickName, birthdayDate, verificationToken);
+        await registerUser(email, password, name, nickName, birthdayDate, verificationToken, phoneNumber);
 
         const emailResult = await sendEmail({
             to: [email],
