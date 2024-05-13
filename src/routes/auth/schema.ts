@@ -17,6 +17,7 @@ export const registerSchema = z.object({
             message: 'Please enter a valid date',
             path: ['birthday'],
         }),
+        phoneNumber: z.string().regex(/^\+628\d{9,10}$/, 'Please enter a valid phone number'),
     }),
 });
 
