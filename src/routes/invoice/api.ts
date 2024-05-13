@@ -83,6 +83,7 @@ router.post('/', validateSchema(createInvoiceSchema), authenticateUser, async (r
         const order = await getOrderById(idOrder);
         if (!order) throw new UnprocessableEntityError('The order does not exist');
 
+        // Check if the order is not already paid and is within 7 days of expiration
         if (order.orderStatus === 'success') {
             const currentDate = new Date();
             const expiredAt = order.expiredAt as Date;

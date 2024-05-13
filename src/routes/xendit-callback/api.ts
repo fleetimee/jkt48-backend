@@ -30,10 +30,18 @@ router.post('/', async (req, res, next) => {
             await updateOrderStatusXenditCallback(body.external_id, 'success', body);
 
             res.status(StatusCodes.OK).send({
-                message: 'Xendit callback received',
+                message: 'Xendit callback received for successful payment',
             });
+
+            return;
         } else if (body.status === 'FAILED') {
             await updateOrderStatusXenditCallback(body.external_id, 'failed', body);
+
+            res.status(StatusCodes.OK).send({
+                message: 'Xendit callback received for failed payment',
+            });
+
+            return;
         }
 
         res.status(StatusCodes.BAD_REQUEST).send({
