@@ -109,3 +109,20 @@ export const updateOrderStatusGpay = async (orderId: string) => {
 
     return order;
 };
+
+/**
+ * Retrieves orders that are close to expiration.
+ *
+ * @returns {Promise<Array<any>>} A promise that resolves to an array of orders.
+ */
+export const getCloseToExpirationOrders = async () => {
+    const orders = await db.execute(sql`
+    SELECT id
+    FROM "order"
+    WHERE order_status = 'success'
+    AND expired_at BETWEEN CURRENT_TIMESTAMP AND CURRENT_TIMESTAMP + INTERVAL '7 days'
+    AND payment_method = 'xendit';
+    `);
+
+    return orders;
+};
