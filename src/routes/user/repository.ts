@@ -621,3 +621,20 @@ export const getUserFcmToken = async (userId: string) => {
 
     return token;
 };
+
+/**
+ * Retrieves the phone number of a user.
+ * @param userId - The ID of the user.
+ * @returns The phone number of the user.
+ */
+export const getUserPhoneNumber = async (userId: string) => {
+    const [phoneNumber] = await db
+        .select({
+            phoneNumber: users.phoneNumber,
+        })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+
+    return phoneNumber;
+};
