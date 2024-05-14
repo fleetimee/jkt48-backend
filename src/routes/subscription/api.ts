@@ -33,7 +33,7 @@ router.post(
     rateLimiter,
     async (req, res, next) => {
         try {
-            const { reference_id, given_names, email } = req.body;
+            const { reference_id, given_names, email, phoneNumber: mobile_number } = req.body;
 
             const xenditData: XenditCreateCustomer = {
                 reference_id: reference_id,
@@ -42,6 +42,7 @@ router.post(
                     given_names,
                 },
                 email: email,
+                mobile_number: mobile_number,
             };
 
             const user = await getUserById(reference_id);
