@@ -320,7 +320,7 @@ export const getUserConversationList = async (userId: string) => {
                     FROM users
                     WHERE id = ${userId}
                 )
-            ) AS unread
+            ) AS unread_count
             FROM order_idol
                 INNER JOIN "order" o ON order_idol.order_id = o.id
                 INNER JOIN idol i ON order_idol.idol_id = i.id
