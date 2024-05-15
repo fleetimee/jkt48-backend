@@ -5,9 +5,11 @@ import { authenticateUser } from '../../middlewares/authenticate-user';
 import { validateSchema } from '../../middlewares/validate-request';
 import { NotFoundError } from '../../utils/errors';
 import { formatResponse } from '../../utils/response-formatter';
+import { deleteFcmTokensByUserId } from '../token/repository';
 import { checkUserSubscription } from '../user/repository';
 import {
     createOrder,
+    getExpiredOrders,
     getInquiryOrder,
     getInquiryOrderListIdol,
     getOrderById,
@@ -21,6 +23,24 @@ const router = express.Router();
 router.get('/check-expired', async (req, res, next) => {
     try {
         await updateExpiredOrderStatus();
+
+        const expiredOrders = await getExpiredOrders();
+
+        if (expiredOrders.length === 0) {
+            res.status(StatusCodes.OK).send(
+                formatResponse({
+                    success: true,
+                    code: StatusCodes.OK,
+                    message: 'No expired orders found',
+                    data: null,
+                }),
+            );
+            return;
+        }
+
+        for (const order of expiredOrders) {
+            await deleteFcmTokensByUserId(order.userId);
+        }
 
         res.status(StatusCodes.OK).send(
             formatResponse({
