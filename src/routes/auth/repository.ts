@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt';
 import { eq } from 'drizzle-orm';
 
 import db from '../../db';
+import { fcmTokens } from '../../models/fcm_token';
 import { users } from '../../models/users';
 import { BadRequestError, ForbiddenError, UnauthorizedError } from '../../utils/errors';
 
@@ -211,9 +212,15 @@ export const deleteAccountUser = async (token: string) => {
             tokenDeleteAccount: null,
             deleteAccountStep: 'done',
             email: newEmail,
+            phoneNumber: null,
+            nickName: `delete-user-${randomString}`,
+            name: `Deleted User-${randomString}`,
         })
         .where(eq(users.email, user.email));
+
+    await db.delete(fcmTokens).where(eq(fcmTokens.userId, user.id));
 };
+
 /**
  * Checks the delete step for a user.
  * @param userId - The ID of the user.
