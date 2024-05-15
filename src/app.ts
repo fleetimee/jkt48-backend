@@ -168,11 +168,10 @@ cron.schedule('0 0 * * 0', function () {
     }
 });
 
-// This cron job will run at 00:00 every day.
-cron.schedule('0 0 * * 0', function () {
-    console.log('Running check for expired orders every Sunday at midnight');
+// This cron job will run every minute.
+cron.schedule('* * * * *', function () {
+    console.log('Running check for expired orders every minute');
     try {
-        // Replace with the correct endpoint that handles checking and updating of expired orders
         fetch(`${BASE_URL}/api/order/check-expired`)
             .then(res => res.json())
             .then(data => console.log(data))
