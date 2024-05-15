@@ -1,6 +1,7 @@
-import { sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 
 import db from '../../db';
+import { fcmTokens } from '../../models/fcm_token';
 
 /**
  * Sends the FCM token to the server and updates the last accessed time.
@@ -77,6 +78,10 @@ export const fetchSubscribedFcmTokens = async (messageId: string) => {
     return tokens;
 };
 
+/**
+ * Deletes stale FCM tokens from the database.
+ * Stale tokens are those that have not been accessed in the last 30 days.
+ */
 export const deleteStaleFcmTokens = async () => {
     const currentTime = new Date();
     currentTime.setDate(currentTime.getDate() - 30);
@@ -86,4 +91,12 @@ export const deleteStaleFcmTokens = async () => {
         DELETE FROM fcm_token WHERE last_accessed < ${currentTime}
         `,
     );
+};
+
+/**
+ * Deletes FCM tokens by user ID.
+ * @param userId - The ID of the user.
+ */
+export const deleteFcmTokensByUserId = async (userId: string) => {
+    await db.delete(fcmTokens).where(eq(fcmTokens.userId, userId));
 };
