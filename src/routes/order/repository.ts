@@ -88,6 +88,23 @@ export const getInquiryOrderListIdol = async (orderId: string) => {
     return idolNicknames;
 };
 
+/**
+ * Retrieves expired orders from the database.
+ * An order is considered expired if its orderStatus is 'expired' and its expiredAt date is earlier than the current date.
+ *
+ * @returns {Promise<Array<any>>} A promise that resolves to an array of expired orders.
+ */
+export const getExpiredOrders = async () => {
+    const orders = await db.select().from(order).where(eq(order.orderStatus, 'expired'));
+
+    return orders;
+};
+
+/**
+ * Updates the status of expired orders to 'expired'.
+ * This function finds orders that have a status of 'success' and an expiredAt date that is earlier than the current date,
+ * and updates their orderStatus to 'expired'.
+ */
 export const updateExpiredOrderStatus = async () => {
     await db
         .update(order)
