@@ -72,7 +72,7 @@ router.get('/scheduledInvoice', async (req, res, next) => {
                 ],
                 fees: [
                     {
-                        type: 'PPN',
+                        type: 'PPN 11%',
                         value: inquiryOrder.order_tax as number,
                     },
                 ],
@@ -216,7 +216,7 @@ router.post('/', validateSchema(createInvoiceSchema), authenticateUser, async (r
             ],
             fees: [
                 {
-                    type: 'PPN',
+                    type: 'PPN 11%',
                     value: inquiryOrder.order_tax as number,
                 },
             ],
