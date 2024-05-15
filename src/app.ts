@@ -211,10 +211,11 @@ cron.schedule('0 0 * * *', function () {
     }
 });
 
-// This cron job will at the end of the month minus 1 day
+// This cron job will run at 00:00 at the end of the month.
 // Remove stale fcm tokens
-cron.schedule('0 0 L-1 * *', function () {
+cron.schedule('0 0 1 * *', function () {
     console.log('Running remove stale fcm tokens at the end of the month');
+
     try {
         fetch(`${BASE_URL}/api/token/removeStaleTokens`)
             .then(res => res.json())
