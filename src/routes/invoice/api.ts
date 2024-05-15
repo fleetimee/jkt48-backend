@@ -45,13 +45,15 @@ router.get('/scheduledInvoice', async (req, res, next) => {
             console.log(inquiryOrder);
 
             // Build request body for creating invoice
-            const invoice = await createInvoice({
+            await createInvoice({
                 externalId: orderId.id as unknown as string,
                 payerEmail: user.email,
                 amount: inquiryOrder.order_total as number,
                 currency: 'IDR',
-                description: `Pembayaran untuk JKT48 Private Message - ${inquiryOrder.package_name}`,
+                description: `Perpanjangan Langganan JKT48 Private Message - ${inquiryOrder.package_name}`,
                 local: 'id',
+                reminderTime: 1,
+                reminderTimeUnit: 'days',
                 customer: {
                     email: user.email,
                     givenNames: user.name,
@@ -77,8 +79,6 @@ router.get('/scheduledInvoice', async (req, res, next) => {
                     },
                 ],
             });
-
-            console.log(invoice);
 
             res.status(StatusCodes.OK).send({
                 success: true,
@@ -206,6 +206,8 @@ router.post('/', validateSchema(createInvoiceSchema), authenticateUser, async (r
                 invoicePaid: ['email', 'whatsapp', 'sms'],
                 invoiceReminder: ['email', 'whatsapp', 'sms'],
             },
+            reminderTimeUnit: 'days',
+            reminderTime: 1,
             items: [
                 {
                     name: inquiryOrder.package_name as string,
