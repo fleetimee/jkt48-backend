@@ -223,17 +223,21 @@ router.post(
 
                 const idol = await getMemberById(idolId.idol_id as string);
 
+                const buildAvatar = `${BASE_URL}${idol.profile_image}`;
+
                 const notificationMessage: Notification = {
                     title: `${idol.nickname}`,
                     body: 'Need Approval!',
                 };
+
+                console.log(buildAvatar);
 
                 await messaging().sendEachForMulticast({
                     tokens: arrayOfStrings as unknown as string[],
                     notification: notificationMessage,
                     android: {
                         notification: {
-                            imageUrl: `${BASE_URL}${idol.profile_image}`,
+                            imageUrl: buildAvatar,
                         },
                     },
                     apns: {
@@ -243,7 +247,7 @@ router.post(
                             },
                         },
                         fcmOptions: {
-                            imageUrl: `${BASE_URL}${idol.profile_image}`,
+                            imageUrl: buildAvatar,
                         },
                     },
                 });
