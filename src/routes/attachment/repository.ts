@@ -27,7 +27,10 @@ export const getAllAttachmentsByConversationId = async (conversationId: string, 
         ORDER BY ma.created_at DESC;
     `);
 
-    return attachments;
+    return attachments.map(attachment => ({
+        filePath: attachment.file_path,
+        createdAt: attachment.created_at,
+    }));
 };
 
 /**
