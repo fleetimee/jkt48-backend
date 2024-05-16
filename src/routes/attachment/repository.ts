@@ -1,7 +1,6 @@
-import { and, eq, or } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 
 import db from '../../db';
-import { message } from '../../models/message';
 import { attachment } from '../../models/message_attachment';
 
 /**
@@ -9,25 +8,24 @@ import { attachment } from '../../models/message_attachment';
  * @param conversationId - The ID of the conversation.
  * @returns A Promise that resolves to an array of attachments.
  */
-export const getAllAttachmentsByConversationId = async (conversationId: string) => {
-    const attachments = await db
-        .select({
-            filePath: attachment.filePath,
-            createdAt: attachment.createdAt,
-        })
-        .from(message)
-        .innerJoin(attachment, eq(message.id, attachment.messageId))
-        .where(
-            and(
-                eq(message.conversationId, conversationId),
-                or(
-                    eq(attachment.fileType, 'image/jpeg'),
-                    eq(attachment.fileType, 'image/png'),
-                    eq(attachment.fileType, 'image/gif'),
-                    eq(attachment.fileType, 'image/jpg'),
-                ),
-            ),
-        );
+export const getAllAttachmentsByConversationId = async (conversationId: string, userId: string) => {
+    const attachments = await db.execute(sql`
+        SELECT ma.file_path, ma.created_at
+        FROM message_attachment ma
+        INNER JOIN message m ON m.id = ma.message_id
+        INNER JOIN conversation c ON c.id = m.conversation_id
+        WHERE (ma.file_path LIKE '%.jpg'
+        OR ma.file_path LIKE '%.png'
+        OR ma.file_path LIKE '%.gif'
+        OR ma.file_path LIKE '%.bmp'
+        OR ma.file_path LIKE '%.tiff'
+        OR ma.file_path LIKE '%.ico'
+        OR ma.file_path LIKE '%.webp')
+        AND m.approved = TRUE
+        AND c.id = ${conversationId}
+        AND m.created_at > (SELECT created_at FROM users WHERE id = ${userId})
+        ORDER BY ma.created_at DESC;
+    `);
 
     return attachments;
 };
