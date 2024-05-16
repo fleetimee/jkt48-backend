@@ -7,6 +7,7 @@ import fs from 'fs';
 import { StatusCodes } from 'http-status-codes';
 import path from 'path';
 
+import { BASE_URL } from '../../config';
 import { authenticateUser, requireAdminRole, requireMemberRole } from '../../middlewares/authenticate-user';
 import { validateSchema } from '../../middlewares/validate-request';
 import { BadRequestError, NotFoundError, UnprocessableEntityError } from '../../utils/errors';
@@ -225,12 +226,26 @@ router.post(
                 const notificationMessage: Notification = {
                     title: `${idol.nickname}`,
                     body: 'Need Approval!',
-                    imageUrl: 'https://i.postimg.cc/htCBMk81/logo-jkt48pm-2.png',
                 };
 
                 await messaging().sendEachForMulticast({
                     tokens: arrayOfStrings as unknown as string[],
                     notification: notificationMessage,
+                    android: {
+                        notification: {
+                            imageUrl: `${BASE_URL}${idol.profile_image}`,
+                        },
+                    },
+                    apns: {
+                        payload: {
+                            aps: {
+                                'mutable-content': 1,
+                            },
+                        },
+                        fcmOptions: {
+                            imageUrl: `${BASE_URL}${idol.profile_image}`,
+                        },
+                    },
                 });
             }
 
