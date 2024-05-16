@@ -98,13 +98,7 @@ export const upload = multer({
 export const uploadMessage = multer({
     storage: storageMessage,
     limits: {
-        fileSize: 100 * 1024 * 1024, // 100MB
-    },
-    fileFilter(req, file, callback) {
-        if (!file.originalname.match(/\.(jpg|jpeg|png|gif|opus|mp3|wav|mp4)$/)) {
-            return callback(new Error('Please upload an image, audio, or video file'));
-        }
-        callback(null, true);
+        fileSize: 500 * 1024 * 1024, // 500MB
     },
 });
 
