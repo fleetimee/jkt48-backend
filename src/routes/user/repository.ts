@@ -327,7 +327,7 @@ export const getUserConversationList = async (userId: string) => {
             U.profile_image AS idol_image,
             COALESCE(
                 CASE 
-                    WHEN m.created_at < (SELECT created_at FROM users WHERE id = ${userId}) OR m.approved = FALSE OR m.message = '' THEN 'sent you a photo'
+                    WHEN m.created_at < (SELECT created_at FROM users WHERE id = ${userId}) OR m.approved = FALSE OR m.message = '' THEN 'sent you an attachment'
                     ELSE m.message
                 END,
                 'sent you a photo'
