@@ -27,5 +27,11 @@ dist-ssr
 .sentryclirc
 
 .firebase
-drizzle
+
 service-account.json
+
+# Ignore everything in the drizzle directory
+drizzle/*
+
+# But don't ignore drizzle/meta/_journal.json
+!drizzle/meta/_journal.json
