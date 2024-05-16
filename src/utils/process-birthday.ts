@@ -44,6 +44,22 @@ export const processUserBirthday = async (user: Record<string, unknown>) => {
                 const response = await messaging().sendEachForMulticast({
                     tokens: fcmTokens as unknown as string[],
                     notification: notificationMessage,
+                    android: {
+                        notification: {
+                            imageUrl: 'https://jkt48pm.my.id/static/logo_jkt48pm_2.png',
+                            sound: 'default',
+                        },
+                    },
+                    apns: {
+                        payload: {
+                            aps: {
+                                'mutable-content': 1,
+                            },
+                        },
+                        fcmOptions: {
+                            imageUrl: 'https://jkt48pm.my.id/static/logo_jkt48pm_2.png',
+                        },
+                    },
                 });
 
                 console.log(response);
