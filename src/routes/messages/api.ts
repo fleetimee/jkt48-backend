@@ -226,18 +226,29 @@ router.patch(
             if (userFcmTokens.length > 0 && isApproved) {
                 const arrayOfStrings = userFcmTokens.map(item => item.token);
 
-                console.log(arrayOfStrings);
-
                 const notificationMessage: Notification = {
                     title: messageDetail.nickname as string,
                     body: messageDetail.message as string,
                 };
 
-                console.log(notificationMessage);
-
                 await messaging().sendEachForMulticast({
                     tokens: arrayOfStrings as unknown as string[],
                     notification: notificationMessage,
+                    android: {
+                        notification: {
+                            imageUrl: 'https://jkt48pm.my.id/static/logo_jkt48pm_2.png',
+                        },
+                    },
+                    apns: {
+                        payload: {
+                            aps: {
+                                'mutable-content': 1,
+                            },
+                        },
+                        fcmOptions: {
+                            imageUrl: 'https://jkt48pm.my.id/static/logo_jkt48pm_2.png',
+                        },
+                    },
                 });
             }
 

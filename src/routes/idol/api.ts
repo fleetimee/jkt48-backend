@@ -7,7 +7,6 @@ import fs from 'fs';
 import { StatusCodes } from 'http-status-codes';
 import path from 'path';
 
-import { BASE_URL } from '../../config';
 import { authenticateUser, requireAdminRole, requireMemberRole } from '../../middlewares/authenticate-user';
 import { validateSchema } from '../../middlewares/validate-request';
 import { BadRequestError, NotFoundError, UnprocessableEntityError } from '../../utils/errors';
@@ -223,21 +222,17 @@ router.post(
 
                 const idol = await getMemberById(idolId.idol_id as string);
 
-                const buildAvatar = `${BASE_URL}${idol.profile_image}`;
-
                 const notificationMessage: Notification = {
                     title: `${idol.nickname}`,
                     body: 'Need Approval!',
                 };
-
-                console.log(buildAvatar);
 
                 await messaging().sendEachForMulticast({
                     tokens: arrayOfStrings as unknown as string[],
                     notification: notificationMessage,
                     android: {
                         notification: {
-                            imageUrl: buildAvatar,
+                            imageUrl: 'https://jkt48pm.my.id/static/logo_jkt48pm_2.png',
                         },
                     },
                     apns: {
@@ -247,7 +242,7 @@ router.post(
                             },
                         },
                         fcmOptions: {
-                            imageUrl: buildAvatar,
+                            imageUrl: 'https://jkt48pm.my.id/static/logo_jkt48pm_2.png',
                         },
                     },
                 });
