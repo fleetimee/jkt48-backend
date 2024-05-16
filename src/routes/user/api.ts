@@ -294,6 +294,8 @@ router.get('/me/conversation/:conversationId/images', authenticateUser, async (r
     try {
         const conversationId = req.params.conversationId;
 
+        const id = req.user.id;
+
         // Check if conversation id is valid uuid
         const isValidUuid = validateUuid(conversationId);
         if (!isValidUuid) throw new NotFoundError('ConversationId not valid (uuid)');
@@ -302,7 +304,8 @@ router.get('/me/conversation/:conversationId/images', authenticateUser, async (r
         const conversation = await getConversationsById(conversationId);
         if (!conversation) throw new NotFoundError('Conversation not found');
 
-        const images = await getAllAttachmentsByConversationId(conversationId);
+        const images = await getAllAttachmentsByConversationId(conversationId, id);
+        if (!images) throw new NotFoundError('Images not found');
 
         res.status(StatusCodes.OK).send(
             formatResponse({
