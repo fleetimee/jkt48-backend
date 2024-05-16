@@ -228,7 +228,7 @@ router.patch(
 
                 const notificationMessage: Notification = {
                     title: messageDetail.nickname as string,
-                    body: messageDetail.message as string,
+                    body: messageDetail.message ? (messageDetail.message as string) : 'You have a new message!',
                 };
 
                 await messaging().sendEachForMulticast({

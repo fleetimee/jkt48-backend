@@ -78,6 +78,25 @@ router.get('/me/birthdayInbox', authenticateUser, async (req, res, next) => {
     }
 });
 
+router.get('/me/birthdayCheck', authenticateUser, async (req, res, next) => {
+    try {
+        const id = req.user.id;
+
+        const userWithBirthday = await getUserByIdWithUnreadNewsCount(id);
+
+        res.status(StatusCodes.OK).send(
+            formatResponse({
+                code: StatusCodes.OK,
+                message: 'Birthday checked',
+                data: userWithBirthday,
+                success: true,
+            }),
+        );
+    } catch (error) {
+        next(error);
+    }
+});
+
 router.get('/me/newsCheck', authenticateUser, async (req, res, next) => {
     try {
         const id = req.user.id;

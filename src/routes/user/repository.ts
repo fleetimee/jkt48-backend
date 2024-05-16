@@ -74,6 +74,37 @@ export const getUserByIdWithUnreadNewsCount = async (id: string) => {
 };
 
 /**
+ * Retrieves the user ID along with the count of unread birthday messages for the given user ID.
+ * @param id - The ID of the user.
+ * @returns A Promise that resolves to the user object containing the unread birthday message count and a flag indicating if the birthday message is read.
+ */
+export const getUserIdWithUnreadBirthdayMessageCount = async (id: string) => {
+    const [user] = await db.execute(sql`
+    WITH unread_birthday AS (
+        SELECT COUNT(*) AS unread_birthday_count
+        FROM message_scheduled ms
+        WHERE ms.users_id = ${id}
+            AND (ms.created_at > (SELECT last_read_at
+                                FROM users_birthday
+                                WHERE user_id = ${id})
+                OR (SELECT last_read_at
+                    FROM users_birthday
+                    WHERE user_id = ${id}) IS NULL)
+    )
+    SELECT unread_birthday.unread_birthday_count,
+        CASE
+            WHEN unread_birthday.unread_birthday_count = 0 THEN TRUE
+            ELSE FALSE
+        END AS is_birthday_message_read
+    FROM users u,
+        unread_birthday
+    WHERE u.id = ${id};
+    `);
+
+    return user;
+};
+
+/**
  * Updates a user's information in the database.
  * @param id - The ID of the user to update.
  * @param email - The updated email of the user.
@@ -525,18 +556,32 @@ export const softDeleteUser = async (userId: string) => {
  * @returns A promise that resolves to an array of birthday messages.
  */
 export const getUserBirthdayMessages = async (userId: string) => {
-    const birthdayMessage = await db.execute(sql`
-    SELECT ms.personalized_message AS message,
-       u2.name                 AS idol_name,
-       u2.nickname             AS idol_nickname,
-       u2.profile_image        AS profile_image,
-       ms.created_at           AS created_at
-    FROM message_scheduled ms
-            INNER JOIN idol i ON ms.idol_id = i.id
-            INNER JOIN users u ON ms.users_id = u.id
-            INNER JOIN users u2 ON i.user_id = u2.id
-    WHERE u.id = ${userId};
-    `);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let birthdayMessage = [] as any[];
+
+    await db.transaction(async trx => {
+        birthdayMessage = await trx.execute(sql`
+            SELECT ms.personalized_message AS message,
+                u2.name                 AS idol_name,
+                u2.nickname             AS idol_nickname,
+                u2.profile_image        AS profile_image,
+                ms.created_at           AS created_at
+            FROM message_scheduled ms
+                INNER JOIN idol i ON ms.idol_id = i.id
+                INNER JOIN users u ON ms.users_id = u.id
+                INNER JOIN users u2 ON i.user_id = u2.id
+            WHERE u.id = ${userId};
+        `);
+
+        await trx.execute(
+            sql.raw(
+                `INSERT INTO users_birthday (user_id, last_read_at)
+                VALUES ('${userId}', NOW())
+                ON CONFLICT (user_id) 
+                DO UPDATE SET last_read_at = NOW()`,
+            ),
+        );
+    });
 
     return birthdayMessage;
 };
