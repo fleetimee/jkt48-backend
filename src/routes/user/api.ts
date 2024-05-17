@@ -28,6 +28,7 @@ import {
     getUserByIdWithUnreadNewsCount,
     getUserConversationList,
     getUserConversationMessages,
+    getUserIdWithUnreadBirthdayMessageCount,
     getUserTransactionDetail,
     getUserTransactionList,
     setUserReactionToMessage,
@@ -74,6 +75,7 @@ router.get('/me/birthdayInbox', authenticateUser, async (req, res, next) => {
             }),
         );
     } catch (error) {
+        console.log(error);
         next(error);
     }
 });
@@ -82,7 +84,7 @@ router.get('/me/birthdayCheck', authenticateUser, async (req, res, next) => {
     try {
         const id = req.user.id;
 
-        const userWithBirthday = await getUserByIdWithUnreadNewsCount(id);
+        const userWithBirthday = await getUserIdWithUnreadBirthdayMessageCount(id);
 
         res.status(StatusCodes.OK).send(
             formatResponse({
