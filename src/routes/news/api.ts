@@ -112,6 +112,7 @@ router.post('/', validateSchema(createNewsSchema), authenticateUser, async (req,
         const userId = req.user.id;
 
         const now = new Date();
+        const nowDateAdd7Hours = new Date(now.setHours(now.getHours() + 7));
 
         const sluggify = slugify(title, {
             lower: true,
@@ -119,7 +120,15 @@ router.post('/', validateSchema(createNewsSchema), authenticateUser, async (req,
 
         const slugWithRandomString = `${sluggify}-${nanoid(7)}`;
 
-        const newsItem = await createNews(title, body, userId, image, slugWithRandomString, now, now);
+        const newsItem = await createNews(
+            title,
+            body,
+            userId,
+            image,
+            slugWithRandomString,
+            nowDateAdd7Hours,
+            nowDateAdd7Hours,
+        );
 
         res.status(StatusCodes.CREATED).send(
             formatResponse({
