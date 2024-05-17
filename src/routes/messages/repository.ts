@@ -300,6 +300,7 @@ export const getBirthdayMessages = async (idolId: string) => {
  */
 export const insertBirthdayMessage = async (usersId: string, idolId: string, personalizedMessage: string) => {
     const dateNow = new Date();
+    dateNow.setHours(dateNow.getHours() + 7);
 
     await db.insert(messageScheduled).values({
         usersId,
