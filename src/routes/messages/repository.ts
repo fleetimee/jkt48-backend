@@ -251,6 +251,7 @@ export const getMessageDetail = async (messageId: string) => {
     const [messageItem] = await db.execute(
         sql`
         SELECT u.nickname AS nickname,
+        u.profile_image AS profile_image,
         m.message  AS message
         FROM users u
                 INNER JOIN message m ON u.id = m.user_id
