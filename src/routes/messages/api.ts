@@ -4,6 +4,7 @@ import { Notification } from 'firebase-admin/lib/messaging/messaging-api';
 import fs from 'fs';
 import { StatusCodes } from 'http-status-codes';
 
+import { BASE_URL } from '../../config';
 import { authenticateUser, requireAdminRole, requireMemberRole } from '../../middlewares/authenticate-user';
 import { validateSchema } from '../../middlewares/validate-request';
 import { UnprocessableEntityError } from '../../utils/errors';
@@ -231,12 +232,14 @@ router.patch(
                     body: messageDetail.message ? (messageDetail.message as string) : 'You have a new message!',
                 };
 
+                const buildAvatar = `${BASE_URL}${messageDetail.profile_image}`;
+
                 await messaging().sendEachForMulticast({
                     tokens: arrayOfStrings as unknown as string[],
                     notification: notificationMessage,
                     android: {
                         notification: {
-                            imageUrl: 'https://jkt48pm.my.id/static/logo_jkt48pm_2.png',
+                            imageUrl: buildAvatar,
                         },
                     },
                     apns: {
@@ -246,7 +249,7 @@ router.patch(
                             },
                         },
                         fcmOptions: {
-                            imageUrl: 'https://jkt48pm.my.id/static/logo_jkt48pm_2.png',
+                            imageUrl: buildAvatar,
                         },
                     },
                 });
