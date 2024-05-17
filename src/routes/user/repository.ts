@@ -330,7 +330,7 @@ export const getUserConversationList = async (userId: string) => {
                     WHEN m.created_at < (SELECT created_at FROM users WHERE id = ${userId}) OR m.approved = FALSE OR m.message = '' THEN 'sent you an attachment'
                     ELSE m.message
                 END,
-                'sent you a photo'
+                'hasnt sent a message yet'
             ) AS last_message,
             m.created_at    AS last_message_time,
             (
