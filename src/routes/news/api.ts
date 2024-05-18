@@ -1,4 +1,6 @@
 import express from 'express';
+import { messaging } from 'firebase-admin';
+import { Notification } from 'firebase-admin/lib/messaging/messaging-api';
 import { StatusCodes } from 'http-status-codes';
 import { nanoid } from 'nanoid';
 import slugify from 'slugify';
@@ -8,6 +10,7 @@ import { validateSchema } from '../../middlewares/validate-request';
 import { NotFoundError, UnauthorizedError } from '../../utils/errors';
 import { formatResponse, formatResponsePaginated } from '../../utils/response-formatter';
 import { validateUuid } from '../../utils/validate';
+import { fetchAllUserFcmToken } from '../token/repository';
 import { createNews, deleteNews, getLatestNews, getNews, getNewsBySlug, getNewsList, updateNews } from './repository';
 import { createNewsSchema, updateNewsSchema } from './schema';
 
@@ -119,7 +122,41 @@ router.post('/', validateSchema(createNewsSchema), authenticateUser, async (req,
 
         const slugWithRandomString = `${sluggify}-${nanoid(7)}`;
 
-        const newsItem = await createNews(title, body, userId, image, slugWithRandomString, now, now);
+        const [newsItem, userFcmTokens] = await Promise.all([
+            createNews(title, body, userId, image, slugWithRandomString, now, now),
+            fetchAllUserFcmToken(),
+        ]);
+
+        if (userFcmTokens.length > 0) {
+            const fcmTokens = userFcmTokens.map(token => token.token);
+
+            const notificationMessage: Notification = {
+                title: 'Update News JKT48 PM',
+                body: title,
+            };
+
+            await messaging().sendEachForMulticast({
+                tokens: fcmTokens as unknown as string[],
+                notification: notificationMessage,
+                android: {
+                    notification: {
+                        imageUrl: 'https://jkt48pm.my.id/static/logo_jkt48pm_2.png',
+                    },
+                },
+                apns: {
+                    payload: {
+                        aps: {
+                            'mutable-content': 1,
+                        },
+                    },
+                    fcmOptions: {
+                        imageUrl: 'https://jkt48pm.my.id/static/logo_jkt48pm_2.png',
+                    },
+                },
+            });
+        }
+
+        // const newsItem = await createNews(title, body, userId, image, slugWithRandomString, now, now);
 
         res.status(StatusCodes.CREATED).send(
             formatResponse({

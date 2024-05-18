@@ -53,6 +53,19 @@ export const fetchAllAdminFcmToken = async () => {
     return tokens;
 };
 
+export const fetchAllUserFcmToken = async () => {
+    const tokens = await db.execute(
+        sql`
+        SELECT token
+        FROM fcm_token ft
+                INNER JOIN users u ON ft.user_id = u.id
+        WHERE u.roles = 'user';
+        `,
+    );
+
+    return tokens;
+};
+
 /**
  * Fetches the subscribed FCM tokens based on a given message ID.
  * @param messageId - The ID of the message.
