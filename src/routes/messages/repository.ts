@@ -251,6 +251,7 @@ export const getMessageDetail = async (messageId: string) => {
     const [messageItem] = await db.execute(
         sql`
         SELECT u.nickname AS nickname,
+        u.profile_image AS profile_image,
         m.message  AS message
         FROM users u
                 INNER JOIN message m ON u.id = m.user_id
@@ -300,6 +301,7 @@ export const getBirthdayMessages = async (idolId: string) => {
  */
 export const insertBirthdayMessage = async (usersId: string, idolId: string, personalizedMessage: string) => {
     const dateNow = new Date();
+    dateNow.setHours(dateNow.getHours() + 7);
 
     await db.insert(messageScheduled).values({
         usersId,

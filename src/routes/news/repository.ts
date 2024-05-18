@@ -36,6 +36,7 @@ export const getNewsList = async (
         throw new Error('Invalid order by column');
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let newsList = [] as any[];
 
     await db.transaction(async trx => {
