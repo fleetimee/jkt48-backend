@@ -53,6 +53,10 @@ export const fetchAllAdminFcmToken = async () => {
     return tokens;
 };
 
+/**
+ * Fetches all FCM tokens for users with the role 'user'.
+ * @returns {Promise<Array<string>>} A promise that resolves to an array of FCM tokens.
+ */
 export const fetchAllUserFcmToken = async () => {
     const tokens = await db.execute(
         sql`
@@ -112,4 +116,12 @@ export const deleteStaleFcmTokens = async () => {
  */
 export const deleteFcmTokensByUserId = async (userId: string) => {
     await db.delete(fcmTokens).where(eq(fcmTokens.userId, userId));
+};
+
+export const removeFcmTokensByUserIdAndDeviceModel = async (userId: string, model: string) => {
+    await db.execute(
+        sql`
+        DELETE FROM fcm_token WHERE user_id = ${userId} AND model = ${model}
+        `,
+    );
 };
