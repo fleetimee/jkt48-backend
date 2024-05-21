@@ -1,8 +1,7 @@
 import bcrypt from 'bcrypt';
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 
 import db from '../../db';
-import { fcmTokens } from '../../models/fcm_token';
 import { order } from '../../models/order';
 import { users } from '../../models/users';
 import { getMessageAttachments, getMessageReactions } from '../messages/repository';
@@ -252,10 +251,8 @@ export const cancelSubscription = async (userId: string) => {
     const [subscription] = await db
         .update(order)
         .set({ orderStatus: 'cancelled' })
-        .where(eq(order.userId, userId))
+        .where(and(eq(order.userId, userId), eq(order.orderStatus, 'success')))
         .returning();
-
-    await db.delete(fcmTokens).where(eq(fcmTokens.userId, userId));
 
     return subscription;
 };
