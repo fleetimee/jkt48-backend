@@ -159,6 +159,8 @@ router.get('/me/cancelSubscription', authenticateUser, async (req, res, next) =>
 
         const fcmTokens = await fetchFcmTokenByUserId(id);
 
+        console.log(fcmTokens);
+
         // Unsubscribe the FCM tokens
         if (fcmTokens.length > 0) {
             const tokens = fcmTokens.map(token => token.token);

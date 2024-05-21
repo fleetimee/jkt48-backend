@@ -34,6 +34,8 @@ router.post('/', async (req, res, next) => {
 
             const tokens = await fetchFcmTokenByOrderId(body.external_id);
 
+            console.log('FCM Tokens:', tokens);
+
             if (tokens.length > 0) {
                 const fcmTokens = tokens.map(token => token.token);
 
