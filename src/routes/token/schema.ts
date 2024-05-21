@@ -9,7 +9,7 @@ export const sendTokenSchema = z.object({
 
 export const begoneTokenSchema = z.object({
     body: z.object({
-        fcmToken: z.string().min(1, 'Please enter a token'),
-        model: z.string().min(1, 'Please enter a model'),
+        userId: z.string().optional(),
+        model: z.string().optional(),
     }),
 });

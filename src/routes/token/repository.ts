@@ -1,4 +1,4 @@
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 
 import db from '../../db';
 import { fcmTokens } from '../../models/fcm_token';
@@ -124,9 +124,7 @@ export const deleteFcmTokensByUserId = async (userId: string) => {
  * @param model - The device model.
  */
 export const removeFcmTokensByUserIdAndDeviceModel = async (userId: string, model: string) => {
-    await db.execute(
-        sql`
-        DELETE FROM fcm_token WHERE user_id = ${userId} AND model = ${model}
-        `,
-    );
+    const result = await db.delete(fcmTokens).where(and(eq(fcmTokens.userId, userId), eq(fcmTokens.model, model)));
+
+    return result;
 };

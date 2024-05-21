@@ -4,7 +4,7 @@ import { StatusCodes } from 'http-status-codes';
 import { authenticateUser } from '../../middlewares/authenticate-user';
 import { validateSchema } from '../../middlewares/validate-request';
 import { formatResponse } from '../../utils/response-formatter';
-import { deleteStaleFcmTokens, sendTokenToServer } from './repository';
+import { deleteStaleFcmTokens, removeFcmTokensByUserIdAndDeviceModel, sendTokenToServer } from './repository';
 import { begoneTokenSchema, sendTokenSchema } from './schema';
 
 const router = express.Router();
@@ -49,13 +49,37 @@ router.post('/', validateSchema(sendTokenSchema), authenticateUser, async (req, 
 
 router.post('/tokenBegone', validateSchema(begoneTokenSchema), authenticateUser, async (req, res, next) => {
     try {
-        const { fcmToken, model } = req.body;
+        const id = req.user.id;
 
-        await sendTokenToServer(fcmToken, req.user.id, model || '');
+        const { userId, model } = req.body;
+
+        if (id !== userId) {
+            return res.status(StatusCodes.FORBIDDEN).send(
+                formatResponse({
+                    message: 'You do not have permission to delete this token',
+                    code: StatusCodes.FORBIDDEN,
+                    data: null,
+                    success: false,
+                }),
+            );
+        }
+
+        const data = await removeFcmTokensByUserIdAndDeviceModel(userId, model);
+
+        if (data.length === 0) {
+            return res.status(StatusCodes.NOT_FOUND).send(
+                formatResponse({
+                    message: 'No token found',
+                    code: StatusCodes.NOT_FOUND,
+                    data: null,
+                    success: false,
+                }),
+            );
+        }
 
         res.status(StatusCodes.OK).send(
             formatResponse({
-                message: 'Token saved successfully',
+                message: 'No more token for you!',
                 code: StatusCodes.OK,
                 data: null,
                 success: true,
