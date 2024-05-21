@@ -5,7 +5,7 @@ import { authenticateUser } from '../../middlewares/authenticate-user';
 import { validateSchema } from '../../middlewares/validate-request';
 import { formatResponse } from '../../utils/response-formatter';
 import { deleteStaleFcmTokens, sendTokenToServer } from './repository';
-import { sendTokenSchema } from './schema';
+import { begoneTokenSchema, sendTokenSchema } from './schema';
 
 const router = express.Router();
 
@@ -43,6 +43,25 @@ router.post('/', validateSchema(sendTokenSchema), authenticateUser, async (req, 
         );
     } catch (error) {
         console.error('Error saving token:', error);
+        next(error);
+    }
+});
+
+router.post('/tokenBegone', validateSchema(begoneTokenSchema), authenticateUser, async (req, res, next) => {
+    try {
+        const { fcmToken, model } = req.body;
+
+        await sendTokenToServer(fcmToken, req.user.id, model || '');
+
+        res.status(StatusCodes.OK).send(
+            formatResponse({
+                message: 'Token saved successfully',
+                code: StatusCodes.OK,
+                data: null,
+                success: true,
+            }),
+        );
+    } catch (error) {
         next(error);
     }
 });

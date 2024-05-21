@@ -118,6 +118,11 @@ export const deleteFcmTokensByUserId = async (userId: string) => {
     await db.delete(fcmTokens).where(eq(fcmTokens.userId, userId));
 };
 
+/**
+ * Removes FCM tokens from the database based on the given user ID and device model.
+ * @param userId - The ID of the user.
+ * @param model - The device model.
+ */
 export const removeFcmTokensByUserIdAndDeviceModel = async (userId: string, model: string) => {
     await db.execute(
         sql`
