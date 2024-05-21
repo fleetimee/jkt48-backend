@@ -268,6 +268,12 @@ router.post(
 
             const user = await getUserByDeleteToken(token);
 
+            if (!user) {
+                return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Token tidak cocok' });
+            }
+
+            console.log(user);
+
             if (emailLoggedOn !== user.email) {
                 return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Email not match with logged on email' });
             }
