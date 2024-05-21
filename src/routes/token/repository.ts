@@ -71,6 +71,41 @@ export const fetchAllUserFcmToken = async () => {
 };
 
 /**
+ * Fetches FCM tokens by order ID.
+ *
+ * @param orderId - The ID of the order.
+ * @returns A promise that resolves to an array of FCM tokens.
+ */
+export const fetchFcmTokenByOrderId = async (orderId: string) => {
+    const tokens = await db.execute(
+        sql`
+        SELECT * FROM fcm_token ft
+        INNER JOIN users u ON ft.user_id = u.id
+        INNER JOIN "order" o ON u.id = o.user_id
+        WHERE o.id = ${orderId};
+        `,
+    );
+
+    return tokens;
+};
+
+/**
+ * Fetches FCM tokens by user ID.
+ *
+ * @param {string} userId - The ID of the user.
+ * @returns {Promise<any>} - A promise that resolves to an array of FCM tokens.
+ */
+export const fetchFcmTokenByUserId = async (userId: string) => {
+    const tokens = await db.execute(
+        sql`
+        SELECT * FROM fcm_token WHERE user_id = ${userId};
+        `,
+    );
+
+    return tokens;
+};
+
+/**
  * Fetches the subscribed FCM tokens based on a given message ID.
  * @param messageId - The ID of the message.
  * @returns A Promise that resolves to an array of FCM tokens.

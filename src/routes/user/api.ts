@@ -1,5 +1,7 @@
 import console from 'console';
 import express from 'express';
+import { messaging } from 'firebase-admin';
+import { Notification } from 'firebase-admin/lib/messaging/messaging-api';
 import { StatusCodes } from 'http-status-codes';
 import path from 'path';
 
@@ -15,6 +17,7 @@ import { getConversationsById } from '../conversation/repository';
 import { getMessagesById } from '../messages/repository';
 import { getOrderById } from '../order/repository';
 import { getReactionById } from '../reaction/repository';
+import { fetchFcmTokenByUserId } from '../token/repository';
 import {
     cancelSubscription,
     checkUserSubscription,
@@ -153,6 +156,40 @@ router.get('/me/cancelSubscription', authenticateUser, async (req, res, next) =>
 
         const subscription = await cancelSubscription(id);
         if (!subscription) throw new NotFoundError('Subscription not found');
+
+        const fcmTokens = await fetchFcmTokenByUserId(id);
+
+        // Unsubscribe the FCM tokens
+        if (fcmTokens.length > 0) {
+            const tokens = fcmTokens.map(token => token.token);
+
+            // Send FCM notification
+            const notificationMessage: Notification = {
+                title: 'Subscription canceled',
+                body: 'Your subscription has been canceled',
+            };
+
+            // Send FCM notification
+            await messaging().sendEachForMulticast({
+                tokens: tokens as unknown as string[],
+                notification: notificationMessage,
+                android: {
+                    notification: {
+                        imageUrl: 'https://jkt48pm.my.id/static/logo_jkt48pm_2.png',
+                    },
+                },
+                apns: {
+                    payload: {
+                        aps: {
+                            'mutable-content': 1,
+                        },
+                    },
+                    fcmOptions: {
+                        imageUrl: 'https://jkt48pm.my.id/static/logo_jkt48pm_2.png',
+                    },
+                },
+            });
+        }
 
         res.status(StatusCodes.OK).send(
             formatResponse({

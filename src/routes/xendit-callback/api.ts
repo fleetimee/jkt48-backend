@@ -1,6 +1,9 @@
 import express from 'express';
+import { messaging } from 'firebase-admin';
+import { Notification } from 'firebase-admin/lib/messaging/messaging-api';
 import { StatusCodes } from 'http-status-codes';
 
+import { fetchFcmTokenByOrderId } from '../token/repository';
 import { updateOrderStatusXenditCallback, updateOrderStatusXenditSubscriptionCallback } from './repository';
 
 const router = express.Router();
@@ -28,6 +31,38 @@ router.post('/', async (req, res, next) => {
 
         if (body.status === 'PAID') {
             await updateOrderStatusXenditCallback(body.external_id, 'success', body);
+
+            const tokens = await fetchFcmTokenByOrderId(body.external_id);
+
+            if (tokens.length > 0) {
+                const fcmTokens = tokens.map(token => token.token);
+
+                const notificationMessage: Notification = {
+                    title: 'Payment Success',
+                    body: 'Your payment has been successfully processed',
+                };
+
+                // Send FCM notification
+                await messaging().sendEachForMulticast({
+                    tokens: fcmTokens as unknown as string[],
+                    notification: notificationMessage,
+                    android: {
+                        notification: {
+                            imageUrl: 'https://jkt48pm.my.id/static/logo_jkt48pm_2.png',
+                        },
+                    },
+                    apns: {
+                        payload: {
+                            aps: {
+                                'mutable-content': 1,
+                            },
+                        },
+                        fcmOptions: {
+                            imageUrl: 'https://jkt48pm.my.id/static/logo_jkt48pm_2.png',
+                        },
+                    },
+                });
+            }
 
             res.status(StatusCodes.OK).send({
                 message: 'Xendit callback received for successful payment',
