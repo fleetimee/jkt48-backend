@@ -169,10 +169,10 @@ cron.schedule('0 0 * * 0', function () {
     }
 });
 
-// This cron job will run every minute.
+// This cron job will run every 10 minutes.
 // Check for expired orders scheduler
-cron.schedule('* * * * *', function () {
-    console.log('Running check for expired orders every minute');
+cron.schedule('*/10 * * * *', function () {
+    console.log('Running check for expired orders every 10 minutes');
     try {
         fetch(`${BASE_URL}/api/order/check-expired`)
             .then(res => res.json())
