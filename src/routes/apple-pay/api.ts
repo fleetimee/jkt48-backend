@@ -1,8 +1,6 @@
 import express from 'express';
-import fs from 'fs';
 import { StatusCodes } from 'http-status-codes';
 import appleReceiptVerify from 'node-apple-receipt-verify';
-import path from 'path';
 
 import { validateSchema } from '../../middlewares/validate-request';
 import { formatResponse } from '../../utils/response-formatter';
@@ -26,18 +24,6 @@ router.post('/verifyApple', validateSchema(appleVerifySchema), async (req, res, 
 
         const product = await appleReceiptVerify.validate({
             receipt: receiptData,
-        });
-
-        if (product) {
-            throw new Error('Failed to verify Apple Pay');
-        }
-
-        const logMessage = `Apple Pay verify body: ${JSON.stringify(product)}\n`;
-
-        fs.appendFile(path.join(__dirname, 'apple-log.txt'), logMessage, err => {
-            if (err) {
-                console.error('Failed to write to log file:', err);
-            }
         });
 
         res.status(StatusCodes.OK).send(
