@@ -11,12 +11,13 @@ import { initializeApp, ServiceAccount } from 'firebase-admin/app';
 import helmet from 'helmet';
 import { StatusCodes } from 'http-status-codes';
 import morgan from 'morgan';
+import appleReceiptVerify from 'node-apple-receipt-verify';
 import cron from 'node-cron';
 import responseTime from 'response-time';
 import swStat from 'swagger-stats';
 import swaggerUi from 'swagger-ui-express';
 
-import { BASE_URL } from './config';
+import { APPLE_SECRET_KET, BASE_URL } from './config';
 import serviceAccount from './config/service-account.json';
 import { infoMiddleware } from './middlewares/author-info';
 import { errorHandler } from './middlewares/error-handler';
@@ -41,6 +42,12 @@ const app = express();
 
 initializeApp({
     credential: credential.cert(serviceAccount as ServiceAccount),
+});
+
+appleReceiptVerify.config({
+    secret: APPLE_SECRET_KET as string,
+    verbose: true,
+    environment: ['sandbox'],
 });
 
 Sentry.init({

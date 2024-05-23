@@ -48,3 +48,6 @@ export const AUTHOR_WEBSITE = process.env.AUTHOR_WEBSITE;
 export const AUTHOR_DOCUMENTATION = process.env.AUTHOR_DOCUMENTATION;
 
 export const FCM_DEFAULT_IMAGE_LOGO = BASE_URL + '/static/logo_jkt48pm_2.png';
+
+// APPLE
+export const APPLE_SECRET_KET = process.env.APPLE_SECRET_KET;
