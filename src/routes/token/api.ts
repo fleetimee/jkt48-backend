@@ -64,18 +64,7 @@ router.post('/tokenBegone', validateSchema(begoneTokenSchema), authenticateUser,
             );
         }
 
-        const data = await removeFcmTokensByUserIdAndDeviceModel(userId, model);
-
-        if (data.length === 0) {
-            return res.status(StatusCodes.NOT_FOUND).send(
-                formatResponse({
-                    message: 'No token found',
-                    code: StatusCodes.NOT_FOUND,
-                    data: null,
-                    success: false,
-                }),
-            );
-        }
+        await removeFcmTokensByUserIdAndDeviceModel(userId, model);
 
         res.status(StatusCodes.OK).send(
             formatResponse({

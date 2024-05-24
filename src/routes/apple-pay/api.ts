@@ -7,6 +7,7 @@ import {
     ReceiptUtility,
     TransactionHistoryRequest,
 } from '@apple/app-store-server-library';
+import console from 'console';
 import express from 'express';
 import { StatusCodes } from 'http-status-codes';
 import appleReceiptVerify from 'node-apple-receipt-verify';
@@ -80,6 +81,8 @@ router.post('/verifyAppleV2', validateSchema(appleVerifySchema), async (req, res
             Environment.SANDBOX,
         );
 
+        console.log('Client', client);
+
         const receiptUtils = new ReceiptUtility();
 
         if (receiptData == null) {
@@ -87,6 +90,11 @@ router.post('/verifyAppleV2', validateSchema(appleVerifySchema), async (req, res
         }
 
         const transactionId = receiptUtils.extractTransactionIdFromAppReceipt(receiptData);
+        console.log('Transaction ID', transactionId);
+
+        const date = Date.now();
+
+        console.log('Date', date);
 
         if (transactionId != null) {
             const transactionHistoryRequest: TransactionHistoryRequest = {
@@ -95,12 +103,27 @@ router.post('/verifyAppleV2', validateSchema(appleVerifySchema), async (req, res
                 productTypes: [ProductType.AUTO_RENEWABLE],
             };
 
+            console.log('Transaction History Request', transactionHistoryRequest);
+
             let response: HistoryResponse | null = null;
+
+            console.log('Response', response);
+
             let transactions: string[] = [];
+
+            console.log('Transactions', transactions);
 
             do {
                 const revisionToken = response && response.revision ? response.revision : null;
-                response = await client.getTransactionHistory(transactionId, revisionToken, transactionHistoryRequest);
+
+                console.log('Revision Token', revisionToken);
+                console.log('Response', response);
+                console.log('TransactionId', transactionId);
+
+                response = await client.getTransactionHistory(transactionId, null, transactionHistoryRequest);
+
+                console.log('Response', response);
+
                 if (response.signedTransactions) {
                     transactions = transactions.concat(response.signedTransactions);
                 }
