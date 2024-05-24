@@ -14,6 +14,7 @@ import path from 'path';
 
 import { APPLE_BUNDLE_ID, APPLE_ISSUER_ID, APPLE_KEY_ID } from '../../config';
 import { validateSchema } from '../../middlewares/validate-request';
+import { BadRequestError } from '../../utils/errors';
 import { readP8File } from '../../utils/read-file';
 import { formatResponse } from '../../utils/response-formatter';
 import { appleVerifySchema } from './schema';
@@ -61,7 +62,7 @@ router.post('/verifyApple', validateSchema(appleVerifySchema), async (req, res, 
     }
 });
 
-router.post('/verifyAppleV2', async (req, res, next) => {
+router.post('/verifyAppleV2', validateSchema(appleVerifySchema), async (req, res, next) => {
     try {
         const { receiptData } = req.body;
 
@@ -80,6 +81,10 @@ router.post('/verifyAppleV2', async (req, res, next) => {
         );
 
         const receiptUtils = new ReceiptUtility();
+
+        if (receiptData == null) {
+            throw new BadRequestError('Please enter your receipt');
+        }
 
         const transactionId = receiptUtils.extractTransactionIdFromAppReceipt(receiptData);
 
@@ -112,6 +117,7 @@ router.post('/verifyAppleV2', async (req, res, next) => {
             );
         }
     } catch (error) {
+        console.log('Error', error);
         next(error);
     }
 });
