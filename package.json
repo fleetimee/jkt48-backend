@@ -22,6 +22,7 @@
         "sentry:sourcemaps": "sentry-cli sourcemaps inject --org novians --project node-express ./dist && sentry-cli sourcemaps upload --org novians --project node-express ./dist"
     },
     "dependencies": {
+        "@apple/app-store-server-library": "^1.2.0",
         "@sentry/cli": "^2.31.2",
         "@sentry/node": "^7.113.0",
         "@sentry/profiling-node": "^7.113.0",

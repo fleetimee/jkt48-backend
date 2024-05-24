@@ -51,3 +51,6 @@ export const FCM_DEFAULT_IMAGE_LOGO = BASE_URL + '/static/logo_jkt48pm_2.png';
 
 // APPLE
 export const APPLE_SECRET_KET = process.env.APPLE_SECRET_KET;
+export const APPLE_ISSUER_ID = process.env.APPLE_ISSUER_ID;
+export const APPLE_KEY_ID = process.env.APPLE_KEY_ID;
+export const APPLE_BUNDLE_ID = process.env.APPLE_BUNDLE_ID;
