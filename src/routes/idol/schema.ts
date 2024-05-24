@@ -23,7 +23,6 @@ export const updateIdolSchema = z.object({
         email: z.string().email().min(1),
         fullName: z.string().min(1),
         nickname: z.string().min(1),
-        password: z.string().min(8),
         birthday: z.string().refine(value => !isNaN(new Date(value).getTime()), {
             message: 'Please enter a valid date',
             path: ['birthday'],
