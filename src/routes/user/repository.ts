@@ -209,6 +209,7 @@ export const checkUserSubscription = async (userId: string) => {
     SELECT o.id          AS order_id,
        p.name        AS package_name,
        p.description AS package_description,
+       o.payment_method AS payment_method,
        o.expired_at  AS expired_at
     FROM "order" o
             INNER JOIN package p ON o.package_id = p.id
