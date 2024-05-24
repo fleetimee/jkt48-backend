@@ -10,7 +10,7 @@
     "scripts": {
         "dev": "nodemon src/index.ts",
         "clean": "rm -rf dist",
-        "build": "tsc && npm run sentry:sourcemaps",
+        "build": "tsc && npm run sentry:sourcemaps && copy src\\config\\SubscriptionKey_4X4DAUH7SH.p8 dist\\config\\SubscriptionKey_4X4DAUH7SH.p8",
         "start": "pm2 start ./dist/index.js --no-daemon",
         "generate": "drizzle-kit generate:pg",
         "generate:custom": "drizzle-kit generate:pg --custom",
