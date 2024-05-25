@@ -39,7 +39,7 @@ export const calculateTaxAndTotal = (price: number, taxRate: number) => {
 };
 
 export function loadRootCAs() {
-    const certPath = path.join(__dirname, '../../config/apple_root.pem');
+    const certPath = path.join(__dirname, '../../src/config/apple_root.pem');
 
     return [fs.readFileSync(certPath)];
 }
