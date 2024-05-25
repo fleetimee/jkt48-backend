@@ -16,11 +16,17 @@ import path from 'path';
 
 import { APPLE_BUNDLE_ID, APPLE_ISSUER_ID, APPLE_KEY_ID } from '../../config';
 import { validateSchema } from '../../middlewares/validate-request';
+import { NotificationSubType, NotificationType } from '../../utils/enum';
 import { BadRequestError } from '../../utils/errors';
 import { loadRootCAs } from '../../utils/lib';
 import { readP8File } from '../../utils/read-file';
 import { formatResponse } from '../../utils/response-formatter';
-import { updateOrderSuccessStatusByAppleTransactionId } from '../order/repository';
+import {
+    createOrderAppleResubscribe,
+    updateOrderCancelledStatusByAppleTransactionId,
+    updateOrderExpiredStatusByAppleTransactionId,
+    updateOrderSuccessStatusByAppleTransactionId,
+} from '../order/repository';
 import { appleVerifySchema } from './schema';
 
 const router = express.Router();
@@ -184,37 +190,39 @@ router.post('/verifyAppleV3', async (req, res, next) => {
         const utcDate = expiredData ? new Date(expiredData * 1000) : new Date();
 
         switch (verifedNotification.notificationType) {
-            case 'SUBSCRIBE':
+            case NotificationType.SUBSCRIBED:
                 switch (verifedNotification.subtype) {
-                    case 'INITIAL_BUY':
-                        updateOrderSuccessStatusByAppleTransactionId(
+                    case NotificationSubType.INITIAL_BUY:
+                        await updateOrderSuccessStatusByAppleTransactionId(
                             verifiedTransaction.originalTransactionId as string,
                             utcDate,
                         );
 
-                        console.log('INITIAL_BUY');
                         break;
-                    case 'RESUBSCRIBE':
-                        updateOrderSuccessStatusByAppleTransactionId(
+                    case NotificationSubType.RESUBSCRIBE:
+                        await updateOrderExpiredStatusByAppleTransactionId(
                             verifiedTransaction.originalTransactionId as string,
-                            utcDate,
                         );
 
-                        console.log('RESUBSCRIBE');
+                        await createOrderAppleResubscribe(verifiedTransaction.originalTransactionId as string, utcDate);
+
                         break;
-                    default:
-                        console.log(`Unhandled subtype: ${verifedNotification.subtype}`);
                 }
                 break;
-            case 'CONSUMPTION_REQUEST':
-                // Handle CONSUMPTION_REQUEST notification type
+            case NotificationType.DID_RENEW:
+                await updateOrderExpiredStatusByAppleTransactionId(verifiedTransaction.originalTransactionId as string);
+
+                await createOrderAppleResubscribe(verifiedTransaction.originalTransactionId as string, utcDate);
                 break;
-            case 'DID_CHANGE_RENEWAL_PREF':
-                // Handle DID_CHANGE_RENEWAL_PREF notification type
+            case NotificationType.DID_CHANGE_RENEWAL_STATUS:
+                switch (verifedNotification.subtype) {
+                    case NotificationSubType.AUTO_RENEW_DISABLED:
+                        await updateOrderCancelledStatusByAppleTransactionId(
+                            verifiedTransaction.originalTransactionId as string,
+                        );
+                        break;
+                }
                 break;
-            // Add more cases here as needed
-            default:
-                console.log(`Unhandled notification type: ${verifedNotification.notificationType}`);
         }
 
         res.status(StatusCodes.OK).send(

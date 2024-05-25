@@ -14,6 +14,35 @@ export const getOrderById = async (orderId: string) => {
     return orderItem;
 };
 
+/**
+ * Retrieves an order by its Apple original transaction ID.
+ * @param appleOriginalTransactionId - The Apple original transaction ID of the order.
+ * @returns The order item matching the given Apple original transaction ID, or undefined if not found.
+ */
+export const getOrderByAppleOriginalTransactionId = async (appleOriginalTransactionId: string) => {
+    const [orderItem] = await db
+        .select()
+        .from(order)
+        .where(and(eq(order.appleOriginalTransactionId, appleOriginalTransactionId), eq(order.orderStatus, 'success')));
+
+    return orderItem;
+};
+
+/**
+ * Creates a new order in the database.
+ *
+ * @param userId - The ID of the user placing the order.
+ * @param packageId - The ID of the package being ordered.
+ * @param paymentMethod - The payment method used for the order.
+ * @param subtotal - The subtotal amount of the order.
+ * @param tax - The tax amount of the order.
+ * @param total - The total amount of the order.
+ * @param idolIds - An array of IDs of the idols associated with the order.
+ * @param orderStatus - The status of the order (default: 'pending').
+ * @param expiredAt - The expiration date of the order (optional).
+ * @param appleOriginalTransactionId - The original transaction ID for Apple payments (optional).
+ * @returns The created order object.
+ */
 export const createOrder = async (
     userId: string,
     packageId: string,
@@ -22,18 +51,66 @@ export const createOrder = async (
     tax: number,
     total: number,
     idolIds: string[],
+    orderStatus = 'pending',
+    expiredAt?: Date,
+    appleOriginalTransactionId?: string,
 ) => {
     const order = await db.transaction(async trx => {
-        const [order] = await trx.execute(sql`
-        INSERT INTO public."order" (user_id, package_id, payment_method, subtotal, tax, total, order_status)
-        VALUES (${userId}, ${packageId}, ${paymentMethod}::payment_method, ${subtotal}, ${tax}, ${total}, 'pending'::order_status)
-        RETURNING *;
-        `);
+        let order;
+        if (expiredAt && appleOriginalTransactionId) {
+            [order] = await trx.execute(sql`
+                INSERT INTO public."order" (
+                    user_id, 
+                    package_id, 
+                    payment_method, 
+                    subtotal, 
+                    tax, 
+                    total, 
+                    order_status, 
+                    expired_at, 
+                    apple_original_transaction_id
+                )
+                VALUES (
+                    ${userId}, 
+                    ${packageId}, 
+                    ${paymentMethod}::payment_method, 
+                    ${subtotal}, 
+                    ${tax}, 
+                    ${total}, 
+                    ${orderStatus}::order_status, 
+                    ${expiredAt}, 
+                    ${appleOriginalTransactionId}
+                )
+                RETURNING *;
+            `);
+        } else {
+            [order] = await trx.execute(sql`
+                INSERT INTO public."order" (
+                    user_id, 
+                    package_id, 
+                    payment_method, 
+                    subtotal, 
+                    tax, 
+                    total, 
+                    order_status
+                )
+                VALUES (
+                    ${userId}, 
+                    ${packageId}, 
+                    ${paymentMethod}::payment_method, 
+                    ${subtotal}, 
+                    ${tax}, 
+                    ${total}, 
+                    ${orderStatus}::order_status
+                )
+                RETURNING *;
+            `);
+        }
 
         for (const idolId of idolIds) {
             await trx.execute(sql`
-            INSERT INTO order_idol (order_id, idol_id)
-            VALUES (${order.id}, ${idolId});
+                INSERT INTO order_idol (order_id, idol_id)
+                VALUES (${order.id}, ${idolId});
             `);
         }
 
@@ -41,6 +118,35 @@ export const createOrder = async (
     });
 
     return order;
+};
+
+export const createOrderAppleResubscribe = async (appleOriginalTransactionId: string, expiredDate?: Date) => {
+    const existingOrder = await getOrderByAppleOriginalTransactionId(appleOriginalTransactionId);
+
+    if (!existingOrder) {
+        throw new Error('Order not found');
+    }
+
+    const existingOrderIdols = await db.execute(sql`
+        SELECT * FROM order_idol WHERE order_id = ${existingOrder.id};
+    `);
+
+    const idolIds = existingOrderIdols.map(idol => idol.idol_id);
+
+    const newOrder = await createOrder(
+        existingOrder.userId,
+        existingOrder.packageId,
+        existingOrder.paymentMethod as string,
+        existingOrder.subtotal as unknown as number,
+        existingOrder.tax as unknown as number,
+        existingOrder.total as unknown as number,
+        idolIds as string[],
+        'success',
+        expiredDate ? expiredDate : new Date(),
+        appleOriginalTransactionId,
+    );
+
+    return newOrder;
 };
 
 /**
@@ -123,6 +229,11 @@ export const updateAppleOriginalTransactionId = async (orderId: string, appleOri
     await db.update(order).set({ appleOriginalTransactionId }).where(eq(order.id, orderId));
 };
 
+/**
+ * Updates the success status of an order by the Apple original transaction ID.
+ * @param appleOriginalTransactionId - The Apple original transaction ID of the order.
+ * @param expiredAt - The new expiration date of the order.
+ */
 export const updateOrderSuccessStatusByAppleTransactionId = async (
     appleOriginalTransactionId: string,
     expiredAt: Date,
@@ -133,13 +244,21 @@ export const updateOrderSuccessStatusByAppleTransactionId = async (
         .where(eq(order.appleOriginalTransactionId, appleOriginalTransactionId));
 };
 
-export const updateOrderFailedStatusByAppleTransactionId = async (appleOriginalTransactionId: string) => {
+/**
+ * Updates the order status to 'failed' for a given Apple transaction ID.
+ * @param appleOriginalTransactionId - The Apple original transaction ID.
+ */
+export const updateOrderCancelledStatusByAppleTransactionId = async (appleOriginalTransactionId: string) => {
     await db
         .update(order)
-        .set({ orderStatus: 'failed' })
+        .set({ orderStatus: 'cancelled' })
         .where(eq(order.appleOriginalTransactionId, appleOriginalTransactionId));
 };
 
+/**
+ * Updates the order status to 'expired' based on the provided Apple transaction ID.
+ * @param appleOriginalTransactionId - The Apple original transaction ID.
+ */
 export const updateOrderExpiredStatusByAppleTransactionId = async (appleOriginalTransactionId: string) => {
     await db
         .update(order)

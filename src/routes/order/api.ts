@@ -9,6 +9,7 @@ import { deleteFcmTokensByUserId } from '../token/repository';
 import { checkUserSubscription } from '../user/repository';
 import {
     createOrder,
+    createOrderAppleResubscribe,
     getExpiredOrders,
     getInquiryOrder,
     getInquiryOrderListIdol,
@@ -141,6 +142,26 @@ router.post('/', validateSchema(createOrderSchema), authenticateUser, async (req
                 code: StatusCodes.OK,
                 message: 'Order created',
                 data: createOrderItem,
+            }),
+        );
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
+});
+
+router.post('/createAppleResubscribe', async (req, res, next) => {
+    try {
+        const { appleOriginalTransactionId } = req.body;
+
+        const order = await createOrderAppleResubscribe(appleOriginalTransactionId);
+
+        res.status(StatusCodes.OK).send(
+            formatResponse({
+                success: true,
+                code: StatusCodes.OK,
+                message: 'Order created',
+                data: order,
             }),
         );
     } catch (error) {
