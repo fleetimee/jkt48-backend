@@ -152,11 +152,13 @@ router.post('/verifyAppleV3', validateSchema(appleVerifySchema), async (req, res
     try {
         const { signedPayload } = req.body;
 
-        const bundleId = APPLE_BUNDLE_ID;
+        const bundleId = 'com.toeitechno.jkt48pm.ios';
         const appleRootCAs: Buffer[] = loadRootCAs();
         const enableOnlineChecks = true;
         const environment = Environment.SANDBOX;
         const appAppleId = undefined; // appAppleId is required when the environment is Production
+
+        console.log('Signed Payload', appleRootCAs);
 
         const verifier = new SignedDataVerifier(
             appleRootCAs,
@@ -166,7 +168,13 @@ router.post('/verifyAppleV3', validateSchema(appleVerifySchema), async (req, res
             appAppleId,
         );
 
+        console.log('Verifier', verifier);
+
+        console.log('Signed Payload', signedPayload);
+
         const verifedNotification = await verifier.verifyAndDecodeNotification(signedPayload);
+
+        console.log('Verified Notification', verifedNotification);
 
         const verifiedTransaction = await verifier.verifyAndDecodeTransaction(
             verifedNotification.data?.signedTransactionInfo as string,
@@ -184,12 +192,16 @@ router.post('/verifyAppleV3', validateSchema(appleVerifySchema), async (req, res
                             verifiedTransaction.originalTransactionId as string,
                             utcDate,
                         );
+
+                        console.log('INITIAL_BUY');
                         break;
                     case 'RESUBSCRIBE':
                         updateOrderSuccessStatusByAppleTransactionId(
                             verifiedTransaction.originalTransactionId as string,
                             utcDate,
                         );
+
+                        console.log('RESUBSCRIBE');
                         break;
                     default:
                         console.log(`Unhandled subtype: ${verifedNotification.subtype}`);
