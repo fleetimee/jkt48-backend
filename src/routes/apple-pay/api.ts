@@ -158,8 +158,6 @@ router.post('/verifyAppleV3', async (req, res, next) => {
         const environment = Environment.SANDBOX;
         const appAppleId = undefined; // appAppleId is required when the environment is Production
 
-        console.log('Signed Payload', appleRootCAs);
-
         const verifier = new SignedDataVerifier(
             appleRootCAs,
             enableOnlineChecks,
@@ -168,17 +166,18 @@ router.post('/verifyAppleV3', async (req, res, next) => {
             appAppleId,
         );
 
-        console.log('Verifier', verifier);
-
-        console.log('Signed Payload', signedPayload);
-
         const verifedNotification = await verifier.verifyAndDecodeNotification(signedPayload);
-
-        console.log('Verified Notification', verifedNotification);
 
         const verifiedTransaction = await verifier.verifyAndDecodeTransaction(
             verifedNotification.data?.signedTransactionInfo as string,
         );
+
+        console.log('Verified Notification', {
+            notificationType: verifedNotification.notificationType,
+            subtype: verifedNotification.subtype,
+        });
+
+        console.log('Verified Transaction', verifiedTransaction);
 
         const expiredData = verifiedTransaction.expiresDate;
 
