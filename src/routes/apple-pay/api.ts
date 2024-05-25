@@ -148,7 +148,7 @@ router.post('/verifyAppleV2', validateSchema(appleVerifySchema), async (req, res
     }
 });
 
-router.post('/verifyAppleV3', validateSchema(appleVerifySchema), async (req, res, next) => {
+router.post('/verifyAppleV3', async (req, res, next) => {
     try {
         const { signedPayload } = req.body;
 
