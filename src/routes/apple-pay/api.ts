@@ -20,6 +20,7 @@ import { BadRequestError } from '../../utils/errors';
 import { loadRootCAs } from '../../utils/lib';
 import { readP8File } from '../../utils/read-file';
 import { formatResponse } from '../../utils/response-formatter';
+import { updateOrderSuccessStatusByAppleTransactionId } from '../order/repository';
 import { appleVerifySchema } from './schema';
 
 const router = express.Router();
@@ -167,8 +168,42 @@ router.post('/verifyAppleV3', validateSchema(appleVerifySchema), async (req, res
 
         const verifedNotification = await verifier.verifyAndDecodeNotification(signedPayload);
 
-        if (verifedNotification.notificationType === 'DID_RENEW') {
-            console.log('DID_RENEW');
+        const verifiedTransaction = await verifier.verifyAndDecodeTransaction(
+            verifedNotification.data?.signedTransactionInfo as string,
+        );
+
+        const expiredData = verifiedTransaction.expiresDate;
+
+        const utcDate = expiredData ? new Date(expiredData * 1000) : new Date();
+
+        switch (verifedNotification.notificationType) {
+            case 'SUBSCRIBE':
+                switch (verifedNotification.subtype) {
+                    case 'INITIAL_BUY':
+                        updateOrderSuccessStatusByAppleTransactionId(
+                            verifiedTransaction.originalTransactionId as string,
+                            utcDate,
+                        );
+                        break;
+                    case 'RESUBSCRIBE':
+                        updateOrderSuccessStatusByAppleTransactionId(
+                            verifiedTransaction.originalTransactionId as string,
+                            utcDate,
+                        );
+                        break;
+                    default:
+                        console.log(`Unhandled subtype: ${verifedNotification.subtype}`);
+                }
+                break;
+            case 'CONSUMPTION_REQUEST':
+                // Handle CONSUMPTION_REQUEST notification type
+                break;
+            case 'DID_CHANGE_RENEWAL_PREF':
+                // Handle DID_CHANGE_RENEWAL_PREF notification type
+                break;
+            // Add more cases here as needed
+            default:
+                console.log(`Unhandled notification type: ${verifedNotification.notificationType}`);
         }
 
         res.status(StatusCodes.OK).send(

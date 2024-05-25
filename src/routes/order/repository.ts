@@ -123,6 +123,30 @@ export const updateAppleOriginalTransactionId = async (orderId: string, appleOri
     await db.update(order).set({ appleOriginalTransactionId }).where(eq(order.id, orderId));
 };
 
+export const updateOrderSuccessStatusByAppleTransactionId = async (
+    appleOriginalTransactionId: string,
+    expiredAt: Date,
+) => {
+    await db
+        .update(order)
+        .set({ orderStatus: 'success', expiredAt: expiredAt })
+        .where(eq(order.appleOriginalTransactionId, appleOriginalTransactionId));
+};
+
+export const updateOrderFailedStatusByAppleTransactionId = async (appleOriginalTransactionId: string) => {
+    await db
+        .update(order)
+        .set({ orderStatus: 'failed' })
+        .where(eq(order.appleOriginalTransactionId, appleOriginalTransactionId));
+};
+
+export const updateOrderExpiredStatusByAppleTransactionId = async (appleOriginalTransactionId: string) => {
+    await db
+        .update(order)
+        .set({ orderStatus: 'expired' })
+        .where(eq(order.appleOriginalTransactionId, appleOriginalTransactionId));
+};
+
 /**
  * Updates the order status and expiration date for a given order ID using Google Pay.
  * @param orderId - The ID of the order to update.
