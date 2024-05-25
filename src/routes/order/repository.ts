@@ -245,25 +245,26 @@ export const updateOrderSuccessStatusByAppleTransactionId = async (
 };
 
 /**
- * Updates the order status to 'failed' for a given Apple transaction ID.
+ * Updates the order status to 'cancelled' for a given Apple transaction ID.
+ *
  * @param appleOriginalTransactionId - The Apple original transaction ID.
  */
 export const updateOrderCancelledStatusByAppleTransactionId = async (appleOriginalTransactionId: string) => {
     await db
         .update(order)
         .set({ orderStatus: 'cancelled' })
-        .where(eq(order.appleOriginalTransactionId, appleOriginalTransactionId));
+        .where(and(eq(order.appleOriginalTransactionId, appleOriginalTransactionId), eq(order.orderStatus, 'success')));
 };
 
 /**
- * Updates the order status to 'expired' based on the provided Apple transaction ID.
+ * Updates the order status to 'expired' for a given Apple transaction ID.
  * @param appleOriginalTransactionId - The Apple original transaction ID.
  */
 export const updateOrderExpiredStatusByAppleTransactionId = async (appleOriginalTransactionId: string) => {
     await db
         .update(order)
         .set({ orderStatus: 'expired' })
-        .where(eq(order.appleOriginalTransactionId, appleOriginalTransactionId));
+        .where(and(eq(order.appleOriginalTransactionId, appleOriginalTransactionId), eq(order.orderStatus, 'success')));
 };
 
 /**
