@@ -30,6 +30,7 @@ dist-ssr
 
 service-account.json
 SubscriptionKey_4X4DAUH7SH.p8
+apple_root.pem
 
 # Ignore everything in the drizzle directory
 drizzle/*

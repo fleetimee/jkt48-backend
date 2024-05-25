@@ -16,3 +16,10 @@ export const updateOrderStatusSchema = z.object({
         orderId: z.string().min(1, 'Order ID cannot be empty'),
     }),
 });
+
+export const updateAppleOriginalTransactionIdSchema = z.object({
+    body: z.object({
+        orderId: z.string().min(1, 'Order ID cannot be empty'),
+        appleOriginalTransactionId: z.string().min(1, 'Apple Original Transaction ID cannot be empty'),
+    }),
+});

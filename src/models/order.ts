@@ -1,4 +1,4 @@
-import { jsonb, numeric, pgEnum, pgTable, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { jsonb, numeric, pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 
 import { packagePayment } from './package';
 import { users } from './users';
@@ -35,4 +35,5 @@ export const order = pgTable('order', {
     updatedAt: timestamp('updated_at').notNull().defaultNow(),
     expiredAt: timestamp('expired_at'),
     callbackData: jsonb('callback_data'),
+    appleOriginalTransactionId: text('apple_original_transaction_id'),
 });

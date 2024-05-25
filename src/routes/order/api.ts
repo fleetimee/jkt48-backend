@@ -13,10 +13,11 @@ import {
     getInquiryOrder,
     getInquiryOrderListIdol,
     getOrderById,
+    updateAppleOriginalTransactionId,
     updateExpiredOrderStatus,
     updateOrderStatusGpay,
 } from './repository';
-import { createOrderSchema, updateOrderStatusSchema } from './schema';
+import { createOrderSchema, updateAppleOriginalTransactionIdSchema, updateOrderStatusSchema } from './schema';
 
 const router = express.Router();
 
@@ -169,5 +170,33 @@ router.patch('/updateStatus', validateSchema(updateOrderStatusSchema), authentic
         next(error);
     }
 });
+
+router.patch(
+    '/updateAppleOriginalTransactionId',
+    validateSchema(updateAppleOriginalTransactionIdSchema),
+    authenticateUser,
+    async (req, res, next) => {
+        try {
+            const { orderId, appleOriginalTransactionId } = req.body;
+
+            const order = await getOrderById(orderId);
+
+            if (!order) throw new NotFoundError('Order not found');
+
+            await updateAppleOriginalTransactionId(orderId, appleOriginalTransactionId);
+
+            res.status(StatusCodes.OK).send(
+                formatResponse({
+                    success: true,
+                    code: StatusCodes.OK,
+                    message: 'Order status updated',
+                    data: null,
+                }),
+            );
+        } catch (error) {
+            next(error);
+        }
+    },
+);
 
 export default router;

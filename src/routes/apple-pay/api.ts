@@ -5,6 +5,7 @@ import {
     Order,
     ProductType,
     ReceiptUtility,
+    SignedDataVerifier,
     TransactionHistoryRequest,
 } from '@apple/app-store-server-library';
 import console from 'console';
@@ -16,6 +17,7 @@ import path from 'path';
 import { APPLE_BUNDLE_ID, APPLE_ISSUER_ID, APPLE_KEY_ID } from '../../config';
 import { validateSchema } from '../../middlewares/validate-request';
 import { BadRequestError } from '../../utils/errors';
+import { loadRootCAs } from '../../utils/lib';
 import { readP8File } from '../../utils/read-file';
 import { formatResponse } from '../../utils/response-formatter';
 import { appleVerifySchema } from './schema';
@@ -139,6 +141,44 @@ router.post('/verifyAppleV2', validateSchema(appleVerifySchema), async (req, res
                 }),
             );
         }
+    } catch (error) {
+        console.log('Error', error);
+        next(error);
+    }
+});
+
+router.post('/verifyAppleV3', validateSchema(appleVerifySchema), async (req, res, next) => {
+    try {
+        const { signedPayload } = req.body;
+
+        const bundleId = APPLE_BUNDLE_ID;
+        const appleRootCAs: Buffer[] = loadRootCAs();
+        const enableOnlineChecks = true;
+        const environment = Environment.SANDBOX;
+        const appAppleId = undefined; // appAppleId is required when the environment is Production
+
+        const verifier = new SignedDataVerifier(
+            appleRootCAs,
+            enableOnlineChecks,
+            environment,
+            bundleId as string,
+            appAppleId,
+        );
+
+        const verifedNotification = await verifier.verifyAndDecodeNotification(signedPayload);
+
+        if (verifedNotification.notificationType === 'DID_RENEW') {
+            console.log('DID_RENEW');
+        }
+
+        res.status(StatusCodes.OK).send(
+            formatResponse({
+                code: StatusCodes.OK,
+                data: verifedNotification,
+                message: 'Apple Pay verified successfully',
+                success: true,
+            }),
+        );
     } catch (error) {
         console.log('Error', error);
         next(error);

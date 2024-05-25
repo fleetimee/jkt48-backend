@@ -113,6 +113,17 @@ export const updateExpiredOrderStatus = async () => {
 };
 
 /**
+ * Updates the appleOriginalTransactionId of an order in the database.
+ *
+ * @param {string} orderId - The ID of the order to update.
+ * @param {string} appleOriginalTransactionId - The new appleOriginalTransactionId value.
+ * @returns {Promise<void>} - A promise that resolves when the update is complete.
+ */
+export const updateAppleOriginalTransactionId = async (orderId: string, appleOriginalTransactionId: string) => {
+    await db.update(order).set({ appleOriginalTransactionId }).where(eq(order.id, orderId));
+};
+
+/**
  * Updates the order status and expiration date for a given order ID using Google Pay.
  * @param orderId - The ID of the order to update.
  * @returns The updated order object.

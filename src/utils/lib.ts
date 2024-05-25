@@ -1,3 +1,6 @@
+import fs from 'fs';
+import path from 'path';
+
 /**
  * Generates a verification code consisting of alphanumeric characters.
  *
@@ -34,3 +37,9 @@ export const calculateTaxAndTotal = (price: number, taxRate: number) => {
     const total = price + tax;
     return { tax, total };
 };
+
+export function loadRootCAs() {
+    const certPath = path.join(__dirname, '../../config/apple_root.pem');
+
+    return [fs.readFileSync(certPath)];
+}
