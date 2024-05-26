@@ -1,4 +1,4 @@
-import { and, eq, lt, sql } from 'drizzle-orm';
+import { and, desc, eq, lt, sql } from 'drizzle-orm';
 
 import db from '../../db';
 import { order } from '../../models/order';
@@ -23,7 +23,8 @@ export const getOrderByAppleOriginalTransactionId = async (appleOriginalTransact
     const [orderItem] = await db
         .select()
         .from(order)
-        .where(and(eq(order.appleOriginalTransactionId, appleOriginalTransactionId), eq(order.orderStatus, 'success')));
+        .where(and(eq(order.appleOriginalTransactionId, appleOriginalTransactionId), eq(order.orderStatus, 'expired')))
+        .orderBy(desc(order.updatedAt));
 
     return orderItem;
 };
@@ -261,9 +262,11 @@ export const updateOrderCancelledStatusByAppleTransactionId = async (appleOrigin
  * @param appleOriginalTransactionId - The Apple original transaction ID.
  */
 export const updateOrderExpiredStatusByAppleTransactionId = async (appleOriginalTransactionId: string) => {
+    const date = new Date();
+
     await db
         .update(order)
-        .set({ orderStatus: 'expired' })
+        .set({ orderStatus: 'expired', updatedAt: date })
         .where(and(eq(order.appleOriginalTransactionId, appleOriginalTransactionId), eq(order.orderStatus, 'success')));
 };
 
