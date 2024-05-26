@@ -204,7 +204,7 @@ router.post('/verifyAppleV3', async (req, res, next) => {
                             verifiedTransaction.originalTransactionId as string,
                         );
 
-                        await createOrderAppleResubscribe(verifiedTransaction.originalTransactionId as string, utcDate);
+                        await createOrderAppleResubscribe(verifiedTransaction.originalTransactionId as string);
 
                         break;
                 }
@@ -212,7 +212,7 @@ router.post('/verifyAppleV3', async (req, res, next) => {
             case NotificationType.DID_RENEW:
                 await updateOrderExpiredStatusByAppleTransactionId(verifiedTransaction.originalTransactionId as string);
 
-                await createOrderAppleResubscribe(verifiedTransaction.originalTransactionId as string, utcDate);
+                await createOrderAppleResubscribe(verifiedTransaction.originalTransactionId as string);
                 break;
             case NotificationType.DID_CHANGE_RENEWAL_STATUS:
                 switch (verifedNotification.subtype) {

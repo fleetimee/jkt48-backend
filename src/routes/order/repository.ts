@@ -121,7 +121,7 @@ export const createOrder = async (
     return order;
 };
 
-export const createOrderAppleResubscribe = async (appleOriginalTransactionId: string, expiredDate?: Date) => {
+export const createOrderAppleResubscribe = async (appleOriginalTransactionId: string) => {
     const existingOrder = await getOrderByAppleOriginalTransactionId(appleOriginalTransactionId);
 
     if (!existingOrder) {
@@ -143,7 +143,7 @@ export const createOrderAppleResubscribe = async (appleOriginalTransactionId: st
         existingOrder.total as unknown as number,
         idolIds as string[],
         'success',
-        expiredDate ? expiredDate : new Date(),
+        new Date(),
         appleOriginalTransactionId,
     );
 
