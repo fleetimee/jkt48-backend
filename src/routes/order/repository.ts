@@ -239,9 +239,11 @@ export const updateOrderSuccessStatusByAppleTransactionId = async (
     appleOriginalTransactionId: string,
     expiredAt: Date,
 ) => {
+    const date = new Date();
+
     await db
         .update(order)
-        .set({ orderStatus: 'success', expiredAt: expiredAt })
+        .set({ orderStatus: 'success', expiredAt: expiredAt, updatedAt: date })
         .where(eq(order.appleOriginalTransactionId, appleOriginalTransactionId));
 };
 
@@ -251,9 +253,11 @@ export const updateOrderSuccessStatusByAppleTransactionId = async (
  * @param appleOriginalTransactionId - The Apple original transaction ID.
  */
 export const updateOrderCancelledStatusByAppleTransactionId = async (appleOriginalTransactionId: string) => {
+    const date = new Date();
+
     await db
         .update(order)
-        .set({ orderStatus: 'cancelled' })
+        .set({ orderStatus: 'cancelled', updatedAt: date })
         .where(and(eq(order.appleOriginalTransactionId, appleOriginalTransactionId), eq(order.orderStatus, 'success')));
 };
 
