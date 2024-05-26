@@ -189,6 +189,8 @@ router.post('/verifyAppleV3', async (req, res, next) => {
 
         const utcDate = expiredData ? new Date(expiredData * 1000) : new Date();
 
+        console.log('UTC Date', utcDate);
+
         switch (verifedNotification.notificationType) {
             case NotificationType.SUBSCRIBED:
                 switch (verifedNotification.subtype) {
