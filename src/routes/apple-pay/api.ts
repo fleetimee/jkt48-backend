@@ -174,14 +174,14 @@ router.post('/verifyAppleV3', async (req, res, next) => {
 
         const verifedNotification = await verifier.verifyAndDecodeNotification(signedPayload);
 
-        const verifiedTransaction = await verifier.verifyAndDecodeTransaction(
-            verifedNotification.data?.signedTransactionInfo as string,
-        );
-
         console.log('Verified Notification', {
             notificationType: verifedNotification.notificationType,
             subtype: verifedNotification.subtype,
         });
+
+        const verifiedTransaction = await verifier.verifyAndDecodeTransaction(
+            verifedNotification.data?.signedTransactionInfo as string,
+        );
 
         console.log('Verified Transaction', verifiedTransaction);
 
