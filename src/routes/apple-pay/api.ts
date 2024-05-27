@@ -199,7 +199,7 @@ router.post('/verifyAppleV3', async (req, res, next) => {
 
         const expiredData = verifiedTransaction.expiresDate;
 
-        const utcDate = expiredData ? new Date(expiredData * 1000) : new Date();
+        const utcDate = expiredData ? new Date(expiredData) : new Date();
 
         console.log('UTC Date', utcDate);
 
