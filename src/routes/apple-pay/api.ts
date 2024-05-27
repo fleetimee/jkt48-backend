@@ -179,6 +179,18 @@ router.post('/verifyAppleV3', async (req, res, next) => {
             subtype: verifedNotification.subtype,
         });
 
+        if (!verifedNotification.data?.signedTransactionInfo) {
+            res.status(200).send(
+                formatResponse({
+                    code: StatusCodes.OK,
+                    data: verifedNotification,
+                    message: 'Apple Pay verified successfully without transaction info',
+                    success: true,
+                }),
+            );
+            return;
+        }
+
         const verifiedTransaction = await verifier.verifyAndDecodeTransaction(
             verifedNotification.data?.signedTransactionInfo as string,
         );
