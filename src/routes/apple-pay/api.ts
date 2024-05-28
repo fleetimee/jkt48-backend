@@ -10,6 +10,7 @@ import {
 } from '@apple/app-store-server-library';
 import console from 'console';
 import express from 'express';
+import fs from 'fs';
 import { StatusCodes } from 'http-status-codes';
 import appleReceiptVerify from 'node-apple-receipt-verify';
 import path from 'path';
@@ -179,6 +180,32 @@ router.post('/verifyAppleV3', async (req, res, next) => {
             subtype: verifedNotification.subtype,
         });
 
+        // Log the verified notification
+        const logData = `Verified Notification: ${JSON.stringify(
+            {
+                notificationType: verifedNotification.notificationType,
+                subtype: verifedNotification.subtype,
+            },
+            null,
+            2,
+        )}\n`;
+
+        const logDir = 'logs/notification';
+        const logFile = path.join(logDir, 'notification.txt');
+
+        fs.mkdir(logDir, { recursive: true }, err => {
+            if (err) {
+                console.error('Error creating log directory', err);
+                return;
+            }
+
+            fs.appendFile(logFile, logData, err => {
+                if (err) {
+                    console.error('Error writing to log file', err);
+                }
+            });
+        });
+
         if (!verifedNotification.data?.signedTransactionInfo) {
             res.status(200).send(
                 formatResponse({
@@ -194,6 +221,25 @@ router.post('/verifyAppleV3', async (req, res, next) => {
         const verifiedTransaction = await verifier.verifyAndDecodeTransaction(
             verifedNotification.data?.signedTransactionInfo as string,
         );
+
+        // Log the verified transaction
+        const logDataTransaction = `Verified Transaction: ${JSON.stringify(verifiedTransaction, null, 2)}\n`;
+
+        const logDirTransaction = 'logs/transaction';
+        const logFileTransaction = path.join(logDirTransaction, 'transaction.txt');
+
+        fs.mkdir(logDirTransaction, { recursive: true }, err => {
+            if (err) {
+                console.error('Error creating log directory', err);
+                return;
+            }
+
+            fs.appendFile(logFileTransaction, logDataTransaction, err => {
+                if (err) {
+                    console.error('Error writing to log file', err);
+                }
+            });
+        });
 
         console.log('Verified Transaction', verifiedTransaction);
 
@@ -217,16 +263,45 @@ router.post('/verifyAppleV3', async (req, res, next) => {
                         await updateOrderExpiredStatusByAppleTransactionId(
                             verifiedTransaction.originalTransactionId as string,
                         );
-
                         await createOrderAppleResubscribe(verifiedTransaction.originalTransactionId as string);
-
+                        break;
+                }
+                break;
+            case NotificationType.DID_FAIL_TO_RENEW:
+                switch (verifedNotification.subtype) {
+                    case NotificationSubType.GRACE_PERIOD:
+                        await updateOrderExpiredStatusByAppleTransactionId(
+                            verifiedTransaction.originalTransactionId as string,
+                        );
                         break;
                 }
                 break;
             case NotificationType.DID_RENEW:
+                switch (verifedNotification.subtype) {
+                    case NotificationSubType.BILLING_RECOVERY:
+                        await updateOrderSuccessStatusByAppleTransactionId(
+                            verifiedTransaction.originalTransactionId as string,
+                            utcDate,
+                        );
+                        break;
+                }
                 await updateOrderExpiredStatusByAppleTransactionId(verifiedTransaction.originalTransactionId as string);
 
                 await createOrderAppleResubscribe(verifiedTransaction.originalTransactionId as string);
+                break;
+            case NotificationType.EXPIRED:
+                switch (verifedNotification.subtype) {
+                    case NotificationSubType.VOLUNTARY:
+                        await updateOrderExpiredStatusByAppleTransactionId(
+                            verifiedTransaction.originalTransactionId as string,
+                        );
+                        break;
+                    case NotificationSubType.BILLING_RETRY:
+                        await updateOrderExpiredStatusByAppleTransactionId(
+                            verifiedTransaction.originalTransactionId as string,
+                        );
+                        break;
+                }
                 break;
             case NotificationType.DID_CHANGE_RENEWAL_STATUS:
                 switch (verifedNotification.subtype) {

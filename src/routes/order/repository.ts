@@ -134,6 +134,10 @@ export const createOrderAppleResubscribe = async (appleOriginalTransactionId: st
 
     const idolIds = existingOrderIdols.map(idol => idol.idol_id);
 
+    const date = new Date();
+
+    const dateWithOneMonth = new Date(date.setMonth(date.getMonth() + 1));
+
     const newOrder = await createOrder(
         existingOrder.userId,
         existingOrder.packageId,
@@ -143,7 +147,7 @@ export const createOrderAppleResubscribe = async (appleOriginalTransactionId: st
         existingOrder.total as unknown as number,
         idolIds as string[],
         'success',
-        new Date(),
+        dateWithOneMonth,
         appleOriginalTransactionId,
     );
 
