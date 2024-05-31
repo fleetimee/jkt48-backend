@@ -316,7 +316,7 @@ export const getUserTransactionDetail = async (userId: string, orderId: string) 
  */
 export const getUserConversationList = async (userId: string) => {
     const conversation = await db.execute(sql`
-    SELECT *
+  SELECT *
         FROM (
             SELECT DISTINCT ON (i.id)
             c.id            AS conversation_id,
@@ -326,7 +326,8 @@ export const getUserConversationList = async (userId: string) => {
             U.profile_image AS idol_image,
             COALESCE(
                 CASE 
-                    WHEN m.created_at < (SELECT created_at FROM users WHERE id = ${userId}) OR m.approved = FALSE OR m.message = '' THEN 'sent you an attachment'
+                    WHEN m.created_at < (SELECT created_at FROM users WHERE id = ${userId}) OR m.approved = FALSE THEN 'Hasn't sent you a message yet.'
+                    WHEN m.message = '' THEN 'Sent an image.'
                     ELSE m.message
                 END,
                 'hasnt sent a message yet'
