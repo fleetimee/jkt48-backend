@@ -330,7 +330,7 @@ export const getUserConversationList = async (userId: string) => {
                                                                  FROM users
                                                                  WHERE id = ${userId}) OR
                                                  m.approved = FALSE THEN 'hasnt sent a message yet'
-                                              WHEN m.message = '' THEN CONCAT(u.nickname, ' sent you a photo/sent you a voice note')
+                                              WHEN m.message = ''  THEN 'sent you a photo/sent you a voice note'
                                             ELSE m.message
                                             END,
                                         'hasnt sent a message yet'
