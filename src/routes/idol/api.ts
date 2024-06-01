@@ -275,6 +275,8 @@ router.patch(
 
             const { fullName, bio } = req.body;
 
+            bio == '';
+
             const updatedMember = await updateLoggedMember(id, fullName, bio);
 
             res.status(StatusCodes.OK).send({
