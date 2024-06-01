@@ -324,17 +324,17 @@ export const getUserConversationList = async (userId: string) => {
             i.id            AS idol_id,
             u.nickname      AS idol_name,
             U.profile_image AS idol_image,
-            COALESCE(
-                                                    CASE
-                                                        WHEN m.created_at < (SELECT created_at
-                                                                            FROM users
-                                                                            WHERE id = ${userId}) OR
-                                                            m.approved = FALSE OR m.message = '' THEN 'hasnt sent a message yet'
-                                                        WHEN m.message = '' THEN 'sent you an attachment'
-                                                        ELSE m.message
-                                                        END,
-                                                    'hasnt sent a message yet'
-                                            )                                                                        AS last_message,
+                              COALESCE(
+                                        CASE
+                                            WHEN m.created_at < (SELECT created_at
+                                                                 FROM users
+                                                                 WHERE id = ${userId}) OR
+                                                 m.approved = FALSE THEN 'hasnt sent a message yet'
+                                              WHEN m.message = '' THEN CONCAT(u.nickname, ' has sent you an attachment')
+                                            ELSE m.message
+                                            END,
+                                        'hasnt sent a message yet2'
+                                )                                                                        AS last_message,
             m.created_at    AS last_message_time,
             (
                 SELECT COUNT(*)
