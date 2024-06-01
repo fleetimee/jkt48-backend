@@ -330,10 +330,10 @@ export const getUserConversationList = async (userId: string) => {
                                                                  FROM users
                                                                  WHERE id = ${userId}) OR
                                                  m.approved = FALSE THEN 'hasnt sent a message yet'
-                                              WHEN m.message = '' THEN CONCAT(u.nickname, ' has sent you an attachment')
+                                              WHEN m.message = '' THEN CONCAT(u.nickname, ' sent you an attachment')
                                             ELSE m.message
                                             END,
-                                        'hasnt sent a message yet2'
+                                        'hasnt sent a message yet'
                                 )                                                                        AS last_message,
             m.created_at    AS last_message_time,
             (
