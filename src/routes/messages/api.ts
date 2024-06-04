@@ -23,7 +23,7 @@ import {
     getMessagesById,
     insertBirthdayMessage,
 } from './repository';
-import { approveOrRejectMessageSchema, insertBirthdayMessageSchema } from './schema';
+import { approveAllMessagesSchema, approveOrRejectMessageSchema, insertBirthdayMessageSchema } from './schema';
 
 const router = express.Router();
 
@@ -178,7 +178,7 @@ router.post('/insertBirthdayMessage', validateSchema(insertBirthdayMessageSchema
 
 router.post(
     '/approveAll',
-    validateSchema(approveOrRejectMessageSchema),
+    validateSchema(approveAllMessagesSchema),
     authenticateUser,
     requireAdminRole,
     async (req, res, next) => {
