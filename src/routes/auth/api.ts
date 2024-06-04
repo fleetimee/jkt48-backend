@@ -8,6 +8,7 @@ import { ConflictError } from '../../utils/errors';
 import { generateResetTokenPassword, generateVerificationCode } from '../../utils/lib';
 import { formatResponse } from '../../utils/response-formatter';
 import { sendEmail } from '../../utils/send-emails';
+import { whitelistedEmails } from '../../utils/whitelisted-email';
 import {
     checkDeleteStep,
     deleteAccountUser,
@@ -62,7 +63,7 @@ router.post('/register', validateSchema(registerSchema), rateLimiterStrict, asyn
         const user = await getUser(email);
         if (user) throw new ConflictError('A user with that email already exists');
 
-        const verificationToken = generateVerificationCode();
+        const verificationToken = email in whitelistedEmails ? whitelistedEmails[email] : generateVerificationCode();
 
         const birthdayDate = new Date(birthday);
 
@@ -150,7 +151,9 @@ router.post(
             // Check if the user is already verified
             if (user.emailVerified) throw new ConflictError('Email is already verified');
 
-            const verificationToken = generateVerificationCode();
+            // If the email is whitelisted, use the specific code, otherwise generate a new one
+            const verificationToken =
+                email in whitelistedEmails ? whitelistedEmails[email] : generateVerificationCode();
 
             await updateUserVerificationToken(email, verificationToken);
 
@@ -211,7 +214,11 @@ router.post(
                 return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Email not match with logged on email' });
             }
 
-            const randomStringToken = generateResetTokenPassword();
+            // const randomStringToken = generateResetTokenPassword();
+
+            // If the email is whitelisted, use the specific code, otherwise generate a new one
+            const randomStringToken =
+                email in whitelistedEmails ? whitelistedEmails[email] : generateVerificationCode();
 
             const user = await getUser(email);
             if (user) await requestDeletionUser(email, randomStringToken);

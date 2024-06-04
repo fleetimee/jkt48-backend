@@ -15,6 +15,7 @@ import { generateVerificationCode } from '../../utils/lib';
 import { uploadMessage, uploadUserProfileMember } from '../../utils/multer';
 import { formatResponsePaginated } from '../../utils/response-formatter';
 import { validateMemberId, validateUuid } from '../../utils/validate';
+import { whitelistedEmails } from '../../utils/whitelisted-email';
 import { getUser } from '../auth/repository';
 import { fetchAllAdminFcmToken } from '../token/repository';
 import { getUserById } from '../user/repository';
@@ -141,7 +142,9 @@ router.post(
             if (user) throw new UnprocessableEntityError('Email is already registered');
 
             // Generate verification token
-            const verificationToken = generateVerificationCode();
+            // If the email is whitelisted, use the specific code, otherwise generate a new one
+            const verificationToken =
+                email in whitelistedEmails ? whitelistedEmails[email] : generateVerificationCode();
 
             // File path image
             const ext = req.file?.originalname || '';
