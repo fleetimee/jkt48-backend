@@ -23,6 +23,12 @@ export const approveOrRejectMessageSchema = z.object({
     }),
 });
 
+export const approveAllMessagesSchema = z.object({
+    body: z.object({
+        conversationId: z.string().min(1, 'Conversation ID cannot be empty'),
+    }),
+});
+
 export const insertBirthdayMessageSchema = z.object({
     body: z.object({
         userId: z.string().min(1, 'User ID cannot be empty'),

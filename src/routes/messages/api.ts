@@ -15,6 +15,7 @@ import { deleteAttachment, getAttachmentsByMessageId } from '../attachment/repos
 import { fetchSubscribedFcmTokens } from '../token/repository';
 import { checkBirthday, fetchTodayBirthdayUsers } from '../user/repository';
 import {
+    approveAllUserMessages,
     approveMessage,
     deleteMessage,
     getMessageDetail,
@@ -174,6 +175,65 @@ router.post('/insertBirthdayMessage', validateSchema(insertBirthdayMessageSchema
         next(error);
     }
 });
+
+router.post(
+    '/approveAll',
+    validateSchema(approveOrRejectMessageSchema),
+    authenticateUser,
+    requireAdminRole,
+    async (req, res, next) => {
+        try {
+            const { conversationId } = req.body;
+
+            const messageIds = (await approveAllUserMessages(conversationId)) as unknown as string[];
+
+            for (const messageId of messageIds as string[]) {
+                const userFcmTokens = await fetchSubscribedFcmTokens(messageId);
+                const messageDetail = await getMessageDetail(messageId);
+
+                if (userFcmTokens.length > 0) {
+                    const arrayOfStrings = userFcmTokens.map(item => item.token);
+
+                    const notificationMessage: Notification = {
+                        title: messageDetail.nickname as string,
+                        body: messageDetail.message ? (messageDetail.message as string) : 'You have a new message!',
+                    };
+
+                    const buildAvatar = `${BASE_URL}${messageDetail.profile_image}`;
+
+                    await messaging().sendEachForMulticast({
+                        tokens: arrayOfStrings as unknown as string[],
+                        notification: notificationMessage,
+                        android: {
+                            notification: {
+                                imageUrl: buildAvatar,
+                            },
+                        },
+                        apns: {
+                            payload: {
+                                aps: {
+                                    'mutable-content': 1,
+                                },
+                            },
+                            fcmOptions: {
+                                imageUrl: buildAvatar,
+                            },
+                        },
+                    });
+                }
+            }
+
+            res.status(StatusCodes.OK).send({
+                success: true,
+                code: StatusCodes.OK,
+                message: 'Success approve all message',
+                data: null,
+            });
+        } catch (error) {
+            next(error);
+        }
+    },
+);
 
 router.delete('/:id', authenticateUser, requireMemberRole, async (req, res, next) => {
     try {

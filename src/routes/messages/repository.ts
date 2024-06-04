@@ -247,6 +247,24 @@ export const approveMessage = async (messageId: string, isApproved: boolean) => 
     }
 };
 
+/**
+ * Approves all messages from a specific user.
+ * @param userUuid - The UUID of the user whose messages should be approved.
+ * @returns The updated message items.
+ */
+export const approveAllUserMessages = async (conversationId: string) => {
+    const [messageItems] = await db.execute(
+        sql`
+        UPDATE message
+        SET approved = true
+        WHERE conversation_id = ${conversationId}
+        RETURNING id;
+        `,
+    );
+
+    return messageItems;
+};
+
 export const getMessageDetail = async (messageId: string) => {
     const [messageItem] = await db.execute(
         sql`
