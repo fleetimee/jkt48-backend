@@ -14,7 +14,7 @@ export const errorHandler = (error: unknown, req: Request, res: Response, next: 
     if (res.headersSent) return next();
 
     let status = 500;
-    let message = 'Internal Server Error: tanyakan ke Novian ya!';
+    let message = 'Internal Server Error';
 
     if (error instanceof CustomError) {
         message = error.message;

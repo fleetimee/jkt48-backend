@@ -185,43 +185,7 @@ router.post(
         try {
             const { conversationId } = req.body;
 
-            const messageIds = (await approveAllUserMessages(conversationId)) as unknown as string[];
-
-            for (const messageId of messageIds as string[]) {
-                const userFcmTokens = await fetchSubscribedFcmTokens(messageId);
-                const messageDetail = await getMessageDetail(messageId);
-
-                if (userFcmTokens.length > 0) {
-                    const arrayOfStrings = userFcmTokens.map(item => item.token);
-
-                    const notificationMessage: Notification = {
-                        title: messageDetail.nickname as string,
-                        body: messageDetail.message ? (messageDetail.message as string) : 'You have a new message!',
-                    };
-
-                    const buildAvatar = `${BASE_URL}${messageDetail.profile_image}`;
-
-                    await messaging().sendEachForMulticast({
-                        tokens: arrayOfStrings as unknown as string[],
-                        notification: notificationMessage,
-                        android: {
-                            notification: {
-                                imageUrl: buildAvatar,
-                            },
-                        },
-                        apns: {
-                            payload: {
-                                aps: {
-                                    'mutable-content': 1,
-                                },
-                            },
-                            fcmOptions: {
-                                imageUrl: buildAvatar,
-                            },
-                        },
-                    });
-                }
-            }
+            await approveAllUserMessages(conversationId);
 
             res.status(StatusCodes.OK).send({
                 success: true,
@@ -230,6 +194,7 @@ router.post(
                 data: null,
             });
         } catch (error) {
+            console.log(error);
             next(error);
         }
     },
