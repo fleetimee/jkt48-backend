@@ -303,7 +303,7 @@ export const getCloseToExpirationOrders = async () => {
     SELECT id
     FROM "order"
     WHERE order_status = 'success'
-    AND expired_at BETWEEN CURRENT_TIMESTAMP AND CURRENT_TIMESTAMP + INTERVAL '7 days'
+    AND expired_at BETWEEN CURRENT_TIMESTAMP AND CURRENT_TIMESTAMP + INTERVAL '3 days'
     AND payment_method = 'xendit';
     `);
 
