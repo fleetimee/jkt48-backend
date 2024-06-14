@@ -2,61 +2,11 @@ import express from 'express';
 import { google } from 'googleapis';
 import { StatusCodes } from 'http-status-codes';
 
+import { DeveloperNotification } from '../../types/google-purchase';
+import { GoogleNotificationType } from '../../utils/enum';
 import { updateOrderPurchasedGoogle } from '../order/repository';
 
 const router = express.Router();
-
-export enum NotificationType {
-    SUBSCRIPTION_RECOVERED = 1,
-    SUBSCRIPTION_RENEWED = 2,
-    SUBSCRIPTION_CANCELED = 3,
-    SUBSCRIPTION_PURCHASED = 4,
-    SUBSCRIPTION_ON_HOLD = 5,
-    SUBSCRIPTION_IN_GRACE_PERIOD = 6,
-    SUBSCRIPTION_RESTARTED = 7,
-    SUBSCRIPTION_PRICE_CHANGE_CONFIRMED = 8,
-    SUBSCRIPTION_DEFERRED = 9,
-    SUBSCRIPTION_PAUSED = 10,
-    SUBSCRIPTION_PAUSE_SCHEDULE_CHANGED = 11,
-    SUBSCRIPTION_REVOKED = 12,
-    SUBSCRIPTION_EXPIRED = 13,
-    SUBSCRIPTION_PENDING_PURCHASE_CANCELED = 20,
-}
-
-export interface OneTimeProductNotification {
-    version: string;
-    notificationType: number;
-    purchaseToken: string;
-    sku: string;
-}
-
-export interface SubscriptionNotification {
-    version: string;
-    notificationType: NotificationType;
-    purchaseToken: string;
-    subscriptionId: string;
-}
-
-export interface VoidedPurchaseNotification {
-    purchaseToken: string;
-    orderId: string;
-    productType: number;
-    refundType: number;
-}
-
-export interface TestNotification {
-    version: string;
-}
-
-export interface DeveloperNotification {
-    version: string;
-    packageName: string;
-    eventTimeMillis: number;
-    oneTimeProductNotification?: OneTimeProductNotification;
-    subscriptionNotification?: SubscriptionNotification;
-    voidedPurchaseNotification?: VoidedPurchaseNotification;
-    testNotification?: TestNotification;
-}
 
 router.post('/verifyGoogle', async (req, res, next) => {
     try {
@@ -75,16 +25,22 @@ router.post('/verifyGoogle', async (req, res, next) => {
             scopes: ['https://www.googleapis.com/auth/androidpublisher'],
         });
 
+        console.log('Auth:', auth);
+
         const androidPublisher = google.androidpublisher({
             version: 'v3',
             auth: auth,
         });
+
+        console.log('Android Publisher:', androidPublisher);
 
         let response;
 
         switch (true) {
             case !!decodedData.subscriptionNotification: {
                 const { subscriptionNotification } = decodedData;
+
+                console.log('Subscription notification:', subscriptionNotification);
 
                 if (!subscriptionNotification) {
                     throw new Error('Subscription notification is undefined');
@@ -97,11 +53,11 @@ router.post('/verifyGoogle', async (req, res, next) => {
                 });
 
                 switch (subscriptionNotification.notificationType) {
-                    case NotificationType.SUBSCRIPTION_CANCELED: {
+                    case GoogleNotificationType.SUBSCRIPTION_CANCELED: {
                         // Handle subscription cancellation
                         break;
                     }
-                    case NotificationType.SUBSCRIPTION_PURCHASED: {
+                    case GoogleNotificationType.SUBSCRIPTION_PURCHASED: {
                         // Handle subscription purchase
 
                         const expiryDate = new Date(Number(response.data.expiryTimeMillis));
@@ -117,51 +73,51 @@ router.post('/verifyGoogle', async (req, res, next) => {
 
                         return;
                     }
-                    case NotificationType.SUBSCRIPTION_RENEWED: {
+                    case GoogleNotificationType.SUBSCRIPTION_RENEWED: {
                         // Handle subscription renewal
                         break;
                     }
-                    case NotificationType.SUBSCRIPTION_RECOVERED: {
+                    case GoogleNotificationType.SUBSCRIPTION_RECOVERED: {
                         // Handle subscription recovery
                         break;
                     }
-                    case NotificationType.SUBSCRIPTION_ON_HOLD: {
+                    case GoogleNotificationType.SUBSCRIPTION_ON_HOLD: {
                         // Handle subscription on hold
                         break;
                     }
-                    case NotificationType.SUBSCRIPTION_IN_GRACE_PERIOD: {
+                    case GoogleNotificationType.SUBSCRIPTION_IN_GRACE_PERIOD: {
                         // Handle subscription in grace period
                         break;
                     }
-                    case NotificationType.SUBSCRIPTION_RESTARTED: {
+                    case GoogleNotificationType.SUBSCRIPTION_RESTARTED: {
                         // Handle subscription restart
                         break;
                     }
-                    case NotificationType.SUBSCRIPTION_PRICE_CHANGE_CONFIRMED: {
+                    case GoogleNotificationType.SUBSCRIPTION_PRICE_CHANGE_CONFIRMED: {
                         // Handle subscription price change confirmed
                         break;
                     }
-                    case NotificationType.SUBSCRIPTION_DEFERRED: {
+                    case GoogleNotificationType.SUBSCRIPTION_DEFERRED: {
                         // Handle subscription deferral
                         break;
                     }
-                    case NotificationType.SUBSCRIPTION_PAUSED: {
+                    case GoogleNotificationType.SUBSCRIPTION_PAUSED: {
                         // Handle subscription pause
                         break;
                     }
-                    case NotificationType.SUBSCRIPTION_PAUSE_SCHEDULE_CHANGED: {
+                    case GoogleNotificationType.SUBSCRIPTION_PAUSE_SCHEDULE_CHANGED: {
                         // Handle subscription pause schedule change
                         break;
                     }
-                    case NotificationType.SUBSCRIPTION_REVOKED: {
+                    case GoogleNotificationType.SUBSCRIPTION_REVOKED: {
                         // Handle subscription revocation
                         break;
                     }
-                    case NotificationType.SUBSCRIPTION_EXPIRED: {
+                    case GoogleNotificationType.SUBSCRIPTION_EXPIRED: {
                         // Handle subscription expiration
                         break;
                     }
-                    case NotificationType.SUBSCRIPTION_PENDING_PURCHASE_CANCELED: {
+                    case GoogleNotificationType.SUBSCRIPTION_PENDING_PURCHASE_CANCELED: {
                         // Handle subscription pending purchase cancellation
                         break;
                     }

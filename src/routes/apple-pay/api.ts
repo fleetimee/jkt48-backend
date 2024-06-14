@@ -12,12 +12,11 @@ import console from 'console';
 import express from 'express';
 import fs from 'fs';
 import { StatusCodes } from 'http-status-codes';
-import appleReceiptVerify from 'node-apple-receipt-verify';
 import path from 'path';
 
 import { APPLE_BUNDLE_ID, APPLE_ISSUER_ID, APPLE_KEY_ID } from '../../config';
 import { validateSchema } from '../../middlewares/validate-request';
-import { NotificationSubType, NotificationType } from '../../utils/enum';
+import { AppleNotificationSubType, AppleNotificationType } from '../../utils/enum';
 import { BadRequestError } from '../../utils/errors';
 import { loadRootCAs } from '../../utils/lib';
 import { readP8File } from '../../utils/read-file';
@@ -31,47 +30,6 @@ import {
 import { appleVerifySchema } from './schema';
 
 const router = express.Router();
-
-router.post('/verify', async (req, res, next) => {
-    try {
-        const { body } = req;
-
-        console.log('Apple Pay verify body', body);
-    } catch (error) {
-        next(error);
-    }
-});
-
-router.post('/verifyApple', validateSchema(appleVerifySchema), async (req, res, next) => {
-    try {
-        const { receiptData } = req.body;
-
-        const product = await appleReceiptVerify.validate({
-            receipt: receiptData,
-        });
-
-        res.status(StatusCodes.OK).send(
-            formatResponse({
-                code: StatusCodes.OK,
-                data: product,
-                message: 'Apple Pay verified successfully',
-                success: true,
-            }),
-        );
-    } catch (e) {
-        if (e instanceof appleReceiptVerify.EmptyError) {
-            // Return 400
-            console.log('EmptyError');
-        } else if (e instanceof appleReceiptVerify.ServiceUnavailableError) {
-            // todo
-
-            // Return 503
-            throw new Error('ServiceUnavailableError');
-        }
-
-        next(e);
-    }
-});
 
 router.post('/verifyAppleV2', validateSchema(appleVerifySchema), async (req, res, next) => {
     try {
@@ -250,16 +208,16 @@ router.post('/verifyAppleV3', async (req, res, next) => {
         console.log('UTC Date', utcDate);
 
         switch (verifedNotification.notificationType) {
-            case NotificationType.SUBSCRIBED:
+            case AppleNotificationType.SUBSCRIBED:
                 switch (verifedNotification.subtype) {
-                    case NotificationSubType.INITIAL_BUY:
+                    case AppleNotificationSubType.INITIAL_BUY:
                         await updateOrderSuccessStatusByAppleTransactionId(
                             verifiedTransaction.originalTransactionId as string,
                             utcDate,
                         );
 
                         break;
-                    case NotificationSubType.RESUBSCRIBE:
+                    case AppleNotificationSubType.RESUBSCRIBE:
                         await updateOrderExpiredStatusByAppleTransactionId(
                             verifiedTransaction.originalTransactionId as string,
                         );
@@ -267,18 +225,18 @@ router.post('/verifyAppleV3', async (req, res, next) => {
                         break;
                 }
                 break;
-            case NotificationType.DID_FAIL_TO_RENEW:
+            case AppleNotificationType.DID_FAIL_TO_RENEW:
                 switch (verifedNotification.subtype) {
-                    case NotificationSubType.GRACE_PERIOD:
+                    case AppleNotificationSubType.GRACE_PERIOD:
                         await updateOrderExpiredStatusByAppleTransactionId(
                             verifiedTransaction.originalTransactionId as string,
                         );
                         break;
                 }
                 break;
-            case NotificationType.DID_RENEW:
+            case AppleNotificationType.DID_RENEW:
                 switch (verifedNotification.subtype) {
-                    case NotificationSubType.BILLING_RECOVERY:
+                    case AppleNotificationSubType.BILLING_RECOVERY:
                         await updateOrderSuccessStatusByAppleTransactionId(
                             verifiedTransaction.originalTransactionId as string,
                             utcDate,
@@ -289,23 +247,23 @@ router.post('/verifyAppleV3', async (req, res, next) => {
 
                 await createOrderAppleResubscribe(verifiedTransaction.originalTransactionId as string);
                 break;
-            case NotificationType.EXPIRED:
+            case AppleNotificationType.EXPIRED:
                 switch (verifedNotification.subtype) {
-                    case NotificationSubType.VOLUNTARY:
+                    case AppleNotificationSubType.VOLUNTARY:
                         await updateOrderExpiredStatusByAppleTransactionId(
                             verifiedTransaction.originalTransactionId as string,
                         );
                         break;
-                    case NotificationSubType.BILLING_RETRY:
+                    case AppleNotificationSubType.BILLING_RETRY:
                         await updateOrderExpiredStatusByAppleTransactionId(
                             verifiedTransaction.originalTransactionId as string,
                         );
                         break;
                 }
                 break;
-            case NotificationType.DID_CHANGE_RENEWAL_STATUS:
+            case AppleNotificationType.DID_CHANGE_RENEWAL_STATUS:
                 switch (verifedNotification.subtype) {
-                    case NotificationSubType.AUTO_RENEW_DISABLED:
+                    case AppleNotificationSubType.AUTO_RENEW_DISABLED:
                         await updateOrderCancelledStatusByAppleTransactionId(
                             verifiedTransaction.originalTransactionId as string,
                         );
