@@ -229,8 +229,12 @@ export const updateExpiredOrderStatus = async () => {
  * @param orderId - The ID of the order to update.
  * @param googlePurchaseToken - The new Google purchase token to set.
  */
-export const updateGooglePurchaseToken = async (orderId: string, googlePurchaseToken: string) => {
-    await db.update(order).set({ googlePurchaseToken }).where(eq(order.id, orderId));
+export const updateGooglePurchaseToken = async (
+    orderId: string,
+    googlePurchaseToken: string,
+    googlePurchaseId: string,
+) => {
+    await db.update(order).set({ googlePurchaseToken, googlePurchaseId }).where(eq(order.id, orderId));
 };
 
 /**
