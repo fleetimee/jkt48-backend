@@ -227,18 +227,18 @@ router.patch(
 );
 
 router.patch(
-    '/updadateGooglePurchaseToken',
+    '/updateGooglePurchaseToken',
     validateSchema(updateGooglePurchaseTokenSchema),
     authenticateUser,
     async (req, res, next) => {
         try {
-            const { orderId, googlePurchaseToken } = req.body;
+            const { orderId, googlePurchaseToken, googlePurchaseId } = req.body;
 
             const order = await getOrderById(orderId);
 
             if (!order) throw new NotFoundError('Order not found');
 
-            await updateGooglePurchaseToken(orderId, googlePurchaseToken);
+            await updateGooglePurchaseToken(orderId, googlePurchaseToken, googlePurchaseId);
 
             res.status(StatusCodes.OK).send(
                 formatResponse({
