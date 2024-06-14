@@ -198,6 +198,7 @@ router.post('/verifyGoogle', async (req, res, next) => {
             data: null,
         });
     } catch (error) {
+        console.error('Error verifying Google Pay:', error);
         next(error);
     }
 });
