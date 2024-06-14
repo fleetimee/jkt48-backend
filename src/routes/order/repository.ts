@@ -224,10 +224,11 @@ export const updateExpiredOrderStatus = async () => {
 };
 
 /**
- * Updates the Google purchase token for a specific order.
+ * Updates the Google purchase token and ID for a specific order.
  *
  * @param orderId - The ID of the order to update.
- * @param googlePurchaseToken - The new Google purchase token to set.
+ * @param googlePurchaseToken - The new Google purchase token.
+ * @param googlePurchaseId - The new Google purchase ID.
  */
 export const updateGooglePurchaseToken = async (
     orderId: string,
@@ -235,6 +236,21 @@ export const updateGooglePurchaseToken = async (
     googlePurchaseId: string,
 ) => {
     await db.update(order).set({ googlePurchaseToken, googlePurchaseId }).where(eq(order.id, orderId));
+};
+
+/**
+ * Updates the order status to 'success' and sets the expiration date and update date for a given Google purchase token.
+ * @param purchaseToken - The Google purchase token.
+ * @param expiredAt - The expiration date for the order.
+ * @returns A promise that resolves when the update is complete.
+ */
+export const updateOrderPurchasedGoogle = async (purchaseToken: string, expiredAt: Date) => {
+    const date = new Date();
+
+    await db
+        .update(order)
+        .set({ orderStatus: 'success', expiredAt: expiredAt, updatedAt: date })
+        .where(and(eq(order.googlePurchaseToken, purchaseToken), eq(order.orderStatus, 'pending')));
 };
 
 /**

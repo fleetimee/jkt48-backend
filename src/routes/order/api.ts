@@ -249,6 +249,7 @@ router.patch(
                 }),
             );
         } catch (error) {
+            console.log(error);
             next(error);
         }
     },
