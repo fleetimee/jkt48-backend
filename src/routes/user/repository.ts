@@ -270,7 +270,8 @@ export const getUserTransactionList = async (userId: string) => {
         o.created_at   AS order_date,
         o.total        AS order_total,
         o.order_status AS order_status,
-        o.payment_method AS payment_method
+        o.payment_method AS payment_method,
+        o.google_purchase_id AS google_purchase_id
     FROM "order" o
             INNER JOIN package p ON o.package_id = p.id
     WHERE o.user_id = ${userId}
