@@ -16,9 +16,15 @@ import {
     getOrderById,
     updateAppleOriginalTransactionId,
     updateExpiredOrderStatus,
+    updateGooglePurchaseToken,
     updateOrderStatusGpay,
 } from './repository';
-import { createOrderSchema, updateAppleOriginalTransactionIdSchema, updateOrderStatusSchema } from './schema';
+import {
+    createOrderSchema,
+    updateAppleOriginalTransactionIdSchema,
+    updateGooglePurchaseTokenSchema,
+    updateOrderStatusSchema,
+} from './schema';
 
 const router = express.Router();
 
@@ -205,6 +211,34 @@ router.patch(
             if (!order) throw new NotFoundError('Order not found');
 
             await updateAppleOriginalTransactionId(orderId, appleOriginalTransactionId);
+
+            res.status(StatusCodes.OK).send(
+                formatResponse({
+                    success: true,
+                    code: StatusCodes.OK,
+                    message: 'Order status updated',
+                    data: null,
+                }),
+            );
+        } catch (error) {
+            next(error);
+        }
+    },
+);
+
+router.patch(
+    '/updadateGooglePurchaseToken',
+    validateSchema(updateGooglePurchaseTokenSchema),
+    authenticateUser,
+    async (req, res, next) => {
+        try {
+            const { orderId, googlePurchaseToken } = req.body;
+
+            const order = await getOrderById(orderId);
+
+            if (!order) throw new NotFoundError('Order not found');
+
+            await updateGooglePurchaseToken(orderId, googlePurchaseToken);
 
             res.status(StatusCodes.OK).send(
                 formatResponse({

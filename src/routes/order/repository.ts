@@ -224,6 +224,16 @@ export const updateExpiredOrderStatus = async () => {
 };
 
 /**
+ * Updates the Google purchase token for a specific order.
+ *
+ * @param orderId - The ID of the order to update.
+ * @param googlePurchaseToken - The new Google purchase token to set.
+ */
+export const updateGooglePurchaseToken = async (orderId: string, googlePurchaseToken: string) => {
+    await db.update(order).set({ googlePurchaseToken }).where(eq(order.id, orderId));
+};
+
+/**
  * Updates the appleOriginalTransactionId of an order in the database.
  *
  * @param {string} orderId - The ID of the order to update.
