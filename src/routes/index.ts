@@ -3,6 +3,7 @@ import express from 'express';
 import applePay from './apple-pay/api';
 import auth from './auth/api';
 import conversation from './conversation/api';
+import googlePay from './google-pay/api';
 import idol from './idol/api';
 import inquiry from './inquiry/api';
 import invoice from './invoice/api';
@@ -43,6 +44,7 @@ router.use('/upload', upload);
 router.use('/token', token);
 router.use('/subscription', subscription);
 router.use('/apple', applePay);
+router.use('/google', googlePay);
 
 // Handle 404
 router.use((req, res) => {
