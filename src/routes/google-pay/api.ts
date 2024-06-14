@@ -38,3 +38,5 @@ router.post('/verifyGoogle', async (req, res, next) => {
         next(error);
     }
 });
+
+export default router;
