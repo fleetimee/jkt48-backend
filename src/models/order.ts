@@ -37,4 +37,5 @@ export const order = pgTable('order', {
     callbackData: jsonb('callback_data'),
     appleOriginalTransactionId: text('apple_original_transaction_id'),
     googlePurchaseToken: text('google_purchase_token'),
+    googlePurchaseId: text('google_purchase_id'),
 });
