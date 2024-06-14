@@ -86,9 +86,13 @@ router.post('/verifyGoogle', async (req, res, next) => {
             case !!decodedData.subscriptionNotification: {
                 const { subscriptionNotification } = decodedData;
 
+                if (!subscriptionNotification) {
+                    throw new Error('Subscription notification is undefined');
+                }
+
                 response = await androidPublisher.purchases.subscriptions.get({
                     packageName: packageName,
-                    subscriptionId: subscriptionNotification.subscriptionId ?? '',
+                    subscriptionId: subscriptionNotification.subscriptionId,
                     token: subscriptionNotification.purchaseToken,
                 });
 
