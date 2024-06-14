@@ -5,15 +5,56 @@ import path from 'path';
 
 const router = express.Router();
 
+export interface OneTimeProductNotification {
+    version: string;
+    notificationType: number;
+    purchaseToken: string;
+    sku: string;
+}
+
+export interface SubscriptionNotification {
+    version: string;
+    notificationType: number;
+    purchaseToken: string;
+    subscriptionId: string;
+}
+
+export interface VoidedPurchaseNotification {
+    purchaseToken: string;
+    orderId: string;
+    productType: number;
+    refundType: number;
+}
+
+export interface TestNotification {
+    version: string;
+}
+
+export interface DeveloperNotification {
+    version: string;
+    packageName: string;
+    eventTimeMillis: number;
+    oneTimeProductNotification?: OneTimeProductNotification;
+    subscriptionNotification?: SubscriptionNotification;
+    voidedPurchaseNotification?: VoidedPurchaseNotification;
+    testNotification?: TestNotification;
+}
 router.post('/verifyGoogle', async (req, res, next) => {
     try {
         const { body } = req;
 
-        // Log the body
-        const logData = `Body: ${JSON.stringify(body, null, 2)}\n`;
+        const decodedData: DeveloperNotification = JSON.parse(
+            Buffer.from(body.message.data, 'base64').toString('utf-8'),
+        );
 
-        const logDir = 'logs/body';
-        const logFile = path.join(logDir, 'body.txt');
+        console.log('Decoded data:', decodedData);
+
+        // Log the body
+        // Log the decoded data
+        const logData = `Decoded Data: ${JSON.stringify(decodedData, null, 2)}\n`;
+
+        const logDir = 'logs/decodedData';
+        const logFile = path.join(logDir, 'decodedData.txt');
 
         fs.mkdir(logDir, { recursive: true }, err => {
             if (err) {
