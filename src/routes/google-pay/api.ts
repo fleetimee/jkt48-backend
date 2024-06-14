@@ -71,7 +71,7 @@ router.post('/verifyGoogle', async (req, res, next) => {
         const { packageName } = decodedData;
 
         const auth = new google.auth.GoogleAuth({
-            keyFile: './config/service-account-androidPublisher.json',
+            keyFile: './src/config/service-account-androidPublisher.json',
             scopes: ['https://www.googleapis.com/auth/androidpublisher'],
         });
 
