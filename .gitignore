@@ -29,6 +29,7 @@ dist-ssr
 .firebase
 
 service-account.json
+service-account-androidPublisher.json
 SubscriptionKey_4X4DAUH7SH.p8
 apple_root.pem
 
