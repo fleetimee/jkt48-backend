@@ -28,5 +28,6 @@ export const updateGooglePurchaseTokenSchema = z.object({
     body: z.object({
         orderId: z.string().min(1, 'Order ID cannot be empty'),
         googlePurchaseToken: z.string().min(1, 'Google Purchase Token cannot be empty'),
+        googlePurchaseId: z.string().min(1, 'Google Purchase ID cannot be empty'),
     }),
 });
