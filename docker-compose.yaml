@@ -7,3 +7,6 @@ services:
         ports:
             - '6969:6969'
         restart: unless-stopped
+        volumes:
+            - ./static:/jkt48/apis/static
+            - ./logs:/jkt48/apis/logs
