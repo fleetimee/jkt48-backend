@@ -1,5 +1,6 @@
 import express from 'express';
 import { StatusCodes } from 'http-status-codes';
+import React from 'react';
 
 import { authenticateUser } from '../../middlewares/authenticate-user';
 import { rateLimiterStrict } from '../../middlewares/rate-limiter';
@@ -9,6 +10,7 @@ import { generateResetTokenPassword, generateVerificationCode } from '../../util
 import { formatResponse } from '../../utils/response-formatter';
 import { sendEmail } from '../../utils/send-emails';
 import { whitelistedEmails } from '../../utils/whitelisted-email';
+import { ForgotPasswordEmail } from '../../views/emails/Email';
 import {
     checkDeleteStep,
     deleteAccountUser,
@@ -186,7 +188,8 @@ router.post('/forgot_password', validateSchema(forgotPasswordSchema), rateLimite
             to: [email],
             // to: ['zane.227@gmail.com'],
             subject: 'Your Reset Password Token',
-            text: `Your reset password token is: ${randomStringToken}, use this token to reset your password.`,
+            // text: `Your reset password token is: ${randomStringToken}, use this token to reset your password.`,
+            react: <ForgotPasswordEmail validationCode={randomStringToken} />,
         });
 
         if (emailResult.error) {
