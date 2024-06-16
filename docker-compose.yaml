@@ -10,10 +10,12 @@ services:
         restart: unless-stopped
         tty: true
         volumes:
-            - jkt48-backend_jkt48-static:/jkt48/apis/static
-            - jkt48-backend_jkt48-logs:/jkt48/apis/logs
-volumes:
-    jkt48-backend_jkt48-static:
-        external: true
-    jkt48-backend_jkt48-logs:
-        external: true
+            # - jkt48-backend_jkt48-static:/jkt48/apis/static
+            # - jkt48-backend_jkt48-logs:/jkt48/apis/logs
+            - ./static:/jkt48/apis/static
+            - ./logs:/jkt48/apis/logs
+# volumes:
+#     jkt48-backend_jkt48-static:
+#         external: true
+#     jkt48-backend_jkt48-logs:
+#         external: true
