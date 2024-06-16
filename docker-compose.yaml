@@ -9,5 +9,8 @@ services:
             - '6969:6969'
         restart: unless-stopped
         volumes:
-            - ./static:/jkt48/apis/static
-            - ./logs:/jkt48/apis/logs
+            - jkt48-static:/jkt48/apis/static
+            - jkt48-logs:/jkt48/apis/logs
+volumes:
+    jkt48-static:
+    jkt48-logs:
