@@ -27,7 +27,7 @@ export const ForgotPasswordEmail = ({ validationCode }: ForgotPasswordEmailProps
         <Body style={main}>
             <Container style={container}>
                 <Section style={logoContainer}>
-                    <Img src={`${BASE_URL}/static/fcm_logo.png`} width="120" height="36" alt="Slack" />
+                    <Img src={`${BASE_URL}/static/fcm_logo.png`} width="150" alt="Slack" />
                 </Section>
                 <Heading style={h1}>Confirm your reset password</Heading>
                 <Text style={heroText}>Your reset password code is below. Enter this code to reset your password.</Text>
@@ -43,13 +43,13 @@ export const ForgotPasswordEmail = ({ validationCode }: ForgotPasswordEmailProps
                 <Section>
                     <Row style={footerLogos}>
                         <Column style={{ width: '66%' }}>
-                            <Img src={`${BASE_URL}/static/static/fcm_logo.png`} width="120" height="36" alt="Slack" />
+                            <Img src={`${BASE_URL}/static/fcm_logo.png`} width="150" alt="Slack" />
                         </Column>
                         <Column>
                             <Section>
                                 <Row>
                                     <Column>
-                                        <Link href="/">
+                                        <Link href="https://x.com/officialJKT48">
                                             <Img
                                                 src={`${BASE_URL}/static/slack-twitter.png`}
                                                 width="32"
@@ -60,7 +60,7 @@ export const ForgotPasswordEmail = ({ validationCode }: ForgotPasswordEmailProps
                                         </Link>
                                     </Column>
                                     <Column>
-                                        <Link href="/">
+                                        <Link href="https://www.facebook.com/official.JKT48/">
                                             <Img
                                                 src={`${BASE_URL}/static/slack-facebook.png`}
                                                 width="32"
