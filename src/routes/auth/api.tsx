@@ -10,7 +10,12 @@ import { generateResetTokenPassword, generateVerificationCode } from '../../util
 import { formatResponse } from '../../utils/response-formatter';
 import { sendEmail } from '../../utils/send-emails';
 import { whitelistedEmails } from '../../utils/whitelisted-email';
+import { DeleteAccountEmail } from '../../views/emails/DeletedAccount';
 import { ForgotPasswordEmail } from '../../views/emails/ForgotPassword';
+import { RegisterAccountEmail } from '../../views/emails/RegisterAccount';
+import { RequestDeletionEmail } from '../../views/emails/RequestDeletion';
+import { ResendVerificationEmail } from '../../views/emails/ResendVerification';
+import { ResetPasswordEmail } from '../../views/emails/ResetPassword';
 import {
     checkDeleteStep,
     deleteAccountUser,
@@ -74,8 +79,9 @@ router.post('/register', validateSchema(registerSchema), rateLimiterStrict, asyn
         const emailResult = await sendEmail({
             to: [email],
             // to: ['zane.227@gmail.com'],
-            subject: 'Verify your email',
-            text: `Your verification token is: ${verificationToken}`,
+            subject: 'Confirm Your Email Address for New Account Registration',
+            // text: `Your verification token is: ${verificationToken}`,
+            react: <RegisterAccountEmail validationCode={verificationToken} />,
         });
 
         if (emailResult.error) {
@@ -162,7 +168,8 @@ router.post(
             const emailResult = await sendEmail({
                 to: [email],
                 subject: 'Verify your email',
-                text: `Your verification token is: ${verificationToken}`,
+                // text: `Your verification token is: ${verificationToken}`,
+                react: <ResendVerificationEmail validationCode={verificationToken} />,
             });
 
             if (emailResult.error) {
@@ -182,6 +189,11 @@ router.post('/forgot_password', validateSchema(forgotPasswordSchema), rateLimite
         const randomStringToken = generateResetTokenPassword();
 
         const user = await getUser(email);
+
+        if (!user) {
+            return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Email not found' });
+        }
+
         if (user) await forgotPasswordUser(email, randomStringToken);
 
         const emailResult = await sendEmail({
@@ -228,8 +240,9 @@ router.post(
 
             const emailResult = await sendEmail({
                 to: [email],
-                subject: 'Your Delete Account Token',
-                text: `Your delete account token is: ${randomStringToken}, use this token to delete your account.`,
+                subject: 'Your Account Deletion Token',
+                // text: `Your delete account token is: ${randomStringToken}, use this token to delete your account.`,
+                react: <RequestDeletionEmail validationCode={randomStringToken} />,
             });
 
             if (emailResult.error) {
@@ -251,8 +264,9 @@ router.post('/reset_password', validateSchema(resetPasswordSchema), rateLimiterS
 
         const emailResult = await sendEmail({
             to: [user.email],
-            subject: 'Password changed!',
-            text: `Your Password successfully changed`,
+            subject: 'Your Password Has Been Changed',
+            // text: `Your Password successfully changed`,
+            react: <ResetPasswordEmail />,
         });
 
         if (emailResult.error) {
@@ -299,8 +313,9 @@ router.post(
 
             const emailResult = await sendEmail({
                 to: [user.email],
-                subject: 'Account Deleted!',
-                text: `Your Account successfully deleted`,
+                subject: 'Your Account Has Been Deleted',
+                // text: `Your Account successfully deleted`,
+                react: <DeleteAccountEmail />,
             });
 
             if (emailResult.error) {

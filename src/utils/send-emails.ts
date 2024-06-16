@@ -22,6 +22,7 @@ export const sendEmail = async ({
     to: string[];
     subject: string;
     text?: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     react?: any;
 }) => {
     if (text && react) {
