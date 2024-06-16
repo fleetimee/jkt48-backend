@@ -10,7 +10,7 @@ import { generateResetTokenPassword, generateVerificationCode } from '../../util
 import { formatResponse } from '../../utils/response-formatter';
 import { sendEmail } from '../../utils/send-emails';
 import { whitelistedEmails } from '../../utils/whitelisted-email';
-import { ForgotPasswordEmail } from '../../views/emails/Email';
+import { ForgotPasswordEmail } from '../../views/emails/ForgotPassword';
 import {
     checkDeleteStep,
     deleteAccountUser,

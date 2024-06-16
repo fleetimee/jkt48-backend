@@ -27,7 +27,7 @@ export const ForgotPasswordEmail = ({ validationCode }: ForgotPasswordEmailProps
         <Body style={main}>
             <Container style={container}>
                 <Section style={logoContainer}>
-                    <Img src={`${BASE_URL}/static/fcm_logo.png`} width="90" alt="Slack" />
+                    <Img src={`${BASE_URL}/static/email_logo.png`} width="120" alt="Slack" />
                 </Section>
                 <Heading style={h1}>Confirm your reset password</Heading>
                 <Text style={heroText}>Your reset password code is below. Enter this code to reset your password.</Text>
@@ -43,12 +43,12 @@ export const ForgotPasswordEmail = ({ validationCode }: ForgotPasswordEmailProps
                 <Section>
                     <Row style={footerLogos}>
                         <Column style={{ width: '66%' }}>
-                            {/* <Img src={`${BASE_URL}/static/fcm_logo.png`} width="90" alt="Slack" /> */}
+                            <Img src={`${BASE_URL}/static/email_logo.png`} width="120" alt="Slack" />
                         </Column>
                         <Column>
                             <Section>
                                 <Row>
-                                    <Column style={{ width: '50%', paddingRight: 0 }}>
+                                    <Column>
                                         <Link href="https://x.com/officialJKT48">
                                             <Img
                                                 src={`${BASE_URL}/static/slack-twitter.png`}
@@ -59,7 +59,18 @@ export const ForgotPasswordEmail = ({ validationCode }: ForgotPasswordEmailProps
                                             />
                                         </Link>
                                     </Column>
-                                    <Column style={{ width: '50%', paddingLeft: 0 }}>
+                                    <Column>
+                                        <Link href="https://www.instagram.com/jkt48/">
+                                            <Img
+                                                src={`${BASE_URL}/static/slack-instagram.png`}
+                                                width="32"
+                                                height="32"
+                                                alt="Slack"
+                                                style={socialMediaIcon}
+                                            />
+                                        </Link>
+                                    </Column>
+                                    <Column>
                                         <Link href="https://www.facebook.com/official.JKT48/">
                                             <Img
                                                 src={`${BASE_URL}/static/slack-facebook.png`}
