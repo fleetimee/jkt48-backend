@@ -6,6 +6,7 @@ import { Notification } from 'firebase-admin/lib/messaging/messaging-api';
 import fs from 'fs';
 import { StatusCodes } from 'http-status-codes';
 import path from 'path';
+import sharp from 'sharp';
 
 import { BASE_URL } from '../../config';
 import { authenticateUser, requireAdminRole, requireMemberRole } from '../../middlewares/authenticate-user';
@@ -199,12 +200,20 @@ router.post(
             const { messages } = req.body;
             const attachments = req.files as Express.Multer.File[];
 
-            const formattedAttachments = attachments?.map(attachment => {
+            const formattedAttachments = attachments?.map(async attachment => {
                 const fileBuffer = fs.readFileSync(attachment.path);
                 const hashSum = crypto.createHash('sha1');
                 hashSum.update(fileBuffer);
                 const checksum = hashSum.digest('hex');
                 const fileSizeToNumber = Number(attachment.size);
+
+                if (attachment.mimetype.startsWith('image/')) {
+                    const tempOutputPath = `${attachment.path}_temp`; // Create a temporary output path
+                    await sharp(attachment.path)
+                        .jpeg({ quality: 80 }) // Convert to JPEG with 70% quality
+                        .toFile(tempOutputPath); // Write to the temporary file
+                    fs.renameSync(tempOutputPath, attachment.path); // Replace the original file with the temporary one
+                }
 
                 return {
                     filePath: attachment.path,
@@ -215,8 +224,10 @@ router.post(
                 };
             });
 
+            const resolvedAttachments = await Promise.all(formattedAttachments || []);
+
             const [sendMessage, adminFcmTokens, idolId] = await Promise.all([
-                createMemberMessage(userId, messages, formattedAttachments),
+                createMemberMessage(userId, messages, resolvedAttachments),
                 fetchAllAdminFcmToken(),
                 getMemberIdByUserId(userId),
             ]);
