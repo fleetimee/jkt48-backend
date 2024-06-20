@@ -213,7 +213,6 @@ router.delete('/:id', authenticateUser, requireAdminRole, async (req, res, next)
         const news = await getNews(id);
 
         if (!news) throw new NotFoundError('News not found');
-        if (news.userId !== req.user.id) throw new UnauthorizedError('News does not belong to user');
 
         await deleteNews(id);
 
