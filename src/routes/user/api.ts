@@ -522,6 +522,8 @@ router.patch('/me/changePassword', validateSchema(changePasswordSchema), authent
 
         const { password, birthday } = req.body;
 
+        console.log(password, birthday);
+
         // Check if the user exists
         const user = await getUserById(id);
         if (!user) throw new NotFoundError('User not found');
@@ -538,6 +540,8 @@ router.patch('/me/changePassword', validateSchema(changePasswordSchema), authent
             }),
         );
     } catch (error) {
+        console.log(error);
+
         next(error);
     }
 });
