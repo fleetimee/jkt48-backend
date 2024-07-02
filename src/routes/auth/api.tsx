@@ -72,15 +72,13 @@ router.post('/register', validateSchema(registerSchema), rateLimiterStrict, asyn
 
         const verificationToken = email in whitelistedEmails ? whitelistedEmails[email] : generateVerificationCode();
 
-        const birthdayDate = new Date(birthday);
+        const birthdayDate = birthday ? new Date(birthday) : new Date(0); // Use start of Unix time if birthday is not provided
 
         await registerUser(email, password, name, nickName, birthdayDate, verificationToken, phoneNumber);
 
         const emailResult = await sendEmail({
             to: [email],
-            // to: ['zane.227@gmail.com'],
             subject: 'Confirm Your Email Address for New Account Registration',
-            // text: `Your verification token is: ${verificationToken}`,
             react: <RegisterAccountEmail validationCode={verificationToken} />,
         });
 
