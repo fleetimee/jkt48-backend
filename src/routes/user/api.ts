@@ -520,14 +520,14 @@ router.patch('/me/changePassword', validateSchema(changePasswordSchema), authent
     try {
         const id = req.user.id;
 
-        const { password } = req.body;
+        const { password, birthday } = req.body;
 
         // Check if the user exists
         const user = await getUserById(id);
         if (!user) throw new NotFoundError('User not found');
 
         // Change the password
-        await updateUserPassword(id, password);
+        await updateUserPassword(id, password, birthday);
 
         res.status(StatusCodes.OK).send(
             formatResponse({

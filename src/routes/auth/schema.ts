@@ -52,6 +52,13 @@ export const resetPasswordSchema = z.object({
 export const changePasswordSchema = z.object({
     body: z.object({
         password: z.string().min(8, 'Password must be at least 8 characters'),
+        birthday: z
+            .string()
+            .refine(value => !isNaN(new Date(value).getTime()), {
+                message: 'Please enter a valid date',
+                path: ['birthday'],
+            })
+            .optional(),
     }),
 });
 
