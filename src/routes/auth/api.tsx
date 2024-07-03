@@ -72,7 +72,7 @@ router.post('/register', validateSchema(registerSchema), rateLimiterStrict, asyn
 
         const verificationToken = email in whitelistedEmails ? whitelistedEmails[email] : generateVerificationCode();
 
-        const birthdayDate = birthday ? new Date(birthday) : new Date(0); // Use start of Unix time if birthday is not provided
+        const birthdayDate = birthday ? new Date(birthday) : new Date('1900-01-01');
 
         await registerUser(email, password, name, nickName, birthdayDate, verificationToken, phoneNumber);
 
