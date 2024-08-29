@@ -50,7 +50,7 @@ router.get('/checkAccountDeletionStatus', authenticateUser, async (req, res, nex
 
         const deletionStatus = await checkDeleteStep(id);
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 code: StatusCodes.OK,
                 message: 'Success get deletion status',
@@ -86,7 +86,7 @@ router.post('/register', validateSchema(registerSchema), rateLimiterStrict, asyn
             return res.status(StatusCodes.NOT_FOUND).json({ error: emailResult.error });
         }
 
-        res.status(StatusCodes.CREATED).json({ message: 'User registered successfully' });
+        return res.status(StatusCodes.CREATED).json({ message: 'User registered successfully' });
     } catch (error) {
         next(error);
     }
@@ -101,7 +101,7 @@ router.post('/login', validateSchema(loginSchema), rateLimiterStrict, async (req
         const refreshToken = createRefreshToken(user.id, user.email, user.name, user.roles);
         setRefreshCookie(res, refreshToken);
 
-        res.status(StatusCodes.OK).send({ accessToken });
+        return res.status(StatusCodes.OK).send({ accessToken });
     } catch (error) {
         next(error);
     }
@@ -112,7 +112,7 @@ router.post('/logout', authenticateUser, async (req, res, next) => {
         // Invalidate the refresh token
         res.clearCookie('refreshToken', { httpOnly: true, secure: true, sameSite: 'none' });
 
-        res.status(StatusCodes.OK).send({ message: 'Logged out successfully' });
+        return res.status(StatusCodes.OK).send({ message: 'Logged out successfully' });
     } catch (error) {
         next(error);
     }
@@ -125,7 +125,7 @@ router.post('/refresh', async (req, res, next) => {
         const { id, email, name, roles, isDeleted } = verifyRefreshToken(refreshToken);
         const accessToken = createAccessToken(id, email, name, roles, isDeleted);
 
-        res.status(StatusCodes.OK).send({ accessToken });
+        return res.status(StatusCodes.OK).send({ accessToken });
     } catch (error) {
         next(error);
     }
@@ -137,7 +137,7 @@ router.post('/verifyToken', validateSchema(verifySchema), async (req, res, next)
 
         await verifyUser(verificationToken);
 
-        res.status(StatusCodes.OK).json({ message: 'Email verified successfully' });
+        return res.status(StatusCodes.OK).json({ message: 'Email verified successfully' });
     } catch (error) {
         next(error);
     }
@@ -174,7 +174,7 @@ router.post(
                 return res.status(StatusCodes.NOT_FOUND).json({ error: emailResult.error });
             }
 
-            res.status(StatusCodes.OK).json({ message: 'Verification email sent successfully' });
+            return res.status(StatusCodes.OK).json({ message: 'Verification email sent successfully' });
         } catch (error) {
             next(error);
         }
@@ -206,7 +206,7 @@ router.post('/forgot_password', validateSchema(forgotPasswordSchema), rateLimite
             return res.status(StatusCodes.BAD_REQUEST).json({ error: emailResult.error });
         }
 
-        res.status(StatusCodes.OK).json({ message: 'Success send token to reset password' });
+        return res.status(StatusCodes.OK).json({ message: 'Success send token to reset password' });
     } catch (error) {
         next(error);
     }
@@ -247,7 +247,7 @@ router.post(
                 return res.status(StatusCodes.BAD_REQUEST).json({ error: emailResult.error });
             }
 
-            res.status(StatusCodes.OK).json({ message: 'Success send token to delete account' });
+            return res.status(StatusCodes.OK).json({ message: 'Success send token to delete account' });
         } catch (error) {
             next(error);
         }
@@ -271,7 +271,7 @@ router.post('/reset_password', validateSchema(resetPasswordSchema), rateLimiterS
             return res.status(StatusCodes.BAD_REQUEST).json({ error: emailResult.error });
         }
 
-        res.status(StatusCodes.OK).json({ message: 'Success reset password' });
+        return res.status(StatusCodes.OK).json({ message: 'Success reset password' });
     } catch (error) {
         next(error);
     }
@@ -320,7 +320,7 @@ router.post(
                 return res.status(StatusCodes.BAD_REQUEST).json({ error: emailResult.error });
             }
 
-            res.status(StatusCodes.OK).json({ message: 'Success delete account' });
+            return res.status(StatusCodes.OK).json({ message: 'Success delete account' });
         } catch (error) {
             next(error);
         }
@@ -334,9 +334,9 @@ router.get('/user/detail/:email', rateLimiterStrict, async (req, res, next) => {
         const user = await getUser(email);
 
         if (user) {
-            res.status(StatusCodes.OK).send({ datas: user });
+            return res.status(StatusCodes.OK).send({ datas: user });
         } else {
-            res.status(StatusCodes.UNPROCESSABLE_ENTITY).send({ messages: `${email} not exist!` });
+            return res.status(StatusCodes.UNPROCESSABLE_ENTITY).send({ messages: `${email} not exist!` });
         }
     } catch (error) {
         next(error);

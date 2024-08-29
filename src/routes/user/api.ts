@@ -50,7 +50,7 @@ router.get('/me', authenticateUser, async (req, res, next) => {
         const user = await getUserById(id);
         if (!user) throw new NotFoundError('User not found');
 
-        res.status(StatusCodes.OK).send({ user });
+        return res.status(StatusCodes.OK).send({ user });
     } catch (error) {
         next(error);
     }
@@ -69,7 +69,7 @@ router.get('/me/birthdayInbox', authenticateUser, async (req, res, next) => {
 
         if (birthdayInbox.length < 1) throw new NotFoundError('Birthday inbox not found');
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 code: StatusCodes.OK,
                 message: 'Birthday inbox',
@@ -89,7 +89,7 @@ router.get('/me/birthdayCheck', authenticateUser, async (req, res, next) => {
 
         const userWithBirthday = await getUserIdWithUnreadBirthdayMessageCount(id);
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 code: StatusCodes.OK,
                 message: 'Birthday checked',
@@ -108,7 +108,7 @@ router.get('/me/newsCheck', authenticateUser, async (req, res, next) => {
 
         const userWithNews = await getUserByIdWithUnreadNewsCount(id);
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 code: StatusCodes.OK,
                 message: 'News checked',
@@ -131,7 +131,7 @@ router.get('/me/checkSubscription', authenticateUser, async (req, res, next) => 
         const subscription = await checkUserSubscription(id);
         if (!subscription) throw new NotFoundError('Subscription not found');
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 code: StatusCodes.OK,
                 message: 'Subscription status checked',
@@ -193,7 +193,7 @@ router.get('/me/cancelSubscription', authenticateUser, async (req, res, next) =>
             });
         }
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 code: StatusCodes.OK,
                 message: 'Subscription canceled',
@@ -215,7 +215,7 @@ router.get('/me/transactionList', authenticateUser, async (req, res, next) => {
 
         const transactionList = await getUserTransactionList(id);
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 code: StatusCodes.OK,
                 message: 'User transaction list',
@@ -247,7 +247,7 @@ router.get('/me/transactionDetail/:orderId', authenticateUser, async (req, res, 
             transactionDetail.callback_data = JSON.parse(transactionDetail.callback_data as string);
         }
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 code: StatusCodes.OK,
                 message: 'User transaction detail',
@@ -269,7 +269,7 @@ router.get('/me/conversationList', authenticateUser, async (req, res, next) => {
 
         const conversationList = await getUserConversationList(id);
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 code: StatusCodes.OK,
                 message: 'User conversation list',
@@ -330,7 +330,7 @@ router.get('/me/conversation/:conversationId', authenticateUser, async (req, res
 
         if (!conversation) throw new NotFoundError('Conversation not found');
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponsePaginated({
                 code: StatusCodes.OK,
                 message: 'User conversation',
@@ -367,7 +367,7 @@ router.get('/me/conversation/:conversationId/images', authenticateUser, async (r
         const images = await getAllAttachmentsByConversationId(conversationId, id);
         if (!images) throw new NotFoundError('Images not found');
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 code: StatusCodes.OK,
                 message: 'Conversation images',
@@ -390,7 +390,7 @@ router.get('/me/getActiveIdols', authenticateUser, async (req, res, next) => {
         const activeIdols = await getUserActiveIdols(id);
         if (!activeIdols) throw new NotFoundError('Active idols not found');
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 code: StatusCodes.OK,
                 message: 'Active idols',
@@ -416,7 +416,7 @@ router.post('/me/reactMessage/:messageId', validateSchema(postReaction), authent
         // Post the reaction
         await await setUserReactionToMessage(id, messageId, reactionId);
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 code: StatusCodes.OK,
                 message: 'Reaction posted',
@@ -442,7 +442,7 @@ router.delete('/me/unReactMessage/:messageId/reaction/:reactionId', authenticate
         // Post the reaction
         await deleteUserReactToMessage(id, messageId, reactionId);
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 code: StatusCodes.OK,
                 message: 'Reaction removed',
@@ -459,7 +459,7 @@ router.get('/countRegistered', authenticateUser, requireAdminRole, async (req, r
     try {
         const count = await countRegisteredUsers();
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 code: StatusCodes.OK,
                 message: 'Count of registered users',
@@ -476,7 +476,7 @@ router.get('/countActiveSubscriptions', authenticateUser, requireAdminRole, asyn
     try {
         const count = await countActiveSubscriptionsUsers();
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 code: StatusCodes.OK,
                 message: 'Count of active subscriptions users',
@@ -509,7 +509,7 @@ router.patch(
             const { name, email, nickName, birthday } = req.body;
 
             const user = await updateUser(id, email, nickName, name, birthday, fileName);
-            res.status(StatusCodes.OK).send({ user });
+            return res.status(StatusCodes.OK).send({ user });
         } catch (error) {
             next(error);
         }
@@ -531,7 +531,7 @@ router.patch('/me/changePassword', validateSchema(changePasswordSchema), authent
         // Change the password
         await updateUserPassword(id, password, birthday);
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 code: StatusCodes.OK,
                 message: 'Password changed',
@@ -562,7 +562,7 @@ router.patch(
 
             await updateAdminCredentials(id, email, password);
 
-            res.status(StatusCodes.OK).send(
+            return res.status(StatusCodes.OK).send(
                 formatResponse({
                     code: StatusCodes.OK,
                     message: 'Admin credentials changed',

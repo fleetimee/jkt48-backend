@@ -32,7 +32,7 @@ router.get('/executeBirthdayScheduler', async (req, res, next) => {
         const [userBirthday] = await checkBirthday();
 
         if (!userBirthday.is_birthday_today) {
-            res.status(StatusCodes.OK).send({
+            return res.status(StatusCodes.OK).send({
                 success: true,
                 code: StatusCodes.OK,
                 message: 'No birthdays today',
@@ -44,7 +44,7 @@ router.get('/executeBirthdayScheduler', async (req, res, next) => {
         const userIds = await fetchTodayBirthdayUsers();
 
         if (!userIds) {
-            res.status(StatusCodes.OK).send({
+            return res.status(StatusCodes.OK).send({
                 success: true,
                 code: StatusCodes.OK,
                 message: 'No users found',
@@ -57,7 +57,7 @@ router.get('/executeBirthdayScheduler', async (req, res, next) => {
             await processUserBirthday(user);
         }
 
-        res.status(StatusCodes.OK).send({
+        return res.status(StatusCodes.OK).send({
             success: true,
             code: StatusCodes.OK,
             message: 'Success check birthday',
@@ -76,7 +76,7 @@ router.get('/:id', authenticateUser, requireAdminRole, async (req, res, next) =>
 
         const message = await getMessagesById(messageId);
 
-        res.status(StatusCodes.OK).send({
+        return res.status(StatusCodes.OK).send({
             success: true,
             code: StatusCodes.OK,
             message: 'Success fetch message',
@@ -101,7 +101,7 @@ router.get('/conversation/:id', authenticateUser, requireAdminRole, async (req, 
 
         const messages = await getMessages(id, conversationId, pageSize, offset);
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponsePaginated({
                 success: true,
                 code: StatusCodes.OK,
@@ -165,7 +165,7 @@ router.post('/insertBirthdayMessage', validateSchema(insertBirthdayMessageSchema
 
         await insertBirthdayMessage(userId, idolId, personalizedMessage);
 
-        res.status(StatusCodes.OK).send({
+        return res.status(StatusCodes.OK).send({
             success: true,
             code: StatusCodes.OK,
             message: 'Success insert birthday message',
@@ -187,7 +187,7 @@ router.post(
 
             await approveAllUserMessages(conversationId);
 
-            res.status(StatusCodes.OK).send({
+            return res.status(StatusCodes.OK).send({
                 success: true,
                 code: StatusCodes.OK,
                 message: 'Success approve all message',
@@ -218,7 +218,7 @@ router.delete('/:id', authenticateUser, requireMemberRole, async (req, res, next
 
         await deleteMessage(messageId);
 
-        res.status(StatusCodes.OK).send({
+        return res.status(StatusCodes.OK).send({
             success: true,
             code: StatusCodes.OK,
             message: 'Success delete message',
@@ -280,7 +280,7 @@ router.patch(
                 });
             }
 
-            res.status(StatusCodes.OK).send({
+            return res.status(StatusCodes.OK).send({
                 success: true,
                 code: StatusCodes.OK,
                 message: isApproved === true ? 'Success approve message' : 'Success reject message',

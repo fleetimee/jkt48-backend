@@ -10,7 +10,7 @@ router.get('/', async (req, res, next) => {
     try {
         const reactions = await getReactions();
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 code: StatusCodes.OK,
                 message: 'Reactions fetched successfully',

@@ -21,5 +21,5 @@ export const errorHandler = (error: unknown, req: Request, res: Response, next: 
         status = error.status;
     }
 
-    res.status(status).json({ error: message });
+    return res.status(status).json({ error: message });
 };

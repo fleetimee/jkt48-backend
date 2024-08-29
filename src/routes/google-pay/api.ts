@@ -64,7 +64,7 @@ router.post('/verifyGoogle', async (req, res, next) => {
 
                         await updateOrderPurchasedGoogle(subscriptionNotification.purchaseToken, expiryDate);
 
-                        res.status(StatusCodes.OK).send({
+                        return res.status(StatusCodes.OK).send({
                             success: true,
                             code: StatusCodes.OK,
                             message: 'Google Pay verified',
@@ -147,7 +147,7 @@ router.post('/verifyGoogle', async (req, res, next) => {
 
         // console.log('Google Play response:', response?.data);
 
-        res.status(StatusCodes.OK).send({
+        return res.status(StatusCodes.OK).send({
             success: true,
             code: StatusCodes.OK,
             message: 'Google Pay verified',

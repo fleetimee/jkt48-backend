@@ -29,7 +29,7 @@ router.get('/', authenticateUser, async (req, res, next) => {
 
         const newsList = await getNewsList(id, orderBy, orderDirection, pageSize, offset);
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponsePaginated({
                 success: true,
                 code: StatusCodes.OK,
@@ -53,7 +53,7 @@ router.get('/latest', async (req, res, next) => {
         const news = await getLatestNews();
         if (!news) throw new NotFoundError('News not found');
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 success: true,
                 code: StatusCodes.OK,
@@ -76,7 +76,7 @@ router.get('/:id', async (req, res, next) => {
         const newsItem = await getNews(id);
         if (!newsItem) throw new NotFoundError('News not found');
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 success: true,
                 code: StatusCodes.OK,
@@ -96,7 +96,7 @@ router.get('/slug/:slug', async (req, res, next) => {
         const newsItem = await getNewsBySlug(slug);
         if (!newsItem) throw new NotFoundError('News not found');
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 success: true,
                 code: StatusCodes.OK,
@@ -159,7 +159,7 @@ router.post('/', validateSchema(createNewsSchema), authenticateUser, async (req,
 
         // const newsItem = await createNews(title, body, userId, image, slugWithRandomString, now, now);
 
-        res.status(StatusCodes.CREATED).send(
+        return res.status(StatusCodes.CREATED).send(
             formatResponse({
                 success: true,
                 code: StatusCodes.CREATED,
@@ -190,7 +190,7 @@ router.put('/:newsId', validateSchema(updateNewsSchema), authenticateUser, requi
 
         const updatedNews = await updateNews(title, body, image, newsId);
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 success: true,
                 code: StatusCodes.OK,
@@ -216,7 +216,7 @@ router.delete('/:id', authenticateUser, requireAdminRole, async (req, res, next)
 
         await deleteNews(id);
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 success: true,
                 code: StatusCodes.OK,

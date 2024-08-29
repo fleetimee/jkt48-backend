@@ -20,7 +20,7 @@ router.get('/scheduledInvoice', async (req, res, next) => {
         const orderIds = await getCloseToExpirationOrders();
 
         if (!orderIds || orderIds.length === 0) {
-            res.status(StatusCodes.OK).send({
+            return res.status(StatusCodes.OK).send({
                 success: true,
                 code: StatusCodes.OK,
                 message: 'No order that almost expired',
@@ -80,7 +80,7 @@ router.get('/scheduledInvoice', async (req, res, next) => {
                 ],
             });
 
-            res.status(StatusCodes.OK).send({
+            return res.status(StatusCodes.OK).send({
                 success: true,
                 code: StatusCodes.OK,
                 message: 'Scheduled invoice created',
@@ -97,7 +97,7 @@ router.get('/', authenticateUser, requireAdminRole, async (req, res, next) => {
     try {
         const invoices = await getInvoices();
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 success: true,
                 code: StatusCodes.OK,
@@ -116,7 +116,7 @@ router.get('/:invoiceId', authenticateUser, async (req, res, next) => {
 
         const invoice = await getInvoice(invoiceId);
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 success: true,
                 code: StatusCodes.OK,
@@ -135,7 +135,7 @@ router.get('/:invoiceId/forceExpire', authenticateUser, async (req, res, next) =
 
         const invoice = await expireInvoice(invoiceId);
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 success: true,
                 code: StatusCodes.OK,
@@ -224,7 +224,7 @@ router.post('/', validateSchema(createInvoiceSchema), authenticateUser, async (r
             ],
         });
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 success: true,
                 code: StatusCodes.OK,

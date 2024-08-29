@@ -15,7 +15,7 @@ router.post('/', validateSchema(createPostSchema), authenticateUser, async (req,
 
         const post = await createPost(title, body, userId);
 
-        res.status(200).send({ post });
+        return res.status(200).send({ post });
     } catch (error) {
         next(error);
     }
@@ -28,7 +28,7 @@ router.get('/:postId', async (req, res, next) => {
         const post = await getPost(postId);
         if (!post) throw new NotFoundError('Post not found');
 
-        res.status(200).send({ post });
+        return res.status(200).send({ post });
     } catch (error) {
         next(error);
     }
@@ -47,7 +47,7 @@ router.put('/:postId', validateSchema(updatePostSchema), authenticateUser, async
 
         const updatedPost = await updatePost(body, postId);
 
-        res.status(200).send({ post: updatedPost });
+        return res.status(200).send({ post: updatedPost });
     } catch (error) {
         next(error);
     }
@@ -65,7 +65,7 @@ router.delete('/:postId', authenticateUser, async (req, res, next) => {
 
         await deletePost(postId);
 
-        res.status(200).send({ message: 'Successfully deleted post' });
+        return res.status(200).send({ message: 'Successfully deleted post' });
     } catch (error) {
         next(error);
     }
@@ -77,7 +77,7 @@ router.get('/users/:userId', async (req, res, next) => {
 
         const posts = await getPostsByUser(userId);
 
-        res.status(200).send({ posts });
+        return res.status(200).send({ posts });
     } catch (error) {
         next(error);
     }

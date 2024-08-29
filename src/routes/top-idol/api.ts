@@ -11,7 +11,7 @@ router.get('/', async (req, res, next) => {
         const topIdol = await getTopIdol();
 
         if (!topIdol || topIdol.length === 0) {
-            res.status(404).send(
+            return res.status(404).send(
                 formatResponse({
                     code: StatusCodes.NOT_FOUND,
                     message: 'No top idol found',
@@ -20,7 +20,7 @@ router.get('/', async (req, res, next) => {
                 }),
             );
         } else {
-            res.status(200).send(
+            return res.status(200).send(
                 formatResponse({
                     code: StatusCodes.OK,
                     message: 'Success fetch top idol',
@@ -59,7 +59,7 @@ router.get('/by-week', async (req, res, next) => {
             });
 
             await storeTopIdols(mergedArray);
-            res.status(200).send(
+            return res.status(200).send(
                 formatResponse({
                     code: StatusCodes.OK,
                     message: 'Success Repopulate top idol',
@@ -68,7 +68,7 @@ router.get('/by-week', async (req, res, next) => {
                 }),
             );
         } else {
-            res.status(200).send(
+            return res.status(200).send(
                 formatResponse({
                     code: StatusCodes.OK,
                     message: 'Success Repopulate top idol',

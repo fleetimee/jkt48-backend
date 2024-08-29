@@ -48,7 +48,7 @@ router.get('/', authenticateUser, async (req, res, next) => {
 
         const newsList = await getMembers(pageSize, offset, orderBy, orderDirection, searchQuery);
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponsePaginated({
                 success: true,
                 code: StatusCodes.OK,
@@ -75,7 +75,7 @@ router.get('/getIdolMessage', authenticateUser, requireMemberRole, async (req, r
 
         const chat = await getMemberMessage(idolId.idol_id as string);
 
-        res.status(StatusCodes.OK).send({
+        return res.status(StatusCodes.OK).send({
             success: true,
             code: StatusCodes.OK,
             message: 'Success fetch member message',
@@ -96,7 +96,7 @@ router.get('/getLoggedOnIdol', authenticateUser, requireMemberRole, async (req, 
 
         const member = await getMemberById(idolId.idol_id as string);
 
-        res.status(StatusCodes.OK).send({
+        return res.status(StatusCodes.OK).send({
             success: true,
             code: StatusCodes.OK,
             message: 'Success fetch member',
@@ -116,7 +116,7 @@ router.get('/:id', authenticateUser, async (req, res, next) => {
         const member = await getMemberById(id);
         if (!member) throw new NotFoundError('Member not found');
 
-        res.status(StatusCodes.OK).send({
+        return res.status(StatusCodes.OK).send({
             success: true,
             code: StatusCodes.OK,
             message: 'Success fetch member',
@@ -177,7 +177,7 @@ router.post(
                 if (err) throw err;
             });
 
-            res.status(StatusCodes.CREATED).send({
+            return res.status(StatusCodes.CREATED).send({
                 success: true,
                 code: StatusCodes.CREATED,
                 message: 'Success create new member',
@@ -203,7 +203,7 @@ router.post(
             const formattedAttachments = attachments?.map(async attachment => {
                 const fileBuffer = fs.readFileSync(attachment.path);
                 const hashSum = crypto.createHash('sha1');
-                hashSum.update(fileBuffer);
+                hashSum.update(new Uint8Array(fileBuffer)); // Convert Buffer to Uint8Array
                 const checksum = hashSum.digest('hex');
                 const fileSizeToNumber = Number(attachment.size);
 
@@ -265,7 +265,7 @@ router.post(
                 });
             }
 
-            res.status(StatusCodes.OK).send({
+            return res.status(StatusCodes.OK).send({
                 success: true,
                 code: StatusCodes.OK,
                 message: 'Success create message',
@@ -291,7 +291,7 @@ router.patch(
 
             const updatedMember = await updateLoggedMember(id, fullName, '');
 
-            res.status(StatusCodes.OK).send({
+            return res.status(StatusCodes.OK).send({
                 success: true,
                 code: StatusCodes.OK,
                 message: 'Success update member',
@@ -333,7 +333,7 @@ router.patch(
                 horoscope,
             );
 
-            res.status(StatusCodes.OK).send({
+            return res.status(StatusCodes.OK).send({
                 success: true,
                 code: StatusCodes.OK,
                 message: 'Success update member',
@@ -380,7 +380,7 @@ router.patch(
 
             const updatedMember = await updateProfileImageMemberById(user.id, imgProfilePath);
 
-            res.status(StatusCodes.OK).send({
+            return res.status(StatusCodes.OK).send({
                 success: true,
                 code: StatusCodes.OK,
                 message: 'Success update member profile image',
@@ -433,7 +433,7 @@ router.patch(
 
             const updatedMember = await updateProfileImageMemberById(idolId, imgProfilePath);
 
-            res.status(StatusCodes.OK).send({
+            return res.status(StatusCodes.OK).send({
                 success: true,
                 code: StatusCodes.OK,
                 message: 'Success update member profile image',
@@ -456,7 +456,7 @@ router.delete('/:userId', authenticateUser, requireAdminRole, async (req, res, n
 
         await deleteMemberById(userId);
 
-        res.status(StatusCodes.OK).send({
+        return res.status(StatusCodes.OK).send({
             success: true,
             code: StatusCodes.OK,
             message: 'Success delete member',

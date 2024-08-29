@@ -13,7 +13,7 @@ router.get('/:id', authenticateUser, async (req, res, next) => {
 
         const inquiryList = await getInquiry(packageId);
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 success: true,
                 code: StatusCodes.OK,

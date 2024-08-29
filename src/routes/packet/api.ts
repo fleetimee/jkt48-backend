@@ -15,7 +15,7 @@ router.get('/', authenticateUser, async (req, res, next) => {
     try {
         const packageList = await getPackageList();
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 success: true,
                 code: StatusCodes.OK,
@@ -38,7 +38,7 @@ router.get('/:id', authenticateUser, async (req, res, next) => {
 
         if (!packageItem) throw new NotFoundError('Package not found');
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 success: true,
                 code: StatusCodes.OK,
@@ -78,7 +78,7 @@ router.patch(
             if (!updatedPackage) throw new NotFoundError('Package not found');
             if (updatedPackage.userId !== userId) throw new UnauthorizedError('Package does not belong to user');
 
-            res.status(StatusCodes.OK).send(
+            return res.status(StatusCodes.OK).send(
                 formatResponse({
                     success: true,
                     code: StatusCodes.OK,

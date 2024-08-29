@@ -60,7 +60,7 @@ router.post(
 
             const customer = await createCustomer(xenditData);
 
-            res.status(StatusCodes.OK).send(
+            return res.status(StatusCodes.OK).send(
                 formatResponse({
                     success: true,
                     code: StatusCodes.OK,
@@ -138,7 +138,7 @@ router.post('/createPlan', async (req, res, next) => {
 
         const payment = await createSubscription(xenditPlanData);
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 success: true,
                 code: StatusCodes.OK,

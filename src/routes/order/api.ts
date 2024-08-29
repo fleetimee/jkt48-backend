@@ -35,7 +35,7 @@ router.get('/check-expired', async (req, res, next) => {
         const expiredOrders = await getExpiredOrders();
 
         if (expiredOrders.length === 0) {
-            res.status(StatusCodes.OK).send(
+            return res.status(StatusCodes.OK).send(
                 formatResponse({
                     success: true,
                     code: StatusCodes.OK,
@@ -50,7 +50,7 @@ router.get('/check-expired', async (req, res, next) => {
             await deleteFcmTokensByUserId(order.userId);
         }
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 success: true,
                 code: StatusCodes.OK,
@@ -71,7 +71,7 @@ router.get('/:orderId', authenticateUser, async (req, res, next) => {
 
         if (!order) throw new NotFoundError('Order not found');
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 success: true,
                 code: StatusCodes.OK,
@@ -94,7 +94,7 @@ router.get('/inquiry/:orderId', authenticateUser, async (req, res, next) => {
 
         const order = await getInquiryOrder(orderId);
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 success: true,
                 code: StatusCodes.OK,
@@ -117,7 +117,7 @@ router.get('/inquiry/:orderId/idol', authenticateUser, async (req, res, next) =>
 
         const order = await getInquiryOrderListIdol(orderId);
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 success: true,
                 code: StatusCodes.OK,
@@ -142,7 +142,7 @@ router.post('/', validateSchema(createOrderSchema), authenticateUser, async (req
 
         const createOrderItem = await createOrder(userId, packageId, paymentMethod, subtotal, tax, total, idolIds);
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 success: true,
                 code: StatusCodes.OK,
@@ -162,7 +162,7 @@ router.post('/createAppleResubscribe', async (req, res, next) => {
 
         const order = await createOrderAppleResubscribe(appleOriginalTransactionId);
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 success: true,
                 code: StatusCodes.OK,
@@ -185,7 +185,7 @@ router.patch('/updateStatus', validateSchema(updateOrderStatusSchema), authentic
 
         await updateOrderStatusGpay(orderId);
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 success: true,
                 code: StatusCodes.OK,
@@ -212,7 +212,7 @@ router.patch(
 
             await updateAppleOriginalTransactionId(orderId, appleOriginalTransactionId);
 
-            res.status(StatusCodes.OK).send(
+            return res.status(StatusCodes.OK).send(
                 formatResponse({
                     success: true,
                     code: StatusCodes.OK,
@@ -240,7 +240,7 @@ router.patch(
 
             await updateGooglePurchaseToken(orderId, googlePurchaseToken, googlePurchaseId);
 
-            res.status(StatusCodes.OK).send(
+            return res.status(StatusCodes.OK).send(
                 formatResponse({
                     success: true,
                     code: StatusCodes.OK,
