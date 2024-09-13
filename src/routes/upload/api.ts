@@ -10,12 +10,12 @@ const router = express.Router();
 router.post('/:urlParam(news|profile)', upload.single('file'), (req, res, next) => {
     try {
         if (!req.file) {
-            res.status(StatusCodes.BAD_REQUEST).send({ error: 'No file uploaded' });
+            return res.status(StatusCodes.BAD_REQUEST).send({ error: 'No file uploaded' });
             return;
         }
         const filePath = `/static/${req.params.urlParam}/${req.file.filename}`;
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 code: StatusCodes.OK,
                 message: 'File uploaded successfully',
@@ -27,7 +27,7 @@ router.post('/:urlParam(news|profile)', upload.single('file'), (req, res, next) 
         );
     } catch (error) {
         if (error instanceof multer.MulterError && error.code === 'LIMIT_FILE_SIZE') {
-            res.status(StatusCodes.FORBIDDEN).send({ error: 'File size exceeds the limit' });
+            return res.status(StatusCodes.FORBIDDEN).send({ error: 'File size exceeds the limit' });
         } else {
             next(error);
         }

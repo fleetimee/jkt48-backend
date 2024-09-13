@@ -1,5 +1,6 @@
 import express from 'express';
 import { StatusCodes } from 'http-status-codes';
+import React from 'react';
 
 import { authenticateUser } from '../../middlewares/authenticate-user';
 import { rateLimiterStrict } from '../../middlewares/rate-limiter';
@@ -9,6 +10,12 @@ import { generateResetTokenPassword, generateVerificationCode } from '../../util
 import { formatResponse } from '../../utils/response-formatter';
 import { sendEmail } from '../../utils/send-emails';
 import { whitelistedEmails } from '../../utils/whitelisted-email';
+import { DeleteAccountEmail } from '../../views/emails/DeletedAccount';
+import { ForgotPasswordEmail } from '../../views/emails/ForgotPassword';
+import { RegisterAccountEmail } from '../../views/emails/RegisterAccount';
+import { RequestDeletionEmail } from '../../views/emails/RequestDeletion';
+import { ResendVerificationEmail } from '../../views/emails/ResendVerification';
+import { ResetPasswordEmail } from '../../views/emails/ResetPassword';
 import {
     checkDeleteStep,
     deleteAccountUser,
@@ -43,7 +50,7 @@ router.get('/checkAccountDeletionStatus', authenticateUser, async (req, res, nex
 
         const deletionStatus = await checkDeleteStep(id);
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 code: StatusCodes.OK,
                 message: 'Success get deletion status',
@@ -65,22 +72,21 @@ router.post('/register', validateSchema(registerSchema), rateLimiterStrict, asyn
 
         const verificationToken = email in whitelistedEmails ? whitelistedEmails[email] : generateVerificationCode();
 
-        const birthdayDate = new Date(birthday);
+        const birthdayDate = birthday ? new Date(birthday) : new Date('1900-01-01');
 
         await registerUser(email, password, name, nickName, birthdayDate, verificationToken, phoneNumber);
 
         const emailResult = await sendEmail({
             to: [email],
-            // to: ['zane.227@gmail.com'],
-            subject: 'Verify your email',
-            text: `Your verification token is: ${verificationToken}`,
+            subject: 'Confirm Your Email Address for New Account Registration',
+            react: <RegisterAccountEmail validationCode={verificationToken} />,
         });
 
         if (emailResult.error) {
             return res.status(StatusCodes.NOT_FOUND).json({ error: emailResult.error });
         }
 
-        res.status(StatusCodes.CREATED).json({ message: 'User registered successfully' });
+        return res.status(StatusCodes.CREATED).json({ message: 'User registered successfully' });
     } catch (error) {
         next(error);
     }
@@ -95,7 +101,7 @@ router.post('/login', validateSchema(loginSchema), rateLimiterStrict, async (req
         const refreshToken = createRefreshToken(user.id, user.email, user.name, user.roles);
         setRefreshCookie(res, refreshToken);
 
-        res.status(StatusCodes.OK).send({ accessToken });
+        return res.status(StatusCodes.OK).send({ accessToken });
     } catch (error) {
         next(error);
     }
@@ -106,7 +112,7 @@ router.post('/logout', authenticateUser, async (req, res, next) => {
         // Invalidate the refresh token
         res.clearCookie('refreshToken', { httpOnly: true, secure: true, sameSite: 'none' });
 
-        res.status(StatusCodes.OK).send({ message: 'Logged out successfully' });
+        return res.status(StatusCodes.OK).send({ message: 'Logged out successfully' });
     } catch (error) {
         next(error);
     }
@@ -119,7 +125,7 @@ router.post('/refresh', async (req, res, next) => {
         const { id, email, name, roles, isDeleted } = verifyRefreshToken(refreshToken);
         const accessToken = createAccessToken(id, email, name, roles, isDeleted);
 
-        res.status(StatusCodes.OK).send({ accessToken });
+        return res.status(StatusCodes.OK).send({ accessToken });
     } catch (error) {
         next(error);
     }
@@ -131,7 +137,7 @@ router.post('/verifyToken', validateSchema(verifySchema), async (req, res, next)
 
         await verifyUser(verificationToken);
 
-        res.status(StatusCodes.OK).json({ message: 'Email verified successfully' });
+        return res.status(StatusCodes.OK).json({ message: 'Email verified successfully' });
     } catch (error) {
         next(error);
     }
@@ -160,14 +166,15 @@ router.post(
             const emailResult = await sendEmail({
                 to: [email],
                 subject: 'Verify your email',
-                text: `Your verification token is: ${verificationToken}`,
+                // text: `Your verification token is: ${verificationToken}`,
+                react: <ResendVerificationEmail validationCode={verificationToken} />,
             });
 
             if (emailResult.error) {
                 return res.status(StatusCodes.NOT_FOUND).json({ error: emailResult.error });
             }
 
-            res.status(StatusCodes.OK).json({ message: 'Verification email sent successfully' });
+            return res.status(StatusCodes.OK).json({ message: 'Verification email sent successfully' });
         } catch (error) {
             next(error);
         }
@@ -180,20 +187,26 @@ router.post('/forgot_password', validateSchema(forgotPasswordSchema), rateLimite
         const randomStringToken = generateResetTokenPassword();
 
         const user = await getUser(email);
+
+        if (!user) {
+            return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Email not found' });
+        }
+
         if (user) await forgotPasswordUser(email, randomStringToken);
 
         const emailResult = await sendEmail({
             to: [email],
             // to: ['zane.227@gmail.com'],
             subject: 'Your Reset Password Token',
-            text: `Your reset password token is: ${randomStringToken}, use this token to reset your password.`,
+            // text: `Your reset password token is: ${randomStringToken}, use this token to reset your password.`,
+            react: <ForgotPasswordEmail validationCode={randomStringToken} />,
         });
 
         if (emailResult.error) {
             return res.status(StatusCodes.BAD_REQUEST).json({ error: emailResult.error });
         }
 
-        res.status(StatusCodes.OK).json({ message: 'Success send token to reset password' });
+        return res.status(StatusCodes.OK).json({ message: 'Success send token to reset password' });
     } catch (error) {
         next(error);
     }
@@ -225,15 +238,16 @@ router.post(
 
             const emailResult = await sendEmail({
                 to: [email],
-                subject: 'Your Delete Account Token',
-                text: `Your delete account token is: ${randomStringToken}, use this token to delete your account.`,
+                subject: 'Your Account Deletion Token',
+                // text: `Your delete account token is: ${randomStringToken}, use this token to delete your account.`,
+                react: <RequestDeletionEmail validationCode={randomStringToken} />,
             });
 
             if (emailResult.error) {
                 return res.status(StatusCodes.BAD_REQUEST).json({ error: emailResult.error });
             }
 
-            res.status(StatusCodes.OK).json({ message: 'Success send token to delete account' });
+            return res.status(StatusCodes.OK).json({ message: 'Success send token to delete account' });
         } catch (error) {
             next(error);
         }
@@ -248,15 +262,16 @@ router.post('/reset_password', validateSchema(resetPasswordSchema), rateLimiterS
 
         const emailResult = await sendEmail({
             to: [user.email],
-            subject: 'Password changed!',
-            text: `Your Password successfully changed`,
+            subject: 'Your Password Has Been Changed',
+            // text: `Your Password successfully changed`,
+            react: <ResetPasswordEmail />,
         });
 
         if (emailResult.error) {
             return res.status(StatusCodes.BAD_REQUEST).json({ error: emailResult.error });
         }
 
-        res.status(StatusCodes.OK).json({ message: 'Success reset password' });
+        return res.status(StatusCodes.OK).json({ message: 'Success reset password' });
     } catch (error) {
         next(error);
     }
@@ -296,15 +311,16 @@ router.post(
 
             const emailResult = await sendEmail({
                 to: [user.email],
-                subject: 'Account Deleted!',
-                text: `Your Account successfully deleted`,
+                subject: 'Your Account Has Been Deleted',
+                // text: `Your Account successfully deleted`,
+                react: <DeleteAccountEmail />,
             });
 
             if (emailResult.error) {
                 return res.status(StatusCodes.BAD_REQUEST).json({ error: emailResult.error });
             }
 
-            res.status(StatusCodes.OK).json({ message: 'Success delete account' });
+            return res.status(StatusCodes.OK).json({ message: 'Success delete account' });
         } catch (error) {
             next(error);
         }
@@ -318,9 +334,9 @@ router.get('/user/detail/:email', rateLimiterStrict, async (req, res, next) => {
         const user = await getUser(email);
 
         if (user) {
-            res.status(StatusCodes.OK).send({ datas: user });
+            return res.status(StatusCodes.OK).send({ datas: user });
         } else {
-            res.status(StatusCodes.UNPROCESSABLE_ENTITY).send({ messages: `${email} not exist!` });
+            return res.status(StatusCodes.UNPROCESSABLE_ENTITY).send({ messages: `${email} not exist!` });
         }
     } catch (error) {
         next(error);

@@ -3,7 +3,7 @@ import { StatusCodes } from 'http-status-codes';
 
 import { authenticateUser, requireAdminRole } from '../../middlewares/authenticate-user';
 import { validateSchema } from '../../middlewares/validate-request';
-import { NotFoundError, UnauthorizedError } from '../../utils/errors';
+import { NotFoundError } from '../../utils/errors';
 import { formatResponse } from '../../utils/response-formatter';
 import { validateUuid } from '../../utils/validate';
 import { getPackage, getPackageList, updatePackage } from './repository';
@@ -15,7 +15,7 @@ router.get('/', authenticateUser, async (req, res, next) => {
     try {
         const packageList = await getPackageList();
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 success: true,
                 code: StatusCodes.OK,
@@ -38,7 +38,7 @@ router.get('/:id', authenticateUser, async (req, res, next) => {
 
         if (!packageItem) throw new NotFoundError('Package not found');
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 success: true,
                 code: StatusCodes.OK,
@@ -60,7 +60,7 @@ router.patch(
         try {
             const { name, description, totalMembers, price, isActive } = req.body;
             const packageId = req.params.id;
-            const userId = req.user.id;
+            // const userId = req.user.id;
             const updatedAt = new Date();
 
             if (!validateUuid(packageId)) throw new NotFoundError('Invalid package id (uuid) format');
@@ -76,9 +76,8 @@ router.patch(
             );
 
             if (!updatedPackage) throw new NotFoundError('Package not found');
-            if (updatedPackage.userId !== userId) throw new UnauthorizedError('Package does not belong to user');
 
-            res.status(StatusCodes.OK).send(
+            return res.status(StatusCodes.OK).send(
                 formatResponse({
                     success: true,
                     code: StatusCodes.OK,

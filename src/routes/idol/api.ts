@@ -6,6 +6,7 @@ import { Notification } from 'firebase-admin/lib/messaging/messaging-api';
 import fs from 'fs';
 import { StatusCodes } from 'http-status-codes';
 import path from 'path';
+import sharp from 'sharp';
 
 import { BASE_URL } from '../../config';
 import { authenticateUser, requireAdminRole, requireMemberRole } from '../../middlewares/authenticate-user';
@@ -47,7 +48,7 @@ router.get('/', authenticateUser, async (req, res, next) => {
 
         const newsList = await getMembers(pageSize, offset, orderBy, orderDirection, searchQuery);
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponsePaginated({
                 success: true,
                 code: StatusCodes.OK,
@@ -74,7 +75,7 @@ router.get('/getIdolMessage', authenticateUser, requireMemberRole, async (req, r
 
         const chat = await getMemberMessage(idolId.idol_id as string);
 
-        res.status(StatusCodes.OK).send({
+        return res.status(StatusCodes.OK).send({
             success: true,
             code: StatusCodes.OK,
             message: 'Success fetch member message',
@@ -95,7 +96,7 @@ router.get('/getLoggedOnIdol', authenticateUser, requireMemberRole, async (req, 
 
         const member = await getMemberById(idolId.idol_id as string);
 
-        res.status(StatusCodes.OK).send({
+        return res.status(StatusCodes.OK).send({
             success: true,
             code: StatusCodes.OK,
             message: 'Success fetch member',
@@ -115,7 +116,7 @@ router.get('/:id', authenticateUser, async (req, res, next) => {
         const member = await getMemberById(id);
         if (!member) throw new NotFoundError('Member not found');
 
-        res.status(StatusCodes.OK).send({
+        return res.status(StatusCodes.OK).send({
             success: true,
             code: StatusCodes.OK,
             message: 'Success fetch member',
@@ -176,7 +177,7 @@ router.post(
                 if (err) throw err;
             });
 
-            res.status(StatusCodes.CREATED).send({
+            return res.status(StatusCodes.CREATED).send({
                 success: true,
                 code: StatusCodes.CREATED,
                 message: 'Success create new member',
@@ -199,12 +200,20 @@ router.post(
             const { messages } = req.body;
             const attachments = req.files as Express.Multer.File[];
 
-            const formattedAttachments = attachments?.map(attachment => {
+            const formattedAttachments = attachments?.map(async attachment => {
                 const fileBuffer = fs.readFileSync(attachment.path);
                 const hashSum = crypto.createHash('sha1');
-                hashSum.update(fileBuffer);
+                hashSum.update(new Uint8Array(fileBuffer)); // Convert Buffer to Uint8Array
                 const checksum = hashSum.digest('hex');
                 const fileSizeToNumber = Number(attachment.size);
+
+                if (attachment.mimetype.startsWith('image/')) {
+                    const tempOutputPath = `${attachment.path}_temp`; // Create a temporary output path
+                    await sharp(attachment.path)
+                        .jpeg({ quality: 80 }) // Convert to JPEG with 70% quality
+                        .toFile(tempOutputPath); // Write to the temporary file
+                    fs.renameSync(tempOutputPath, attachment.path); // Replace the original file with the temporary one
+                }
 
                 return {
                     filePath: attachment.path,
@@ -215,8 +224,10 @@ router.post(
                 };
             });
 
+            const resolvedAttachments = await Promise.all(formattedAttachments || []);
+
             const [sendMessage, adminFcmTokens, idolId] = await Promise.all([
-                createMemberMessage(userId, messages, formattedAttachments),
+                createMemberMessage(userId, messages, resolvedAttachments),
                 fetchAllAdminFcmToken(),
                 getMemberIdByUserId(userId),
             ]);
@@ -254,7 +265,7 @@ router.post(
                 });
             }
 
-            res.status(StatusCodes.OK).send({
+            return res.status(StatusCodes.OK).send({
                 success: true,
                 code: StatusCodes.OK,
                 message: 'Success create message',
@@ -280,7 +291,7 @@ router.patch(
 
             const updatedMember = await updateLoggedMember(id, fullName, '');
 
-            res.status(StatusCodes.OK).send({
+            return res.status(StatusCodes.OK).send({
                 success: true,
                 code: StatusCodes.OK,
                 message: 'Success update member',
@@ -322,7 +333,7 @@ router.patch(
                 horoscope,
             );
 
-            res.status(StatusCodes.OK).send({
+            return res.status(StatusCodes.OK).send({
                 success: true,
                 code: StatusCodes.OK,
                 message: 'Success update member',
@@ -369,7 +380,7 @@ router.patch(
 
             const updatedMember = await updateProfileImageMemberById(user.id, imgProfilePath);
 
-            res.status(StatusCodes.OK).send({
+            return res.status(StatusCodes.OK).send({
                 success: true,
                 code: StatusCodes.OK,
                 message: 'Success update member profile image',
@@ -422,7 +433,7 @@ router.patch(
 
             const updatedMember = await updateProfileImageMemberById(idolId, imgProfilePath);
 
-            res.status(StatusCodes.OK).send({
+            return res.status(StatusCodes.OK).send({
                 success: true,
                 code: StatusCodes.OK,
                 message: 'Success update member profile image',
@@ -445,7 +456,7 @@ router.delete('/:userId', authenticateUser, requireAdminRole, async (req, res, n
 
         await deleteMemberById(userId);
 
-        res.status(StatusCodes.OK).send({
+        return res.status(StatusCodes.OK).send({
             success: true,
             code: StatusCodes.OK,
             message: 'Success delete member',

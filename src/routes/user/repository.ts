@@ -142,10 +142,15 @@ export const updateUser = async (
  * @param password - The new password for the user.
  * @returns The updated user object.
  */
-export const updateUserPassword = async (id: string, password: string) => {
+export const updateUserPassword = async (id: string, password: string, birthday: Date) => {
     const passwordHash = await bcrypt.hash(password, 10);
 
-    const [user] = await db.update(users).set({ passwordHash }).where(eq(users.id, id)).returning();
+    console.log(birthday);
+
+    // Convert birthday to date format
+    birthday = new Date(birthday);
+
+    const [user] = await db.update(users).set({ passwordHash, birthday }).where(eq(users.id, id)).returning();
 
     return user;
 };

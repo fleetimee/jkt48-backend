@@ -21,7 +21,7 @@ router.get('/', authenticateUser, requireAdminRole, async (req, res, next) => {
 
         const conversationList = await getConversations(id, pageSize, offset, searchQuery);
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponsePaginated({
                 success: true,
                 code: StatusCodes.OK,
@@ -49,7 +49,7 @@ router.get('/:id', authenticateUser, requireAdminRole, async (req, res, next) =>
 
         const conversation = await getConversationsById(conversationId);
 
-        res.status(StatusCodes.OK).send({
+        return res.status(StatusCodes.OK).send({
             success: true,
             code: StatusCodes.OK,
             message: 'Success fetch conversation',

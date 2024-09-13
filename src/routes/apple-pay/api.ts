@@ -98,7 +98,7 @@ router.post('/verifyAppleV2', validateSchema(appleVerifySchema), async (req, res
             } while (response.hasMore);
             console.log(transactions);
 
-            res.status(StatusCodes.OK).send(
+            return res.status(StatusCodes.OK).send(
                 formatResponse({
                     code: StatusCodes.OK,
                     data: transactions,
@@ -165,7 +165,7 @@ router.post('/verifyAppleV3', async (req, res, next) => {
         });
 
         if (!verifedNotification.data?.signedTransactionInfo) {
-            res.status(200).send(
+            return res.status(200).send(
                 formatResponse({
                     code: StatusCodes.OK,
                     data: verifedNotification,
@@ -272,7 +272,7 @@ router.post('/verifyAppleV3', async (req, res, next) => {
                 break;
         }
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 code: StatusCodes.OK,
                 data: verifedNotification,

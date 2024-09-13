@@ -14,7 +14,7 @@ router.get('/removeStaleTokens', async (req, res, next) => {
         // Remove stale tokens
         await deleteStaleFcmTokens();
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 success: true,
                 code: StatusCodes.OK,
@@ -33,7 +33,7 @@ router.post('/', validateSchema(sendTokenSchema), authenticateUser, async (req, 
 
         await sendTokenToServer(fcmToken, req.user.id, model || '');
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 message: 'Token saved successfully',
                 code: StatusCodes.OK,
@@ -66,7 +66,7 @@ router.post('/tokenBegone', validateSchema(begoneTokenSchema), authenticateUser,
 
         await removeFcmTokensByUserIdAndDeviceModel(userId, model);
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 message: 'No more token for you!',
                 code: StatusCodes.OK,

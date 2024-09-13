@@ -1,0 +1,1541 @@
+{
+    "collection": {
+        "info": {
+            "name": "JeKateH",
+            "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+        },
+        "item": [
+            {
+                "name": "Birthday",
+                "item": [
+                    {
+                        "name": "Get Birthday message",
+                        "event": [],
+                        "request": {
+                            "method": "GET",
+                            "header": [],
+                            "url": "{{URL}}/api/user/me/birthdayInbox"
+                        }
+                    },
+                    {
+                        "name": "Run Scheduler",
+                        "event": [],
+                        "request": {
+                            "method": "GET",
+                            "header": [],
+                            "url": "{{URL}}/api/messages/executeBirthdayScheduler"
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "Auth",
+                "item": [
+                    {
+                        "name": "Delete Account",
+                        "event": [],
+                        "request": {
+                            "method": "POST",
+                            "header": [],
+                            "url": "{{URL}}/api/verify_deletion",
+                            "body": {
+                                "mode": "raw",
+                                "raw": "{\n  \"token\": \"901560\"\n}",
+                                "options": {
+                                    "raw": {
+                                        "language": "json"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "name": "Forgot Password",
+                        "event": [],
+                        "request": {
+                            "method": "POST",
+                            "header": [],
+                            "url": "{{URL}}/api/forgot_password",
+                            "body": {
+                                "mode": "raw",
+                                "raw": "{\n  \"email\": \"zane.227@gmail.com\"\n}",
+                                "options": {
+                                    "raw": {
+                                        "language": "json"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "name": "Logout",
+                        "event": [],
+                        "request": {
+                            "method": "POST",
+                            "header": [
+                                {
+                                    "key": "",
+                                    "value": "",
+                                    "disabled": true,
+                                    "type": "default"
+                                }
+                            ],
+                            "url": "{{URL}}/api/logout",
+                            "body": {
+                                "mode": "raw",
+                                "options": {
+                                    "raw": {
+                                        "language": "json"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "name": "Login",
+                        "event": [],
+                        "request": {
+                            "method": "POST",
+                            "header": [],
+                            "url": "{{URL}}/api/login",
+                            "body": {
+                                "mode": "raw",
+                                "raw": "{\n  \"email\": \"hello@fleetime.my.id\",\n  \"password\": \"12345678\"\n}",
+                                "options": {
+                                    "raw": {
+                                        "language": "json"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "name": "Check Deletion Status",
+                        "event": [],
+                        "request": {
+                            "method": "GET",
+                            "header": [],
+                            "url": "{{URL}}/api/checkAccountDeletionStatus"
+                        }
+                    },
+                    {
+                        "name": "Register",
+                        "event": [],
+                        "request": {
+                            "method": "POST",
+                            "header": [],
+                            "url": "{{URL}}/api/register",
+                            "body": {
+                                "mode": "raw",
+                                "raw": "{\n  \"email\": \"bochi12@gmail.com\",\n  \"name\": \"Bochi\",\n  \"nickName\": \"Bo\",\n  \"password\": \"12345678\",\n  \"birthday\": \"2000-01-01\",\n  \"phoneNumber\": \"012982193\"\n}",
+                                "options": {
+                                    "raw": {
+                                        "language": "json"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "name": "Refresh Token",
+                        "event": [],
+                        "request": {
+                            "method": "POST",
+                            "header": [
+                                {
+                                    "key": "Cookie",
+                                    "value": "refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoicmVmcmVzaCIsImlkIjoiZmNkOGMxNjQtNGI5ZC00ZTczLTkzNjAtZmEzODhmYmNlMmUzIiwiZW1haWwiOiJoZWxsb0BmbGVldGltZS5teS5pZCIsIm5hbWUiOiJOb3ZpYW4gQW5kaW5pIiwicm9sZXMiOiJhZG1pbiIsImlhdCI6MTcxMDQ2ODE3NSwiZXhwIjoxNzQxNTcyMTc1fQ.7-WmTnOuUcgO8c7rSdGmMbzx13cOxAuhqZzSAX3LaEg; Path=/; Expires=Sat, 15 Mar 2025 02:02:55 GMT; HttpOnly; Secure; SameSite=None",
+                                    "disabled": false,
+                                    "type": "default"
+                                }
+                            ],
+                            "url": "{{URL}}/api/refresh"
+                        }
+                    },
+                    {
+                        "name": "Request Delete",
+                        "event": [],
+                        "request": {
+                            "method": "POST",
+                            "header": [],
+                            "url": "{{URL}}/api/request_deletion",
+                            "body": {
+                                "mode": "raw",
+                                "raw": "{\n  \"email\": \"hello@fleetime.my.id\"\n}",
+                                "options": {
+                                    "raw": {
+                                        "language": "json"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "name": "Verify Email",
+                        "event": [],
+                        "request": {
+                            "method": "POST",
+                            "header": [],
+                            "url": "{{URL}}/api/verifyToken",
+                            "body": {
+                                "mode": "raw",
+                                "raw": "{\n  \"verificationToken\": \"OwuUhY\"\n}",
+                                "options": {
+                                    "raw": {
+                                        "language": "json"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "name": "Reset Password",
+                        "event": [],
+                        "request": {
+                            "method": "POST",
+                            "header": [],
+                            "url": "{{URL}}/api/reset_password",
+                            "body": {
+                                "mode": "raw",
+                                "raw": "{\n  \"token\": \"2YLYqqs7VfyoLg\",\n  \"password\": \"12345678\"\n}",
+                                "options": {
+                                    "raw": {
+                                        "language": "json"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "Conversation",
+                "item": [
+                    {
+                        "name": "Get Conversation By Id",
+                        "event": [],
+                        "request": {
+                            "method": "GET",
+                            "header": [],
+                            "url": "{{URL}}/api/conversation/4b27af39-11a5-4f06-9ddf-d0b84e2fd029"
+                        }
+                    },
+                    {
+                        "name": "Get Conversation",
+                        "event": [],
+                        "request": {
+                            "method": "GET",
+                            "header": [],
+                            "url": "{{URL}}/api/conversation?pageSize=999"
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "Idol",
+                "item": [
+                    {
+                        "name": "Create Idol Message",
+                        "event": [],
+                        "request": {
+                            "method": "POST",
+                            "header": [],
+                            "url": "{{URL}}/api/idol/createMessage",
+                            "body": {
+                                "mode": "formdata",
+                                "formdata": [
+                                    {
+                                        "key": "messages",
+                                        "value": "Gambar",
+                                        "disabled": false,
+                                        "type": "default"
+                                    },
+                                    {
+                                        "key": "attachments",
+                                        "value": [
+                                            "D:\\Downloads\\438805450_7442532339148141_9193082932000992433_n.jpg"
+                                        ],
+                                        "disabled": true,
+                                        "type": "default"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "name": "Create Idol",
+                        "event": [],
+                        "request": {
+                            "method": "POST",
+                            "header": [],
+                            "url": "{{URL}}/api/idol",
+                            "body": {
+                                "mode": "formdata",
+                                "formdata": [
+                                    {
+                                        "key": "email",
+                                        "value": "novian@novian.com",
+                                        "disabled": false,
+                                        "type": "default"
+                                    },
+                                    {
+                                        "key": "password",
+                                        "value": "12345678",
+                                        "disabled": false,
+                                        "type": "default"
+                                    },
+                                    {
+                                        "key": "fullName",
+                                        "value": "Novian Andika",
+                                        "disabled": false,
+                                        "type": "default"
+                                    },
+                                    {
+                                        "key": "nickname",
+                                        "value": "fleetime",
+                                        "disabled": false,
+                                        "type": "default"
+                                    },
+                                    {
+                                        "key": "birthday",
+                                        "value": "2010-05-05",
+                                        "disabled": false,
+                                        "type": "default"
+                                    },
+                                    {
+                                        "key": "bloodType",
+                                        "value": "A",
+                                        "disabled": false,
+                                        "type": "default"
+                                    },
+                                    {
+                                        "key": "horoscope",
+                                        "value": "Virgo",
+                                        "disabled": false,
+                                        "type": "default"
+                                    },
+                                    {
+                                        "key": "instagramUrl",
+                                        "value": "https://www.instagram.com/allunanika/",
+                                        "disabled": false,
+                                        "type": "default"
+                                    },
+                                    {
+                                        "key": "xUrl",
+                                        "value": "https://twitter.com/risingashenflee",
+                                        "disabled": false,
+                                        "type": "default"
+                                    },
+                                    {
+                                        "key": "profileImage",
+                                        "value": ["D:\\Downloads\\47508893.jpg"],
+                                        "disabled": false,
+                                        "type": "default"
+                                    },
+                                    {
+                                        "key": "height",
+                                        "value": "178",
+                                        "disabled": false,
+                                        "type": "default"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "name": "Get Idol By Id",
+                        "event": [],
+                        "request": {
+                            "method": "GET",
+                            "header": [],
+                            "url": "{{URL}}/api/idol/JKT48-1"
+                        }
+                    },
+                    {
+                        "name": "Delete Idol",
+                        "event": [],
+                        "request": {
+                            "method": "DELETE",
+                            "header": [],
+                            "url": "{{URL}}/api/idol/6f3fb695-af08-4049-bdf7-2811ceb1ca10"
+                        }
+                    },
+                    {
+                        "name": "Get Idol Message",
+                        "event": [],
+                        "request": {
+                            "method": "GET",
+                            "header": [],
+                            "url": "{{URL}}/api/idol/getIdolMessage"
+                        }
+                    },
+                    {
+                        "name": "Get Idol",
+                        "event": [],
+                        "request": {
+                            "method": "GET",
+                            "header": [],
+                            "url": "{{URL}}/api/idol?pageSize=100"
+                        }
+                    },
+                    {
+                        "name": "Get Logged On Idol",
+                        "event": [],
+                        "request": {
+                            "method": "GET",
+                            "header": [],
+                            "url": "{{URL}}/api/idol/getLoggedOnIdol"
+                        }
+                    },
+                    {
+                        "name": "Update Idol Image",
+                        "event": [],
+                        "request": {
+                            "method": "PATCH",
+                            "header": [],
+                            "url": "{{URL}}/api/idol/JKT48-1/profileImage",
+                            "body": {
+                                "mode": "formdata",
+                                "formdata": [
+                                    {
+                                        "key": "profileImage",
+                                        "value": ["D:\\Downloads\\WhatsApp Image 2024-03-08 at 17.52.57_18e143c3.jpg"],
+                                        "disabled": false,
+                                        "type": "default"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "name": "Update Idol",
+                        "event": [],
+                        "request": {
+                            "method": "PATCH",
+                            "header": [],
+                            "url": "{{URL}}/api/idol/JKT48-53",
+                            "body": {
+                                "mode": "raw",
+                                "raw": "{\n  \"email\": \"adelbackup@gmail.com\",\n  \"fullName\": \"Test\",\n  \"password\": \"12345678\",\n  \"nickname\": \"Test Nickname\",\n  \"birthday\": \"2000-01-01\",\n  \"height\": \"188\",\n  \"bloodType\": \"O\",\n  \"horoscope\": \"Libra\"\n}",
+                                "options": {
+                                    "raw": {
+                                        "language": "json"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "name": "Update Logged On Idol Image",
+                        "event": [],
+                        "request": {
+                            "method": "PATCH",
+                            "header": [],
+                            "url": "{{URL}}/api/idol/getLoggedOnIdol/updateProfileImage",
+                            "body": {
+                                "mode": "formdata",
+                                "formdata": [
+                                    {
+                                        "key": "profileImage",
+                                        "value": [
+                                            "D:\\Downloads\\438805450_7442532339148141_9193082932000992433_n.jpg"
+                                        ],
+                                        "disabled": false,
+                                        "type": "default"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "name": "Update Logged On Idol",
+                        "event": [],
+                        "request": {
+                            "method": "PATCH",
+                            "header": [],
+                            "url": "{{URL}}/api/idol/getLoggedOnIdol/update",
+                            "body": {
+                                "mode": "raw",
+                                "raw": "{\n  \"fullName\": \"Reva\",\n  \"bio\": \"Aku Idolmaster\"\n}",
+                                "options": {
+                                    "raw": {
+                                        "language": "json"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "Callback",
+                "item": [
+                    {
+                        "name": "Xendit Callback",
+                        "event": [],
+                        "request": {
+                            "method": "POST",
+                            "header": [],
+                            "url": "{{URL}}/api/xendit-callback",
+                            "body": {
+                                "mode": "raw",
+                                "raw": "{\n    \"id\": \"579c8d61f23fa4ca35e52da4\",\n    \"external_id\": \"97d63d5f-2e1d-4635-bead-c96ff63ce2fc\",\n    \"user_id\": \"5781d19b2e2385880609791c\",\n    \"is_high\": true,\n    \"payment_method\": \"BANK_TRANSFER\",\n    \"status\": \"PAID\",\n    \"merchant_name\": \"Xendit\",\n    \"amount\": 50000,\n    \"paid_amount\": 50000,\n    \"bank_code\": \"PERMATA\",\n    \"paid_at\": \"2016-10-12T08:15:03.404Z\",\n    \"payer_email\": \"wildan@xendit.co\",\n    \"description\": \"This is a description\",\n    \"adjusted_received_amount\": 47500,\n    \"fees_paid_amount\": 0,\n    \"updated\": \"2016-10-10T08:15:03.404Z\",\n    \"created\": \"2016-10-10T08:15:03.404Z\",\n    \"currency\": \"IDR\",\n    \"payment_channel\": \"PERMATA\",\n    \"payment_destination\": \"888888888888\"\n}",
+                                "options": {
+                                    "raw": {
+                                        "language": "json"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "name": "Subscription Callbak",
+                        "event": [],
+                        "request": {
+                            "method": "POST",
+                            "header": [],
+                            "url": "{{URL}}/api/xendit-callback/handleRecurringPayment",
+                            "body": {
+                                "mode": "raw",
+                                "raw": "{\n    \"created\": \"2022-10-01T12:37:08.251Z\",\n    \"business_id\": \"62440e322008e87fb29c1fd0\",\n    \"event\": \"recurring.plan.activated\",\n    \"data\": {\n        \"id\": \"repl-239c16f4-866d-43e8-9341-7badafbc019f\",\n        \"reference_id\": \"655d9613-f6ce-4f72-a668-05d41ed9f901\",\n        \"customer_id\": \"cust-239c16f4-866d-43e8-9341-7badafbc019f\",\n        \"recurring_action\": \"PAYMENT\",\n        \"recurring_cycle_count\": 0,\n        \"currency\": \"IDR\",\n        \"amount\": 13579,\n        \"status\": \"ACTIVE\",\n        \"created\": \"2020-11-20T16:23:52Z\",\n        \"updated\": \"2020-11-20T16:23:52Z\",\n        \"payment_methods\": [\n            {\n                \"payment_method_id\": \"pm-239c16f4-866d-43e8-9341-7badafbc019f\",\n                \"rank\": 1,\n                \"type\": \"EWALLET\"\n            }\n        ],\n        \"schedule_id\": \"resc-239c16f4-866d-43e8-9341-7badafbc019f\",\n        \"schedule\": {\n            \"reference_id\": \"test_reference_id\",\n            \"interval\": \"MONTH\",\n            \"interval_count\": 1,\n            \"created\": \"2022-02-15T16:23:52Z\",\n            \"updated\": \"2022-02-15T16:23:52Z\",\n            \"total_recurrence\": 12,\n            \"anchor_date\": \"2022-02-15T16:23:52Z\",\n            \"retry_interval\": \"DAY\",\n            \"retry_interval_count\": 5,\n            \"total_retry\": 5,\n            \"failed_attempt_notifications\": [\n                2,\n                4\n            ]\n        },\n        \"immediate_action_type\": \"FULL_AMOUNT\",\n        \"notification_config\": {\n            \"recurring_created\": [\n                \"WHATSAPP\",\n                \"EMAIL\"\n            ],\n            \"recurring_succeeded\": [\n                \"WHATSAPP\",\n                \"EMAIL\"\n            ],\n            \"recurring_failed\": [\n                \"WHATSAPP\",\n                \"EMAIL\"\n            ],\n            \"locale\": \"en\"\n        },\n        \"failed_cycle_action\": \"STOP\",\n        \"metadata\": {\n            \"meta_metadata\": \"meta_meta_metadata\"\n        },\n        \"description\": \"Video Game Subscription\",\n        \"items\": [\n            {\n                \"type\": \"DIGITAL_PRODUCT\",\n                \"name\": \"Cine Mraft\",\n                \"net_unit_amount\": 13579,\n                \"quantity\": 1\n            }\n        ],\n        \"actions\": [\n            {\n                \"action\": \"AUTH\",\n                \"url\": \"https://linking-dev.xendit.co/pali_e53e1ca6-3c09-4026-be2e-95ed3d4bb25b\",\n                \"url_type\": \"WEB\",\n                \"method\": \"GET\"\n            }\n        ],\n        \"success_return_url\": \"https://www.xendit.co/successisthesumoffailures\",\n        \"failure_return_url\": \"https://www.xendit.co/failureisthemotherofsuccess\"\n    },\n    \"api_version\": \"v1\"\n}",
+                                "options": {
+                                    "raw": {
+                                        "language": "json"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "FCM Token",
+                "item": [
+                    {
+                        "name": "Post Token",
+                        "event": [],
+                        "request": {
+                            "method": "POST",
+                            "header": [],
+                            "url": "{{URL}}/api/token",
+                            "body": {
+                                "mode": "raw",
+                                "raw": "{\n  \"fcmToken\": \"XXXXXXXX\",\n  \"model\": \"Heyaa\"\n}",
+                                "options": {
+                                    "raw": {
+                                        "language": "json"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "Invoice",
+                "item": [
+                    {
+                        "name": "Get Invoice By Id",
+                        "event": [],
+                        "request": {
+                            "method": "GET",
+                            "header": [],
+                            "url": "{{URL}}/api/invoice/65e931789ad2a956ed919228"
+                        }
+                    },
+                    {
+                        "name": "Get All Invoice",
+                        "event": [],
+                        "request": {
+                            "method": "GET",
+                            "header": [],
+                            "url": "{{URL}}/api/invoice"
+                        }
+                    },
+                    {
+                        "name": "Expire Invoice",
+                        "event": [],
+                        "request": {
+                            "method": "GET",
+                            "header": [],
+                            "url": "{{URL}}/api/invoice/65e531993fa725694fddabb3/forceExpire"
+                        }
+                    },
+                    {
+                        "name": "Get Invoice",
+                        "event": [],
+                        "request": {
+                            "method": "POST",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json",
+                                    "disabled": false,
+                                    "type": "default"
+                                },
+                                {
+                                    "key": "Accept-Encoding",
+                                    "value": "gzip, deflate, br",
+                                    "disabled": false,
+                                    "type": "default"
+                                },
+                                {
+                                    "key": "Accept",
+                                    "value": "*/*",
+                                    "disabled": false,
+                                    "type": "default"
+                                },
+                                {
+                                    "key": "Connection",
+                                    "value": "keep-alive",
+                                    "disabled": false,
+                                    "type": "default"
+                                },
+                                {
+                                    "key": "User-Agent",
+                                    "value": "PostmanRuntime/7.36.3",
+                                    "disabled": false,
+                                    "type": "default"
+                                }
+                            ],
+                            "url": "{{URL}}/api/invoice",
+                            "body": {
+                                "mode": "raw",
+                                "raw": "{\n  \"idOrder\": \"b9f8153f-6c99-473b-a8eb-91f8cb05cb73\",\n  \"currency\": \"IDR\"\n}",
+                                "options": {
+                                    "raw": {
+                                        "language": "json"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "Message",
+                "item": [
+                    {
+                        "name": "Approve or Reject Message",
+                        "event": [],
+                        "request": {
+                            "method": "PATCH",
+                            "header": [],
+                            "url": "{{URL}}/api/messages/d1412f76-3e0e-4b3e-82d8-b180b3f56af2/approveOrReject",
+                            "body": {
+                                "mode": "raw",
+                                "raw": "{\n  \"isApproved\": true\n}",
+                                "options": {
+                                    "raw": {
+                                        "language": "json"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "name": "Create Message",
+                        "event": [],
+                        "request": {
+                            "method": "POST",
+                            "header": [],
+                            "url": "{{URL}}/api/messages",
+                            "body": {
+                                "mode": "formdata",
+                                "formdata": [
+                                    {
+                                        "key": "conversationId",
+                                        "value": "f3c9230f-073f-4b99-9f37-bea9d9fbc53d",
+                                        "disabled": false,
+                                        "type": "default"
+                                    },
+                                    {
+                                        "key": "messages",
+                                        "value": "Halo kelvin XD",
+                                        "disabled": false,
+                                        "type": "default"
+                                    },
+                                    {
+                                        "key": "attachments",
+                                        "value": [
+                                            "C:\\Users\\zane2\\Downloads\\WhatsApp Image 2024-03-08 at 17.52.57_18e143c3.jpg"
+                                        ],
+                                        "disabled": true,
+                                        "type": "default"
+                                    },
+                                    {
+                                        "key": "attachments",
+                                        "value": [
+                                            "C:\\Users\\zane2\\Downloads\\WhatsApp Image 2024-02-27 at 13.05.57_670d1fd7.jpg"
+                                        ],
+                                        "disabled": true,
+                                        "type": "default"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "name": "Get Message By Conversation Id",
+                        "event": [],
+                        "request": {
+                            "method": "GET",
+                            "header": [],
+                            "url": "{{URL}}/api/messages/conversation/53bff327-b79b-4d3c-8cc0-bd1d5c5d635a"
+                        }
+                    },
+                    {
+                        "name": "Delete Message",
+                        "event": [],
+                        "request": {
+                            "method": "DELETE",
+                            "header": [],
+                            "url": "{{URL}}/api/messages/f62faed6-bd3f-4611-9e3a-5097b88847ca"
+                        }
+                    },
+                    {
+                        "name": "Get Message By Id",
+                        "event": [],
+                        "request": {
+                            "method": "GET",
+                            "header": [],
+                            "url": "{{URL}}/api/messages/4b6da4f0-bcf3-48b6-996d-cd74d6a6b003"
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "News",
+                "item": [
+                    {
+                        "name": "Create News",
+                        "event": [],
+                        "request": {
+                            "method": "POST",
+                            "header": [],
+                            "url": "{{URL}}/api/news",
+                            "body": {
+                                "mode": "raw",
+                                "raw": "{\n  \"title\": \"Zeee\",\n  \"body\": \"ZeeeeZaaa\",\n  \"image\": \"https://blog.logrocket.com/wp-content/uploads/2023/03/express-status-monitor-node-js-monitoring-tool.png\"\n}",
+                                "options": {
+                                    "raw": {
+                                        "language": "json"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "name": "Get Newest News",
+                        "event": [],
+                        "request": {
+                            "method": "GET",
+                            "header": [],
+                            "url": "{{URL}}/api/news/latest"
+                        }
+                    },
+                    {
+                        "name": "Delete News",
+                        "event": [],
+                        "request": {
+                            "method": "DELETE",
+                            "header": [],
+                            "url": "{{URL}}/api/news/2c04d0ab-924e-481e-a65f-a6111720b739"
+                        }
+                    },
+                    {
+                        "name": "Get News By Slug",
+                        "event": [],
+                        "request": {
+                            "method": "GET",
+                            "header": [],
+                            "url": "{{URL}}/api/news/slug/i-know-its-a-little-early-but"
+                        }
+                    },
+                    {
+                        "name": "Update News",
+                        "event": [],
+                        "request": {
+                            "method": "PUT",
+                            "header": [],
+                            "url": "{{URL}}/api/news/5d3e7ff2-c8b7-4d3b-8ec0-ac0fa46a9184",
+                            "body": {
+                                "mode": "raw",
+                                "raw": "{\n  \"title\": \"Nice Dream\",\n  \"body\": \"Moohoto\"\n}",
+                                "options": {
+                                    "raw": {
+                                        "language": "json"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "name": "Get Single News",
+                        "event": [],
+                        "request": {
+                            "method": "GET",
+                            "header": [],
+                            "url": "{{URL}}/api/news/01c31eb6-ab27-4822-ad4b-060c1672fb78"
+                        }
+                    },
+                    {
+                        "name": "Get News",
+                        "event": [],
+                        "request": {
+                            "method": "GET",
+                            "header": [],
+                            "url": "{{URL}}/api/news"
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "Order",
+                "item": [
+                    {
+                        "name": "Check Expired",
+                        "event": [],
+                        "request": {
+                            "method": "GET",
+                            "header": [],
+                            "url": "{{URL}}/api/order/check-expired"
+                        }
+                    },
+                    {
+                        "name": "Create Order",
+                        "event": [],
+                        "request": {
+                            "method": "POST",
+                            "header": [],
+                            "url": "{{URL}}/api/order",
+                            "body": {
+                                "mode": "raw",
+                                "raw": "{\n  \"packageId\": \"6a472368-c380-4272-8de5-83b45892d8eb\",\n  \"paymentMethod\": \"xendit\",\n  \"subtotal\": 499000,\n  \"tax\": 1000,\n  \"total\": 500000,\n  \"idolIds\": [\"JKT48-1\"]\n}",
+                                "options": {
+                                    "raw": {
+                                        "language": "json"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "name": "Get Order By Id",
+                        "event": [],
+                        "request": {
+                            "method": "GET",
+                            "header": [],
+                            "url": "{{URL}}/api/order/5a31a6fe-dabc-490c-add5-82b56880f941"
+                        }
+                    },
+                    {
+                        "name": "Inquiry Order",
+                        "event": [],
+                        "request": {
+                            "method": "GET",
+                            "header": [],
+                            "url": "{{URL}}/api/order/inquiry/75593747-8380-4d80-bf3e-f4ad2b8eb37f"
+                        }
+                    },
+                    {
+                        "name": "Inquiry Order Idol Name",
+                        "event": [],
+                        "request": {
+                            "method": "GET",
+                            "header": [],
+                            "url": "{{URL}}/api/order/inquiry/55f43bc0-f2e1-4f38-9cd2-b4a9eed66ff3/idol"
+                        }
+                    },
+                    {
+                        "name": "Update Order Status",
+                        "event": [],
+                        "request": {
+                            "method": "PATCH",
+                            "header": [],
+                            "url": "{{URL}}/api/order/updateStatus",
+                            "body": {
+                                "mode": "raw",
+                                "raw": "{\n  \"orderId\": \"0c1971cf-9400-4d10-8221-c5cacf0947a3\"\n}",
+                                "options": {
+                                    "raw": {
+                                        "language": "json"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "Notification",
+                "item": [
+                    {
+                        "name": "Test Notif",
+                        "event": [],
+                        "request": {
+                            "method": "GET",
+                            "header": [],
+                            "url": "{{URL}}/send-notification"
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "Other",
+                "item": [
+                    {
+                        "name": "Member Shortcut",
+                        "item": []
+                    },
+                    {
+                        "name": "Admin Shortcut",
+                        "item": [
+                            {
+                                "name": "a",
+                                "event": [],
+                                "request": {
+                                    "method": "PATCH",
+                                    "header": [],
+                                    "url": "{{URL}}/"
+                                }
+                            },
+                            {
+                                "name": "[ADMIN] Count Active Subs User",
+                                "event": [],
+                                "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": "{{URL}}/api/user/countActiveSubscriptions"
+                                }
+                            },
+                            {
+                                "name": "[ADMIN] Create Idol",
+                                "event": [],
+                                "request": {
+                                    "method": "POST",
+                                    "header": [],
+                                    "url": "{{URL}}/api/idol",
+                                    "body": {
+                                        "mode": "raw",
+                                        "raw": "{\n  \"email\": \"daza@jkt48.com\",\n  \"password\": \"12345678\",\n  \"fullName\": \"Cathleen Nixie\",\n  \"nickname\": \"Cathy\",\n  \"birthday\": \"2009-05-28\",\n  \"height\": 158,\n  \"bloodType\": \"A\",\n  \"horoscope\": \"Taurus\",\n  \"instagramUrl\": \"https://www.instagram.com/jkt48.cathy/\",\n  \"xUrl\": \"https://twitter.com/N_CathyJKT48\"\n}",
+                                        "options": {
+                                            "raw": {
+                                                "language": "json"
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "name": "[ADMIN] Create News",
+                                "event": [],
+                                "request": {
+                                    "method": "POST",
+                                    "header": [],
+                                    "url": "{{URL}}/api/news",
+                                    "body": {
+                                        "mode": "raw",
+                                        "raw": "{\n  \"title\": \"Zeee\",\n  \"body\": \"ZeeeeZaaa\"\n}",
+                                        "options": {
+                                            "raw": {
+                                                "language": "json"
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "name": "[ADMIN[ Approve or Reject Message",
+                                "event": [],
+                                "request": {
+                                    "method": "PATCH",
+                                    "header": [],
+                                    "url": "{{URL}}/api/messages/534889ec-1b13-4498-ace2-a2b563c7bca3/approveOrReject",
+                                    "body": {
+                                        "mode": "raw",
+                                        "raw": "{\n  \"isApproved\": true\n}",
+                                        "options": {
+                                            "raw": {
+                                                "language": "json"
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "name": "[ADMIN] Count Registered User",
+                                "event": [],
+                                "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": "{{URL}}/api/user/countRegistered"
+                                }
+                            },
+                            {
+                                "name": "[ADMIN] Delete News",
+                                "event": [],
+                                "request": {
+                                    "method": "DELETE",
+                                    "header": [],
+                                    "url": "{{URL}}/api/news/01c31eb6-ab27-4822-ad4b-060c1672fb78"
+                                }
+                            },
+                            {
+                                "name": "[ADMIN] Get Conversation By Id",
+                                "event": [],
+                                "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": "{{URL}}/api/conversation/4b27af39-11a5-4f06-9ddf-d0b84e2fd029"
+                                }
+                            },
+                            {
+                                "name": "[ADMIN] Get Idol By Id",
+                                "event": [],
+                                "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": "{{URL}}/api/idol/JKT48-1"
+                                }
+                            },
+                            {
+                                "name": "[ADMIN] Get Idol",
+                                "event": [],
+                                "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": "{{URL}}/api/idol"
+                                }
+                            },
+                            {
+                                "name": "[ADMIN] Get Conversation",
+                                "event": [],
+                                "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": "{{URL}}/api/conversation?pageSize=100"
+                                }
+                            },
+                            {
+                                "name": "[ADMIN] Get News",
+                                "event": [],
+                                "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": "{{URL}}/api/news?orderBy=created_at&orderDirection=asc"
+                                }
+                            },
+                            {
+                                "name": "[ADMIN] Get Message By Conversation Id",
+                                "event": [],
+                                "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": "{{URL}}/api/messages/4b27af39-11a5-4f06-9ddf-d0b84e2fd029"
+                                }
+                            },
+                            {
+                                "name": "[ADMIN] Update Idol",
+                                "event": [],
+                                "request": {
+                                    "method": "PATCH",
+                                    "header": [],
+                                    "url": "{{URL}}/api/idol/fca9def9-0361-4645-a8f7-fbeb8ac1160b",
+                                    "body": {
+                                        "mode": "raw",
+                                        "raw": "{\n  \"email\": \"adelbackup@gmail.com\",\n  \"fullName\": \"Test\",\n  \"nickName\": \"Test Nickname\",\n  \"birthday\": \"2000-01-01\",\n  \"height\": 189,\n  \"bloodType\": \"O\",\n  \"horoscope\": \"Libra\"\n}",
+                                        "options": {
+                                            "raw": {
+                                                "language": "json"
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "name": "[ADMIN] Update News",
+                                "event": [],
+                                "request": {
+                                    "method": "PUT",
+                                    "header": [],
+                                    "url": "{{URL}}/api/news/5d3e7ff2-c8b7-4d3b-8ec0-ac0fa46a9184",
+                                    "body": {
+                                        "mode": "raw",
+                                        "raw": "{\n  \"title\": \"Nice Dream\",\n  \"body\": \"Moohoto\"\n}",
+                                        "options": {
+                                            "raw": {
+                                                "language": "json"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "Package Inquiry",
+                "item": [
+                    {
+                        "name": "Get Package Inquiry",
+                        "event": [],
+                        "request": {
+                            "method": "GET",
+                            "header": [],
+                            "url": "{{URL}}/api/inquiry/8024e1b1-930b-4ebd-b9c9-4d2d3779105c"
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "Package",
+                "item": [
+                    {
+                        "name": "Get All Package",
+                        "event": [],
+                        "request": {
+                            "method": "GET",
+                            "header": [],
+                            "url": "{{URL}}/api/package"
+                        }
+                    },
+                    {
+                        "name": "Update Package",
+                        "event": [],
+                        "request": {
+                            "method": "PATCH",
+                            "header": [],
+                            "url": "{{URL}}/api/package/45afd298-91c3-400e-b846-e577735910df",
+                            "body": {
+                                "mode": "raw",
+                                "raw": "{\n  \"isActive\": \"test\"\n}",
+                                "options": {
+                                    "raw": {
+                                        "language": "json"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "name": "Get One Package",
+                        "event": [],
+                        "request": {
+                            "method": "GET",
+                            "header": [],
+                            "url": "{{URL}}/api/package/6a472368-c380-4272-8de5-83b45892d8eb"
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "Post",
+                "item": [
+                    {
+                        "name": "Get Single Post",
+                        "event": [],
+                        "request": {
+                            "method": "GET",
+                            "header": [],
+                            "url": "{{URL}}/api/posts/b9598ef4-0951-4beb-8023-16cb13990e5b"
+                        }
+                    },
+                    {
+                        "name": "Update Post",
+                        "event": [],
+                        "request": {
+                            "method": "PUT",
+                            "header": [],
+                            "url": "{{URL}}/api/posts/b9598ef4-0951-4beb-8023-16cb13990e5b",
+                            "body": {
+                                "mode": "raw",
+                                "raw": "{\n  \"body\": \"Lalalal\"\n}",
+                                "options": {
+                                    "raw": {
+                                        "language": "json"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "Privacy Policy",
+                "item": [
+                    {
+                        "name": "Get Privacy Policy",
+                        "event": [],
+                        "request": {
+                            "method": "GET",
+                            "header": [],
+                            "url": "{{URL}}/api/privacy-policy"
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "Reaction",
+                "item": [
+                    {
+                        "name": "Get Reactions",
+                        "event": [],
+                        "request": {
+                            "method": "GET",
+                            "header": [],
+                            "url": "{{URL}}/api/reaction"
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "Subscription",
+                "item": [
+                    {
+                        "name": "Create Customer",
+                        "event": [],
+                        "request": {
+                            "method": "POST",
+                            "header": [],
+                            "url": "{{URL}}/api/subscription/createCustomer",
+                            "body": {
+                                "mode": "raw",
+                                "raw": "{\n  \"reference_id\": \"fcd8c164-4b9d-4e73-9360-fa388fbce2e3\",\n  \"email\": \"hello@fleetime.my.id\",\n  \"given_names\": \"Novian Andika\"\n}",
+                                "options": {
+                                    "raw": {
+                                        "language": "json"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "name": "Create God Plan",
+                        "event": [],
+                        "request": {
+                            "method": "POST",
+                            "header": [],
+                            "url": "{{URL}}/api/subscription/createPlan",
+                            "body": {
+                                "mode": "raw",
+                                "raw": "{\n  \"reference_id\": \"eb6afa1b-948e-41cb-b0f6-e45be6918f4d\",\n  \"customer_id\": \"cust-c337136c-573c-44d5-ba08-b9da940b8856\"\n}",
+                                "options": {
+                                    "raw": {
+                                        "language": "json"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "Terms",
+                "item": [
+                    {
+                        "name": "Get Terms Of Service",
+                        "event": [],
+                        "request": {
+                            "method": "GET",
+                            "header": [],
+                            "url": "{{URL}}/api/terms"
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "Profile",
+                "item": []
+            },
+            {
+                "name": "Top Idol",
+                "item": [
+                    {
+                        "name": "Get Top Idol",
+                        "event": [],
+                        "request": {
+                            "method": "GET",
+                            "header": [],
+                            "url": "{{URL}}/api/top-idol"
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "Upload",
+                "item": [
+                    {
+                        "name": "Upload News",
+                        "event": [],
+                        "request": {
+                            "method": "POST",
+                            "header": [],
+                            "url": "{{URL}}/api/upload/news",
+                            "body": {
+                                "mode": "formdata",
+                                "formdata": [
+                                    {
+                                        "key": "file",
+                                        "value": [
+                                            "C:\\Users\\zane2\\Downloads\\ss_5efd318b85a3917d1c6e717f4cb813b47547cd6f.1920x1080.jpg"
+                                        ],
+                                        "disabled": false,
+                                        "type": "default"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "User",
+                "item": [
+                    {
+                        "name": "Change Password",
+                        "event": [],
+                        "request": {
+                            "method": "PATCH",
+                            "header": [],
+                            "url": "{{URL}}/api/user/me/changePassword",
+                            "body": {
+                                "mode": "raw",
+                                "raw": "{\n  \"password\": \"novian227\"\n}",
+                                "options": {
+                                    "raw": {
+                                        "language": "json"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "name": "Count Active Subs User",
+                        "event": [],
+                        "request": {
+                            "method": "GET",
+                            "header": [],
+                            "url": "{{URL}}/api/user/countActiveSubscriptions"
+                        }
+                    },
+                    {
+                        "name": "Count Registered User",
+                        "event": [],
+                        "request": {
+                            "method": "GET",
+                            "header": [],
+                            "url": "{{URL}}/api/user/countRegistered"
+                        }
+                    },
+                    {
+                        "name": "Get Logged On Profile",
+                        "event": [],
+                        "request": {
+                            "method": "GET",
+                            "header": [],
+                            "url": "{{URL}}/api/user/me"
+                        }
+                    },
+                    {
+                        "name": "Get Logged On Profile News",
+                        "event": [],
+                        "request": {
+                            "method": "GET",
+                            "header": [],
+                            "url": "{{URL}}/api/user/me/newsCheck"
+                        }
+                    },
+                    {
+                        "name": "Nuke",
+                        "event": [],
+                        "request": {
+                            "method": "DELETE",
+                            "header": [],
+                            "url": "{{URL}}/api/user/me/nuke"
+                        }
+                    },
+                    {
+                        "name": "Update Logged On Profile",
+                        "event": [],
+                        "request": {
+                            "method": "PATCH",
+                            "header": [],
+                            "url": "{{URL}}/api/user/me",
+                            "body": {
+                                "mode": "formdata",
+                                "formdata": [
+                                    {
+                                        "key": "name",
+                                        "value": "Tarkus",
+                                        "disabled": false,
+                                        "type": "default"
+                                    },
+                                    {
+                                        "key": "email",
+                                        "value": "hello@fleetime.my.id",
+                                        "disabled": false,
+                                        "type": "default"
+                                    },
+                                    {
+                                        "key": "nickName",
+                                        "value": "Fleetime",
+                                        "disabled": false,
+                                        "type": "default"
+                                    },
+                                    {
+                                        "key": "profileImage",
+                                        "value": ["D:\\Downloads\\XcFqUq1__400x400.jpg"],
+                                        "disabled": false,
+                                        "type": "default"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "name": "Conversation",
+                        "item": [
+                            {
+                                "name": "Get User Conversation Images",
+                                "event": [],
+                                "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": "{{URL}}/api/user/me/conversation/4b27af39-11a5-4f06-9ddf-d0b84e2fd029/images"
+                                }
+                            },
+                            {
+                                "name": "Get User Conversation",
+                                "event": [],
+                                "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": "{{URL}}/api/user/me/conversationList"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Message",
+                        "item": [
+                            {
+                                "name": "Get User Message",
+                                "event": [],
+                                "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": "{{URL}}/api/user/me/conversation/4b27af39-11a5-4f06-9ddf-d0b84e2fd029?pageSize=11"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Reaction",
+                        "item": [
+                            {
+                                "name": "Delete Reaction",
+                                "event": [],
+                                "request": {
+                                    "method": "DELETE",
+                                    "header": [],
+                                    "url": "{{URL}}/api/user/me/unReactMessage/534889ec-1b13-4498-ace2-a2b563c7bca3/reaction/a1d1ba7b-f855-4891-a878-b1f5255bee5e"
+                                }
+                            },
+                            {
+                                "name": "Post Reaction",
+                                "event": [],
+                                "request": {
+                                    "method": "POST",
+                                    "header": [],
+                                    "url": "{{URL}}/api/user/me/reactMessage/f457f98d-6f6b-4bbc-8fb2-2a592d2c41a1",
+                                    "body": {
+                                        "mode": "raw",
+                                        "raw": "{\n  \"reactionId\": \"36983afa-da5e-41c8-9134-9f73d6f21de6\"\n}",
+                                        "options": {
+                                            "raw": {
+                                                "language": "json"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Transaction",
+                        "item": [
+                            {
+                                "name": "Get User Transaction Detail",
+                                "event": [],
+                                "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": "{{URL}}/api/user/me/transactionDetail/97d63d5f-2e1d-4635-bead-c96ff63ce2fc"
+                                }
+                            },
+                            {
+                                "name": "Get User Transactions",
+                                "event": [],
+                                "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": "{{URL}}/api/user/me/transactionList"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Active Members",
+                        "item": [
+                            {
+                                "name": "Get user Active Members",
+                                "event": [],
+                                "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": "{{URL}}/api/user/me/getActiveIdols"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Subscription",
+                        "item": [
+                            {
+                                "name": "Cancel Subscription",
+                                "event": [],
+                                "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": "{{URL}}/api/user/me/cancelSubscription"
+                                }
+                            },
+                            {
+                                "name": "Check User Subscription",
+                                "event": [],
+                                "request": {
+                                    "method": "GET",
+                                    "header": [],
+                                    "url": "{{URL}}/api/user/me/checkSubscription"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "bruno",
+                "event": []
+            }
+        ],
+        "variable": [
+            {
+                "key": "URL",
+                "value": "",
+                "type": "default"
+            }
+        ]
+    }
+}

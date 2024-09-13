@@ -13,10 +13,13 @@ export const registerSchema = z.object({
         name: z.string().min(1, 'Please enter your name'),
         nickName: z.string().min(1, 'Please enter your nickname'),
         password: z.string().min(8, 'Password must be at least 8 characters'),
-        birthday: z.string().refine(value => !isNaN(new Date(value).getTime()), {
-            message: 'Please enter a valid date',
-            path: ['birthday'],
-        }),
+        birthday: z
+            .string()
+            .refine(value => !isNaN(new Date(value).getTime()), {
+                message: 'Please enter a valid date',
+                path: ['birthday'],
+            })
+            .optional(),
         phoneNumber: z.string().regex(/^\+?[1-9]\d{1,14}$/, 'Please enter a valid phone number in E.164 format'),
     }),
 });
@@ -49,6 +52,10 @@ export const resetPasswordSchema = z.object({
 export const changePasswordSchema = z.object({
     body: z.object({
         password: z.string().min(8, 'Password must be at least 8 characters'),
+        birthday: z
+            .string()
+
+            .optional(),
     }),
 });
 

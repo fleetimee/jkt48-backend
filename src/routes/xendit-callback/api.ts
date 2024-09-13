@@ -24,7 +24,7 @@ router.post('/', async (req, res, next) => {
 
         // Check if body is empty
         if (!body) {
-            res.status(StatusCodes.BAD_REQUEST).send({
+            return res.status(StatusCodes.BAD_REQUEST).send({
                 message: 'Invalid body',
             });
         }
@@ -66,7 +66,7 @@ router.post('/', async (req, res, next) => {
                 });
             }
 
-            res.status(StatusCodes.OK).send({
+            return res.status(StatusCodes.OK).send({
                 message: 'Xendit callback received for successful payment',
             });
 
@@ -74,14 +74,14 @@ router.post('/', async (req, res, next) => {
         } else if (body.status === 'FAILED') {
             await updateOrderStatusXenditCallback(body.external_id, 'failed', body);
 
-            res.status(StatusCodes.OK).send({
+            return res.status(StatusCodes.OK).send({
                 message: 'Xendit callback received for failed payment',
             });
 
             return;
         }
 
-        res.status(StatusCodes.BAD_REQUEST).send({
+        return res.status(StatusCodes.BAD_REQUEST).send({
             message: 'Invalid status',
         });
     } catch (error) {
@@ -99,7 +99,7 @@ router.post('/handleRecurringPayment', async (req, res, next) => {
         const webhookId = req.headers['webhook-id'];
 
         if (!body) {
-            res.status(StatusCodes.BAD_REQUEST).send({
+            return res.status(StatusCodes.BAD_REQUEST).send({
                 message: 'Invalid body',
             });
         }
@@ -128,7 +128,7 @@ router.post('/handleRecurringPayment', async (req, res, next) => {
 
             console.log(`Xendit callback received for order ${body.data.reference_id} with status ${body.event}`);
 
-            res.status(StatusCodes.OK).send({
+            return res.status(StatusCodes.OK).send({
                 message: 'Success Updating Order Status',
             });
         } else {
@@ -146,7 +146,7 @@ router.post('/handlePaymentMethod', async (req, res, next) => {
         const { body } = req;
 
         if (!body) {
-            res.status(StatusCodes.BAD_REQUEST).send({
+            return res.status(StatusCodes.BAD_REQUEST).send({
                 message: 'Invalid body',
             });
         }
@@ -154,7 +154,7 @@ router.post('/handlePaymentMethod', async (req, res, next) => {
         if (body.event === XenditRecurringStatus.PAYMENT_ACTIVATED) {
             console.log(`Payment method created ${body.data.type}`);
 
-            res.status(StatusCodes.OK).send({
+            return res.status(StatusCodes.OK).send({
                 message: 'Payment Method Linked Successfully',
             });
         }

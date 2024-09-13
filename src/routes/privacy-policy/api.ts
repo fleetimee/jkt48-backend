@@ -10,7 +10,7 @@ router.get('/', async (req, res, next) => {
     try {
         const privacyPolicy = await getPrivacyPolicy();
 
-        res.status(StatusCodes.OK).send(
+        return res.status(StatusCodes.OK).send(
             formatResponse({
                 success: true,
                 code: StatusCodes.OK,
