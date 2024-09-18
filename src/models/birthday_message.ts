@@ -2,7 +2,7 @@ import { pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 
 import { idol } from './idol';
 
-export const birthdayMessage = pgTable('birthday_message', {
+export const birthdayMessage = pgTable('birthday_messages', {
     id: uuid('id').primaryKey().unique().notNull().defaultRandom(),
     idolId: varchar('idol_id', {
         length: 10,

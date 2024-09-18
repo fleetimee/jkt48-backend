@@ -60,7 +60,7 @@ export const createOrder = async (
         let order;
         if (expiredAt && appleOriginalTransactionId) {
             [order] = await trx.execute(sql`
-                INSERT INTO public."order" (
+                INSERT INTO public."orders" (
                     user_id, 
                     package_id, 
                     payment_method, 
@@ -86,7 +86,7 @@ export const createOrder = async (
             `);
         } else {
             [order] = await trx.execute(sql`
-                INSERT INTO public."order" (
+                INSERT INTO public."orders" (
                     user_id, 
                     package_id, 
                     payment_method, 
@@ -110,7 +110,7 @@ export const createOrder = async (
 
         for (const idolId of idolIds) {
             await trx.execute(sql`
-                INSERT INTO order_idol (order_id, idol_id)
+                INSERT INTO order_idols (order_id, idol_id)
                 VALUES (${order.id}, ${idolId});
             `);
         }
@@ -129,7 +129,7 @@ export const createOrderAppleResubscribe = async (appleOriginalTransactionId: st
     }
 
     const existingOrderIdols = await db.execute(sql`
-        SELECT * FROM order_idol WHERE order_id = ${existingOrder.id};
+        SELECT * FROM order_idols WHERE order_id = ${existingOrder.id};
     `);
 
     const idolIds = existingOrderIdols.map(idol => idol.idol_id);
@@ -171,9 +171,9 @@ export const getInquiryOrder = async (orderId: string) => {
        p.price        AS package_price,
        'subscription' AS category,
        1              AS quantity
-    FROM "order" o
+    FROM "orders" o
             INNER JOIN users u ON o.user_id = u.id
-            INNER JOIN package p ON o.package_id = p.id
+            INNER JOIN packages p ON o.package_id = p.id
     WHERE o.id = ${orderId}
     `);
 
@@ -188,9 +188,9 @@ export const getInquiryOrder = async (orderId: string) => {
 export const getInquiryOrderListIdol = async (orderId: string) => {
     const order = await db.execute(sql`
     SELECT i.given_name AS idol_nickname
-    FROM order_idol
-            INNER JOIN "order" o ON order_idol.order_id = o.id
-            INNER JOIN idol i ON order_idol.idol_id = i.id
+    FROM order_idols
+            INNER JOIN "orders" o ON order_idols.order_id = o.id
+            INNER JOIN idols i ON order_idols.idol_id = i.id
     WHERE o.id = ${orderId}
     `);
 
@@ -331,7 +331,7 @@ export const updateOrderStatusGpay = async (orderId: string) => {
 export const getCloseToExpirationOrders = async () => {
     const orders = await db.execute(sql`
     SELECT id
-    FROM "order"
+    FROM "orders"
     WHERE order_status = 'success'
     AND expired_at BETWEEN CURRENT_TIMESTAMP AND CURRENT_TIMESTAMP + INTERVAL '3 days'
     AND payment_method = 'xendit';

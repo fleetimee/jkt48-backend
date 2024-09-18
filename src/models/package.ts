@@ -2,7 +2,7 @@ import { boolean, numeric, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg
 
 import { users } from './users';
 
-export const packagePayment = pgTable('package', {
+export const packagePayment = pgTable('packages', {
     id: uuid('id').primaryKey().defaultRandom(),
     name: text('name').notNull(),
     description: text('description').notNull(),

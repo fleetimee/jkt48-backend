@@ -11,9 +11,9 @@ import { attachment } from '../../models/message_attachment';
 export const getAllAttachmentsByConversationId = async (conversationId: string, userId: string) => {
     const attachments = await db.execute(sql`
         SELECT ma.file_path, ma.created_at
-        FROM message_attachment ma
+        FROM message_attachments ma
         INNER JOIN message m ON m.id = ma.message_id
-        INNER JOIN conversation c ON c.id = m.conversation_id
+        INNER JOIN conversations c ON c.id = m.conversation_id
         WHERE (ma.file_path LIKE '%.jpg'
         OR ma.file_path LIKE '%.png'
         OR ma.file_path LIKE '%.gif'

@@ -2,7 +2,7 @@ import { pgTable, text, uuid, varchar } from 'drizzle-orm/pg-core';
 
 import { users } from './users';
 
-export const idol = pgTable('idol', {
+export const idol = pgTable('idols', {
     id: varchar('id', {
         length: 10,
     })

@@ -14,7 +14,7 @@ import { fcmTokens } from '../../models/fcm_token';
 export const sendTokenToServer = async (token: string, userId: string, model: string) => {
     const [existingToken] = await db.execute(
         sql`
-        SELECT * FROM fcm_token WHERE token = ${token} AND user_id = ${userId}
+        SELECT * FROM fcm_tokens WHERE token = ${token} AND user_id = ${userId}
         `,
     );
 
@@ -23,14 +23,14 @@ export const sendTokenToServer = async (token: string, userId: string, model: st
     if (!existingToken) {
         await db.execute(
             sql`
-            INSERT INTO fcm_token (token, user_id, last_accessed, model)
+            INSERT INTO fcm_tokens (token, user_id, last_accessed, model)
             VALUES (${token}, ${userId}, ${currentTime}, ${model})
             `,
         );
     } else {
         await db.execute(
             sql`
-            UPDATE fcm_token SET last_accessed = ${currentTime}, model = ${model} WHERE token = ${token} AND user_id = ${userId}
+            UPDATE fcm_tokens SET last_accessed = ${currentTime}, model = ${model} WHERE token = ${token} AND user_id = ${userId}
             `,
         );
     }
@@ -44,7 +44,7 @@ export const fetchAllAdminFcmToken = async () => {
     const tokens = await db.execute(
         sql`
         SELECT token
-        FROM fcm_token ft
+        FROM fcm_tokens ft
                 INNER JOIN users u ON ft.user_id = u.id
         WHERE u.roles = 'admin';
         `,
@@ -61,7 +61,7 @@ export const fetchAllUserFcmToken = async () => {
     const tokens = await db.execute(
         sql`
         SELECT token
-        FROM fcm_token ft
+        FROM fcm_tokens ft
                 INNER JOIN users u ON ft.user_id = u.id
         WHERE u.roles = 'user';
         `,
@@ -79,9 +79,9 @@ export const fetchAllUserFcmToken = async () => {
 export const fetchFcmTokenByOrderId = async (orderId: string) => {
     const tokens = await db.execute(
         sql`
-        SELECT * FROM fcm_token ft
+        SELECT * FROM fcm_tokens ft
         INNER JOIN users u ON ft.user_id = u.id
-        INNER JOIN "order" o ON u.id = o.user_id
+        INNER JOIN "orders" o ON u.id = o.user_id
         WHERE o.id = ${orderId};
         `,
     );
@@ -98,7 +98,7 @@ export const fetchFcmTokenByOrderId = async (orderId: string) => {
 export const fetchFcmTokenByUserId = async (userId: string) => {
     const tokens = await db.execute(
         sql`
-        SELECT * FROM fcm_token WHERE user_id = ${userId};
+        SELECT * FROM fcm_tokens WHERE user_id = ${userId};
         `,
     );
 
@@ -114,12 +114,12 @@ export const fetchSubscribedFcmTokens = async (messageId: string) => {
     const tokens = await db.execute(
         sql`
         SELECT token
-        FROM fcm_token
+        FROM fcm_tokens
         WHERE user_id IN (SELECT DISTINCT o.user_id
-                        FROM order_idol oi
-                                INNER JOIN "order" o ON oi.order_id = o.id
-                                INNER JOIN idol i ON oi.idol_id = i.id
-                                INNER JOIN conversation c ON i.id = c.idol_id
+                        FROM order_idols oi
+                                INNER JOIN "orders" o ON oi.order_id = o.id
+                                INNER JOIN idols i ON oi.idol_id = i.id
+                                INNER JOIN conversations c ON i.id = c.idol_id
                                 INNER JOIN message m ON c.id = m.conversation_id
                         WHERE o.order_status = 'success'
                             AND o.expired_at > NOW()
@@ -140,7 +140,7 @@ export const deleteStaleFcmTokens = async () => {
 
     await db.execute(
         sql`
-        DELETE FROM fcm_token WHERE last_accessed < ${currentTime}
+        DELETE FROM fcm_tokens WHERE last_accessed < ${currentTime}
         `,
     );
 };

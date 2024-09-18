@@ -16,8 +16,8 @@ export const getMessageReaction = async (messageId: string) => {
         sql.raw(
             `
         SELECT r.emoji, COUNT(r.emoji) AS reaction_count
-        FROM reaction r
-                INNER JOIN message_reaction mr ON r.id = mr.reaction_id
+        FROM reactions r
+                INNER JOIN message_reactions mr ON r.id = mr.reaction_id
         WHERE mr.message_id = '${messageId}'
         GROUP BY r.emoji;
         `,
@@ -42,7 +42,7 @@ export const getMessageAttachment = async (messageId: string) => {
         ma.file_size AS file_size,
         ma.checksum  AS checksum,
         ma.created_at AS created_at
-            FROM message_attachment ma
+            FROM message_attachments ma
             WHERE ma.message_id = '${messageId}'
             `,
         ),
@@ -61,8 +61,8 @@ export const getMessageReactions = async (messageIds: string[]) => {
         sql.raw(
             `
         SELECT r.emoji, COUNT(r.emoji) AS reaction_count, mr.message_id
-        FROM reaction r
-                INNER JOIN message_reaction mr ON r.id = mr.reaction_id
+        FROM reactions r
+                INNER JOIN message_reactions mr ON r.id = mr.reaction_id
         WHERE mr.message_id IN (${messageIds.map(id => `'${id}'`).join(',')})
         GROUP BY r.emoji, mr.message_id;
         `,
@@ -88,7 +88,7 @@ export const getMessageAttachments = async (messageIds: string[]) => {
         ma.checksum  AS checksum,
         ma.created_at AS created_at,
         ma.message_id AS message_id
-            FROM message_attachment ma
+            FROM message_attachments ma
             WHERE ma.message_id IN (${messageIds.map(id => `'${id}'`).join(',')})
             `,
         ),
@@ -119,8 +119,8 @@ export const getMessages = async (userId: string, conversationId: string, limit:
         m.approved  AS approved
         FROM message m
                 INNER JOIN users u ON m.user_id = u.id
-                INNER JOIN conversation c ON m.conversation_id = c.id
-                INNER JOIN idol i ON c.idol_id = i.id
+                INNER JOIN conversations c ON m.conversation_id = c.id
+                INNER JOIN idols i ON c.idol_id = i.id
                 INNER JOIN users u2 ON i.user_id = u2.id
         WHERE conversation_id = ${conversationId}
         ORDER BY created_at
@@ -200,7 +200,7 @@ export const createMessage = async (
         if (attachments) {
             for (const attachment of attachments) {
                 await trx.execute(sql`
-                INSERT INTO message_attachment (message_id, file_path, file_type, created_at, file_size, checksum)
+                INSERT INTO message_attachments (message_id, file_path, file_type, created_at, file_size, checksum)
                 VALUES (${messageId.id}, ${attachment.filePath}, ${attachment.fileType}, NOW(), ${attachment.fileSize}, ${attachment.checksum});
                 `);
             }
@@ -286,7 +286,7 @@ export const getAttachmentsByConversationId = async (conversationId: string) => 
             `
         SELECT ma.file_path AS file_path
         FROM message m
-        JOIN message_attachment ma ON m.id = ma.message_id
+        JOIN message_attachments ma ON m.id = ma.message_id
         WHERE m.conversation_id = '${conversationId}'
         `,
         ),

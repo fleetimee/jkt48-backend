@@ -15,7 +15,7 @@ export const getTopIdol = async () => {
        u.profile_image,
        it.subscription_count
     FROM idol_top it
-    INNER JOIN idol i ON it.id_idol = i.id
+    INNER JOIN idols i ON it.id_idol = i.id
     INNER JOIN users u ON i.user_id = u.id
     WHERE u.roles = 'member'
     ORDER BY it.subscription_count DESC
@@ -32,7 +32,7 @@ export const getTopIdol = async () => {
 export const getIdolIds = async () => {
     const idolsId = await db.execute(sql`
     SELECT id
-    FROM "idol"
+    FROM "idols"
     `);
     return idolsId;
 };
@@ -44,10 +44,10 @@ export const getIdolIds = async () => {
 export const getTopIdolByOrderTransaction = async () => {
     const topIdolCount = await db.execute(sql`
     SELECT idol_id, COUNT(idol_id) AS idol_count
-    FROM order_idol
+    FROM order_idols
     WHERE order_id IN (
         SELECT id
-        FROM "order"
+        FROM "orders"
         WHERE created_at BETWEEN CURRENT_DATE - INTERVAL '7 days' AND CURRENT_DATE AND order_status = 'success'
     )
     GROUP BY idol_id;

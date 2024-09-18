@@ -2,7 +2,7 @@ import { bigint, pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-
 
 import { message } from './message';
 
-export const attachment = pgTable('message_attachment', {
+export const attachment = pgTable('message_attachments', {
     id: uuid('id').primaryKey().unique().notNull().defaultRandom(),
     messageId: uuid('message_id')
         .notNull()

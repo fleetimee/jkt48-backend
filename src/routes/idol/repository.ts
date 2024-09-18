@@ -38,7 +38,7 @@ export const getMembers = async (
                 i.given_name,
                 i.horoscope
          FROM users u
-         INNER JOIN idol i ON u.id = i.user_id
+         INNER JOIN idols i ON u.id = i.user_id
          WHERE u.roles = 'member' ${whereClause}
          ORDER BY ${orderBy} ${sortDirection} LIMIT ${limit} OFFSET ${offset}`,
         ),
@@ -72,14 +72,14 @@ export const getMemberById = async (memberId: string) => {
             i.x_url,
             (
                 SELECT COUNT(DISTINCT o.user_id)
-                FROM order_idol oi
-                INNER JOIN "order" o ON oi.order_id = o.id
+                FROM order_idols oi
+                INNER JOIN "orders" o ON oi.order_id = o.id
                 WHERE o.order_status = 'success'
                 AND o.expired_at > NOW()
                 AND oi.idol_id = i.id
             ) AS subscriber_count
         FROM users u
-        INNER JOIN idol i ON u.id = i.user_id
+        INNER JOIN idols i ON u.id = i.user_id
         WHERE u.roles = 'member'
         AND i.id = ${memberId}
         `,
@@ -98,7 +98,7 @@ export const getMemberIdByUserId = async (userId: string) => {
     const [member] = await db.execute(
         sql`
         SELECT i.id AS idol_id
-        FROM idol i
+        FROM idols i
         WHERE i.user_id = ${userId}
         `,
     );
@@ -125,8 +125,8 @@ export const getMemberMessage = async (idolId: string) => {
        m.created_at AS created_at
     FROM message m
             INNER JOIN users u ON m.user_id = u.id
-            INNER JOIN idol i ON u.id = i.user_id
-            INNER JOIN conversation c ON m.conversation_id = c.id
+            INNER JOIN idols i ON u.id = i.user_id
+            INNER JOIN conversations c ON m.conversation_id = c.id
     WHERE i.id = ${idolId}
     ORDER BY m.created_at DESC
         `,
@@ -164,8 +164,8 @@ export const getMemberMessageByMessageId = async (messageId: string) => {
        m.created_at AS created_at
     FROM message m
             INNER JOIN users u ON m.user_id = u.id
-            INNER JOIN idol i ON u.id = i.user_id
-            INNER JOIN conversation c ON m.conversation_id = c.id
+            INNER JOIN idols i ON u.id = i.user_id
+            INNER JOIN conversations c ON m.conversation_id = c.id
     WHERE m.id = ${messageId}
     ORDER BY m.created_at DESC
         `,
@@ -184,8 +184,8 @@ export const getMemberMessageByMessageId = async (messageId: string) => {
 //        m.created_at AS created_at
 //     FROM message m
 //             INNER JOIN users u ON m.user_id = u.id
-//             INNER JOIN idol i ON u.id = i.user_id
-//             INNER JOIN conversation c ON m.conversation_id = c.id
+//             INNER JOIN idols i ON u.id = i.user_id
+//             INNER JOIN conversations c ON m.conversation_id = c.id
 //     WHERE m.id = ${messageId}
 //     ORDER BY m.created_at DESC
 //         `,
@@ -273,7 +273,7 @@ export const createMember = async ({
 
         const [idolId] = await trx.execute(
             sql.raw(
-                `INSERT INTO idol (user_id, instagram_url, x_url, height, blood_type, horoscope, family_name, given_name)
+                `INSERT INTO idols (user_id, instagram_url, x_url, height, blood_type, horoscope, family_name, given_name)
                 VALUES ('${userId.id}', '${instagramUrl}', '${xUrl}', ${height}, '${bloodType}', '${horoscope}', '${familyName}', '${givenName}')
                 RETURNING id
                 `,
@@ -282,7 +282,7 @@ export const createMember = async ({
 
         await trx.execute(
             sql.raw(
-                `INSERT INTO conversation (idol_id)
+                `INSERT INTO conversations (idol_id)
                 VALUES ('${idolId.id}')`,
             ),
         );
@@ -313,7 +313,7 @@ export const createMemberMessage = async (
             for (const attachment of attachments) {
                 await trx.execute(
                     sql.raw(
-                        `INSERT INTO message_attachment (message_id, file_path, file_type, file_size, checksum)
+                        `INSERT INTO message_attachments (message_id, file_path, file_type, file_size, checksum)
                         VALUES ('${messageId.id}', '${attachment.filePath}', '${attachment.fileType}', ${attachment.fileSize}, '${attachment.checksum}')`,
                     ),
                 );
@@ -331,8 +331,8 @@ export const createMemberMessage = async (
             m.created_at AS created_at
             FROM message m
                     INNER JOIN users u ON m.user_id = u.id
-                    INNER JOIN idol i ON u.id = i.user_id
-                    INNER JOIN conversation c ON m.conversation_id = c.id
+                    INNER JOIN idols i ON u.id = i.user_id
+                    INNER JOIN conversations c ON m.conversation_id = c.id
             WHERE m.id = '${messageId.id}'
             ORDER BY m.created_at DESC
         `),
@@ -342,7 +342,7 @@ export const createMemberMessage = async (
         const attachmentsResult = await trx.execute(
             sql.raw(`
                 SELECT file_path, file_type, file_size, checksum
-                FROM message_attachment
+                FROM message_attachments
                 WHERE message_id = '${messageId.id}'
             `),
         );
@@ -385,7 +385,7 @@ export const updateMemberById = async (
                 name = '${fullName}',
                 nickname = '${nickName}',
                 birthday = '${birthday}'
-            WHERE id = (SELECT user_id FROM idol WHERE id = '${idolId}')
+            WHERE id = (SELECT user_id FROM idols WHERE id = '${idolId}')
             `,
             ),
         );
@@ -393,7 +393,7 @@ export const updateMemberById = async (
         await trx.execute(
             sql.raw(
                 `
-            UPDATE idol
+            UPDATE idols
             SET height = ${height},
                 blood_type = '${bloodType}',
                 horoscope = '${horoscope}'
@@ -419,7 +419,7 @@ export const updateLoggedMember = async (userId: string, fullName: string, bio: 
         await trx.execute(
             sql.raw(
                 `
-            UPDATE idol
+            UPDATE idols
             SET bio = '${bio}'
             WHERE user_id = '${userId}'
             `,
@@ -456,7 +456,7 @@ export const updateProfileImageMemberById = async (idolId: string, imgProfilePat
                 SET profile_image = '${imgProfilePath}'
                 WHERE id = (
                     SELECT user_id
-                    FROM idol
+                    FROM idols
                     WHERE id = '${idolId}'
                 )
                 `,

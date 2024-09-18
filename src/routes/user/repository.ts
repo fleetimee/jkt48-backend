@@ -196,7 +196,7 @@ export const countActiveSubscriptionsUsers = async () => {
     SELECT COUNT(*)
     FROM users
     WHERE id IN (SELECT user_id
-                FROM "order"
+                FROM "orders"
                 WHERE order_status = 'success'
                 AND expired_at > NOW());
     `);
@@ -216,8 +216,8 @@ export const checkUserSubscription = async (userId: string) => {
        p.description AS package_description,
        o.payment_method AS payment_method,
        o.expired_at  AS expired_at
-    FROM "order" o
-            INNER JOIN package p ON o.package_id = p.id
+    FROM "orders" o
+            INNER JOIN packages p ON o.package_id = p.id
     WHERE o.user_id = ${userId}
     AND o.order_status = 'success'
     AND o.expired_at > NOW();
@@ -235,13 +235,13 @@ export const checkUserSubscription = async (userId: string) => {
 export const checkUserSubscriptionOderIdol = async (userId: string, idolId: string) => {
     const [subscription] = await db.execute(sql`
     SELECT EXISTS (SELECT 1
-                FROM "order" o
-                            INNER JOIN package p ON o.package_id = p.id
+                FROM "orders" o
+                            INNER JOIN packages p ON o.package_id = p.id
                 WHERE o.user_id = ${userId}
                     AND o.order_status = 'success'
                     AND o.expired_at > NOW()
                     AND o.id IN (SELECT order_id
-                                FROM order_idol
+                                FROM order_idols
                                 WHERE idol_id = ${idolId})) AS order_exists;
     `);
 
@@ -277,8 +277,8 @@ export const getUserTransactionList = async (userId: string) => {
         o.order_status AS order_status,
         o.payment_method AS payment_method,
         o.google_purchase_id AS google_purchase_id
-    FROM "order" o
-            INNER JOIN package p ON o.package_id = p.id
+    FROM "orders" o
+            INNER JOIN packages p ON o.package_id = p.id
     WHERE o.user_id = ${userId}
     ORDER BY o.created_at DESC;
     `);
@@ -305,8 +305,8 @@ export const getUserTransactionDetail = async (userId: string, orderId: string) 
         o.created_at     AS order_date,
         o.expired_at     AS expired_at,
         o.callback_data AS callback_data
-    FROM "order" o
-            INNER JOIN package p ON o.package_id = p.id
+    FROM "orders" o
+            INNER JOIN packages p ON o.package_id = p.id
     WHERE o.user_id = ${userId}
     AND o.id = ${orderId};
     `);
@@ -364,10 +364,10 @@ export const getUserConversationList = async (userId: string) => {
                     WHERE id = ${userId}
                 )
             ) AS unread_count
-            FROM order_idol
-                INNER JOIN "order" o ON order_idol.order_id = o.id
-                INNER JOIN idol i ON order_idol.idol_id = i.id
-                INNER JOIN conversation c ON i.id = c.idol_id
+            FROM order_idols
+                INNER JOIN "orders" o ON order_idols.order_id = o.id
+                INNER JOIN idols i ON order_idols.idol_id = i.id
+                INNER JOIN conversations c ON i.id = c.idol_id
                 INNER JOIN users u ON i.user_id = u.id
                 LEFT JOIN message m ON c.id = m.conversation_id AND m.approved = TRUE
             WHERE o.user_id = ${userId}
@@ -418,8 +418,8 @@ export const getUserConversationMessages = async (
         m.approved  AS approved
         FROM message m
                 INNER JOIN users u ON m.user_id = u.id
-                INNER JOIN conversation c ON m.conversation_id = c.id
-                INNER JOIN idol i ON c.idol_id = i.id
+                INNER JOIN conversations c ON m.conversation_id = c.id
+                INNER JOIN idols i ON c.idol_id = i.id
                 INNER JOIN users u2 ON i.user_id = u2.id
         WHERE c.id = '${conversationId}'
         AND m.approved = TRUE
@@ -478,9 +478,9 @@ export const getUserActiveIdols = async (userId: string) => {
         u.id            AS user_id,
         u.nickname      AS idol_name,
         u.profile_image AS idol_image
-    FROM order_idol
-            INNER JOIN "order" o ON order_idol.order_id = o.id
-            INNER JOIN idol i ON order_idol.idol_id = i.id
+    FROM order_idols
+            INNER JOIN "orders" o ON order_idols.order_id = o.id
+            INNER JOIN idols i ON order_idols.idol_id = i.id
             INNER JOIN users u ON i.user_id = u.id
     WHERE o.user_id = ${userId}
     AND o.order_status = 'success'
@@ -502,13 +502,13 @@ export const getUserActiveIdols = async (userId: string) => {
  */
 export const setUserReactionToMessage = async (userId: string, messageId: string, reactionId: string) => {
     const [existingReaction] = await db.execute(sql`
-    SELECT * FROM message_reaction
+    SELECT * FROM message_reactions
     WHERE users_id = ${userId} AND message_id = ${messageId};
     `);
 
     if (!existingReaction) {
         const [newReaction] = await db.execute(sql`
-        INSERT INTO message_reaction (users_id, message_id, reaction_id)
+        INSERT INTO message_reactions (users_id, message_id, reaction_id)
         VALUES (${userId}, ${messageId}, ${reactionId})
         RETURNING *;
         `);
@@ -516,14 +516,14 @@ export const setUserReactionToMessage = async (userId: string, messageId: string
         return newReaction;
     } else if (existingReaction.reaction_id === reactionId) {
         await db.execute(sql`
-        DELETE FROM message_reaction
+        DELETE FROM message_reactions
         WHERE users_id = ${userId} AND message_id = ${messageId};
         `);
 
         return null;
     } else {
         const [updatedReaction] = await db.execute(sql`
-        UPDATE message_reaction
+        UPDATE message_reactions
         SET reaction_id = ${reactionId}
         WHERE users_id = ${userId} AND message_id = ${messageId}
         RETURNING *;
@@ -542,7 +542,7 @@ export const setUserReactionToMessage = async (userId: string, messageId: string
  */
 export const deleteUserReactToMessage = async (userId: string, messageId: string, reactionId: string) => {
     const [message] = await db.execute(sql`
-    DELETE FROM message_reaction
+    DELETE FROM message_reactions
     WHERE users_id = ${userId}
     AND message_id = ${messageId}
     AND reaction_id = ${reactionId}
@@ -579,7 +579,7 @@ export const getUserBirthdayMessages = async (userId: string) => {
                 u2.profile_image        AS profile_image,
                 ms.created_at           AS created_at
             FROM message_scheduled ms
-                INNER JOIN idol i ON ms.idol_id = i.id
+                INNER JOIN idols i ON ms.idol_id = i.id
                 INNER JOIN users u ON ms.users_id = u.id
                 INNER JOIN users u2 ON i.user_id = u2.id
             WHERE u.id = ${userId};
@@ -642,7 +642,7 @@ export const checkSubscriptionStatus = async (userId: string) => {
     const [status] = await db.execute(sql`
    SELECT EXISTS(
     SELECT 1
-    FROM "order"
+    FROM "orders"
     WHERE user_id = ${userId}
       AND order_status = 'success'
 ) AS is_subscribed;
@@ -661,9 +661,9 @@ export const getOrderedIdolsByUserId = async (userId: string) => {
     SELECT idol_id
     FROM (SELECT DISTINCT ON (i.id) i.id      AS idol_id,
                                     o.user_id AS user_id
-        FROM order_idol
-                INNER JOIN "order" o ON order_idol.order_id = o.id
-                INNER JOIN idol i ON order_idol.idol_id = i.id
+        FROM order_idols
+                INNER JOIN "orders" o ON order_idols.order_id = o.id
+                INNER JOIN idols i ON order_idols.idol_id = i.id
         WHERE o.user_id = ${userId}
             AND o.order_status = 'success') AS subquery
     WHERE user_id = ${userId};
@@ -679,7 +679,7 @@ export const getOrderedIdolsByUserId = async (userId: string) => {
  */
 export const getUserFcmToken = async (userId: string) => {
     const token = await db.execute(sql`
-    SELECT token FROM fcm_token ft
+    SELECT token FROM fcm_tokens ft
         INNER JOIN users u ON ft.user_id = u.id
     WHERE u.id = ${userId};
 

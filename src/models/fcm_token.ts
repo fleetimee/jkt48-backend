@@ -2,7 +2,7 @@ import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 
 import { users } from './users';
 
-export const fcmTokens = pgTable('fcm_token', {
+export const fcmTokens = pgTable('fcm_tokens', {
     id: uuid('id').primaryKey().defaultRandom(),
     token: text('token').notNull(),
     userId: uuid('user_id')

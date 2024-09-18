@@ -2,7 +2,7 @@ import { pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 
 import { idol } from './idol';
 
-export const conversation = pgTable('conversation', {
+export const conversation = pgTable('conversations', {
     id: uuid('id').primaryKey().unique().notNull().defaultRandom(),
     idolId: varchar('idol_id', {
         length: 10,

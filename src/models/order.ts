@@ -15,7 +15,7 @@ export const paymentMethodEnum = pgEnum('payment_method', [
     'apple_pay',
 ]);
 
-export const order = pgTable('order', {
+export const order = pgTable('orders', {
     id: uuid('id').primaryKey().unique().notNull().defaultRandom(),
     userId: uuid('user_id')
         .notNull()

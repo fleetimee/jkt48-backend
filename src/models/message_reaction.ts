@@ -3,12 +3,12 @@ import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { message } from './message';
 import { users } from './users';
 
-export const reaction = pgTable('reaction', {
+export const reaction = pgTable('reactions', {
     id: uuid('id').primaryKey().unique().notNull().defaultRandom(),
     emoji: text('emoji').notNull(),
 });
 
-export const messageReaction = pgTable('message_reaction', {
+export const messageReaction = pgTable('message_reactions', {
     messageId: uuid('message_id')
         .notNull()
         .references(() => message.id),

@@ -76,8 +76,8 @@ export const getConversations = async (userId: string, limit: number, offset: nu
                                                                                                     WHERE user_id = '${userId}'
                                                                                                     AND conversation_id = c.id) IS NULL
                                                     ))         AS unread_count
-                    FROM idol i
-                            INNER JOIN conversation c ON i.id = c.idol_id
+                    FROM idols i
+                            INNER JOIN conversations c ON i.id = c.idol_id
                             INNER JOIN users u ON i.user_id = u.id
                             LEFT JOIN message m ON c.id = m.conversation_id
                     ${whereClause}
@@ -105,10 +105,10 @@ export const getConversationsById = async (conversationId: string) => {
                           u.nickname   AS idol_name,
                           U.name       AS idol_name,
                           u.profile_image,
-                          m.message    AS last_message,
+                          m.message   AS last_message,
                           m.created_at AS last_message_time
-        FROM conversation c
-                LEFT JOIN idol i ON c.idol_id = i.id
+        FROM conversations c
+                LEFT JOIN idols i ON c.idol_id = i.id
                 LEFT JOIN users u ON i.user_id = u.id
                 LEFT JOIN message m ON c.id = m.conversation_id
         WHERE c.id = '${conversationId}'
