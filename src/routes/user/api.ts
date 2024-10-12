@@ -178,12 +178,14 @@ router.get('/me/cancelSubscription', authenticateUser, async (req, res, next) =>
                 android: {
                     notification: {
                         imageUrl: 'https://jkt48pm.my.id/static/logo_jkt48pm_2.png',
+                        sound: 'default',
                     },
                 },
                 apns: {
                     payload: {
                         aps: {
                             'mutable-content': 1,
+                            sound: 'notification_sound.caf',
                         },
                     },
                     fcmOptions: {

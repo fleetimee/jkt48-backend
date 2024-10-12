@@ -47,13 +47,14 @@ export const processUserBirthday = async (user: Record<string, unknown>) => {
                     android: {
                         notification: {
                             imageUrl: 'https://jkt48pm.my.id/static/logo_jkt48pm_2.png',
-                            sound: 'https://jkt48pm.my.id/static/frog.ogg',
+                            sound: 'default',
                         },
                     },
                     apns: {
                         payload: {
                             aps: {
                                 'mutable-content': 1,
+                                sound: 'notification_sound.caf',
                             },
                         },
                         fcmOptions: {

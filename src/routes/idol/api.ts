@@ -250,12 +250,14 @@ router.post(
                     android: {
                         notification: {
                             imageUrl: buildAvatar,
+                            sound: 'default',
                         },
                     },
                     apns: {
                         payload: {
                             aps: {
                                 'mutable-content': 1,
+                                sound: 'notification_sound.caf',
                             },
                         },
                         fcmOptions: {
