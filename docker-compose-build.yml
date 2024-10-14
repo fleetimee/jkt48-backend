@@ -1,0 +1,16 @@
+services:
+    app:
+        container_name: jkt48-apis
+        env_file:
+            - .env
+        image: jkt48/apis:v0.1
+        build:
+            context: .
+            dockerfile: Dockerfile.build
+        ports:
+            - '6969:6969'
+        restart: unless-stopped
+        tty: true
+        volumes:
+            - ./static:/jkt48/apis/static
+            - ./logs:/jkt48/apis/logs

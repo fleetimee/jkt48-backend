@@ -30,7 +30,9 @@ router.get('/', async (req, res, next) => {
             );
         }
     } catch (error) {
-        next(error);
+        if (!res.headersSent) {
+            next(error);
+        }
     }
 });
 

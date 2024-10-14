@@ -1,5 +1,5 @@
-import * as Sentry from '@sentry/node';
-import { nodeProfilingIntegration } from '@sentry/profiling-node';
+// import * as Sentry from '@sentry/node';
+// import { nodeProfilingIntegration } from '@sentry/profiling-node';
 import bodyParser from 'body-parser';
 import compression from 'compression';
 import cookies from 'cookie-parser';
@@ -9,7 +9,6 @@ import monitor from 'express-status-monitor';
 import { credential } from 'firebase-admin';
 import { initializeApp, ServiceAccount } from 'firebase-admin/app';
 import helmet from 'helmet';
-import { StatusCodes } from 'http-status-codes';
 import morgan from 'morgan';
 import appleReceiptVerify from 'node-apple-receipt-verify';
 import cron from 'node-cron';
@@ -50,26 +49,26 @@ appleReceiptVerify.config({
     environment: ['sandbox'],
 });
 
-Sentry.init({
-    dsn: 'https://d02e5c085e63bf791fac8ca3f3cc4589@o4507197243981824.ingest.us.sentry.io/4507197246144512',
-    integrations: [
-        // enable HTTP calls tracing
-        new Sentry.Integrations.Http({ tracing: true }),
-        // enable Express.js middleware tracing
-        new Sentry.Integrations.Express({ app }),
-        nodeProfilingIntegration(),
-    ],
-    // Performance Monitoring
-    tracesSampleRate: 1.0, //  Capture 100% of the transactions
-    // Set sampling rate for profiling - this is relative to tracesSampleRate
-    profilesSampleRate: 1.0,
-});
+// Sentry.init({
+//     dsn: 'https://d02e5c085e63bf791fac8ca3f3cc4589@o4507197243981824.ingest.us.sentry.io/4507197246144512',
+//     integrations: [
+//         // enable HTTP calls tracing
+//         new Sentry.Integrations.Http({ tracing: true }),
+//         // enable Express.js middleware tracing
+//         new Sentry.Integrations.Express({ app }),
+//         nodeProfilingIntegration(),
+//     ],
+//     // Performance Monitoring
+//     tracesSampleRate: 1.0, //  Capture 100% of the transactions
+//     // Set sampling rate for profiling - this is relative to tracesSampleRate
+//     profilesSampleRate: 1.0,
+// });
 
-// The request handler must be the first middleware on the app
-app.use(Sentry.Handlers.requestHandler());
+// // The request handler must be the first middleware on the app
+// app.use(Sentry.Handlers.requestHandler());
 
-// TracingHandler creates a trace for every incoming request
-app.use(Sentry.Handlers.tracingHandler());
+// // TracingHandler creates a trace for every incoming request
+// app.use(Sentry.Handlers.tracingHandler());
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, { explorer: true }));
 
@@ -242,9 +241,14 @@ app.use(rateLimiter);
 
 // Set timeout on all requests
 app.use((req, res, next) => {
-    res.setTimeout(65 * 1000, () => {
-        res.status(StatusCodes.REQUEST_TIMEOUT).json({ message: 'Request timed out' });
+    const timeout = setTimeout(() => {
+        return res.status(408).json({ message: 'Request timed out' });
+    }, 60000); // Set timeout to 10 seconds
+
+    res.on('finish', () => {
+        clearTimeout(timeout);
     });
+
     next();
 });
 
@@ -255,18 +259,6 @@ app.get('/', infoMiddleware, (req, res) => {
     res.json(res.locals.info);
 });
 
-app.use((req, res, next) => {
-    const timeout = setTimeout(() => {
-        res.status(408).json({ message: 'Request timed out' });
-    }, 60000); // Set timeout to 10 seconds
-
-    res.on('finish', () => {
-        clearTimeout(timeout);
-    });
-
-    next();
-});
-
 app.use(swStat.getMiddleware({ swaggerSpec: specs }));
 
 /**
@@ -275,7 +267,7 @@ app.use(swStat.getMiddleware({ swaggerSpec: specs }));
 app.use('/api', routes);
 
 // The error handler must be registered before any other error middleware and after all controllers
-app.use(Sentry.Handlers.errorHandler());
+// app.use(Sentry.Handlers.errorHandler());
 
 /**
  * Error handling middleware.
