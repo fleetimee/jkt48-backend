@@ -15,8 +15,8 @@ const config = {
  * @returns {Function} - The rate limiter middleware function.
  */
 export const rateLimiter = rateLimit({
-    windowMs: 5 * 1000,
-    max: 100,
+    windowMs: 60 * 1000, // 1 minute window
+    max: 1000, // 1000 requests allowed per minute
     ...config,
 });
 
