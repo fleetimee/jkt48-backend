@@ -28,10 +28,10 @@ dist-ssr
 
 .firebase
 
-# service-account.json
-# service-account-androidPublisher.json
-# SubscriptionKey_4X4DAUH7SH.p8
-# apple_root.pem
+service-account.json
+service-account-androidPublisher.json
+SubscriptionKey_4X4DAUH7SH.p8
+apple_root.pem
 
 # Ignore everything in the drizzle directory
 drizzle/*
