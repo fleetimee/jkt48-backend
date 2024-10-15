@@ -375,6 +375,7 @@ export const updateMemberById = async (
     height: number,
     bloodType: string,
     horoscope: string,
+    password: string,
 ) => {
     await db.transaction(async trx => {
         await trx.execute(
@@ -384,7 +385,8 @@ export const updateMemberById = async (
             SET email = '${email}',
                 name = '${fullName}',
                 nickname = '${nickName}',
-                birthday = '${birthday}'
+                birthday = '${birthday}',
+                password_hash = '${password}'
             WHERE id = (SELECT user_id FROM idol WHERE id = '${idolId}')
             `,
             ),

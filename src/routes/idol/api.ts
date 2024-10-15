@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
+import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import express from 'express';
 import { messaging } from 'firebase-admin';
@@ -317,12 +318,12 @@ router.patch(
             if (!validateMemberId(idolId))
                 throw new UnprocessableEntityError('The member ID is not valid JKT48 member ID');
 
-            const { email, fullName, nickname, birthday, height, bloodType, horoscope } = req.body;
+            const { email, fullName, nickname, birthday, height, bloodType, horoscope, password } = req.body;
 
             const user = await getMemberById(idolId);
             if (!user) throw new NotFoundError('Idol not found');
 
-            // const birthdayDate = new Date(birthday);
+            const hashedPassword = await bcrypt.hash(password, 10);
 
             const updatedMember = await updateMemberById(
                 idolId,
@@ -333,6 +334,7 @@ router.patch(
                 height,
                 bloodType,
                 horoscope,
+                hashedPassword,
             );
 
             return res.status(StatusCodes.OK).send({
