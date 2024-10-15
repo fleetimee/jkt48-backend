@@ -35,5 +35,7 @@ dist-ssr
 
 # Ignore everything in the drizzle directory
 drizzle/*
-# But do not ignore the journal file
+# Do not ignore the meta directory
+!drizzle/meta/
+# Do not ignore the journal file
 !drizzle/meta/_journal.json
