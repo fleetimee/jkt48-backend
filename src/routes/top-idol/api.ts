@@ -1,33 +1,42 @@
 import express from 'express';
 import { StatusCodes } from 'http-status-codes';
 
+import { cacheMiddleware, cacheResponse } from '../../middlewares/caching';
 import { formatResponse } from '../../utils/response-formatter';
 import { getIdolIds, getTopIdol, getTopIdolByOrderTransaction, storeTopIdols, trunctateTopIdols } from './repository';
 
 const router = express.Router();
 
-router.get('/', async (req, res, next) => {
+router.get('/', cacheMiddleware('top-idol'), async (req, res, next) => {
     try {
         const topIdol = await getTopIdol();
 
+        console.log('Top idol:', topIdol);
+
         if (!topIdol || topIdol.length === 0) {
-            return res.status(404).send(
-                formatResponse({
-                    code: StatusCodes.NOT_FOUND,
-                    message: 'No top idol found',
-                    success: false,
-                    data: [],
-                }),
-            );
+            const response = formatResponse({
+                code: StatusCodes.NOT_FOUND,
+                message: 'No top idol found',
+                success: false,
+                data: [],
+            });
+
+            res.status(404).send(response);
+
+            await cacheResponse('top-idol', response);
+            return;
         } else {
-            return res.status(200).send(
-                formatResponse({
-                    code: StatusCodes.OK,
-                    message: 'Success fetch top idol',
-                    data: topIdol,
-                    success: true,
-                }),
-            );
+            const response = formatResponse({
+                code: StatusCodes.OK,
+                message: 'Success fetch top idol',
+                data: topIdol,
+                success: true,
+            });
+
+            res.status(200).send(response);
+
+            await cacheResponse('top-idol', response);
+            return;
         }
     } catch (error) {
         if (!res.headersSent) {
