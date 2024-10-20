@@ -27,10 +27,10 @@ import routes from './routes';
 import { specs } from './utils/swagger-options';
 
 export const userAgentMiddleware = (req: Request, res: Response, next: NextFunction) => {
-    const allowedUserAgent = 'Dart/3.5 (dart:io)';
+    const allowedUserAgents = ['Dart/3.5 (dart:io)', 'just_audio/1.0.1 (Linux;Android 14) ExoPlayerLib/2.18.7'];
     const userAgent = req.get('User-Agent');
 
-    if (userAgent !== allowedUserAgent) {
+    if (!userAgent || !allowedUserAgents.includes(userAgent)) {
         return res.status(StatusCodes.FORBIDDEN).json({ message: 'Access denied' });
     }
 
