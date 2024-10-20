@@ -11,7 +11,6 @@ import { formatResponse } from '../../utils/response-formatter';
 import { sendEmail } from '../../utils/send-emails';
 import { whitelistedEmails } from '../../utils/whitelisted-email';
 import { DeleteAccountEmail } from '../../views/emails/DeletedAccount';
-import { RegisterAccountEmail } from '../../views/emails/RegisterAccount';
 import { RequestDeletionEmail } from '../../views/emails/RequestDeletion';
 import { ResendVerificationEmail } from '../../views/emails/ResendVerification';
 import { ResetPasswordEmail } from '../../views/emails/ResetPassword';
@@ -75,15 +74,15 @@ router.post('/register', validateSchema(registerSchema), async (req, res, next) 
 
         await registerUser(email, password, name, nickName, birthdayDate, verificationToken, phoneNumber);
 
-        const emailResult = await sendEmail({
-            to: [email],
-            subject: 'Confirm Your Email Address for New Account Registration',
-            react: <RegisterAccountEmail validationCode={verificationToken} />,
-        });
+        // const emailResult = await sendEmail({
+        //     to: [email],
+        //     subject: 'Confirm Your Email Address for New Account Registration',
+        //     react: <RegisterAccountEmail validationCode={verificationToken} />,
+        // });
 
-        if (emailResult.error) {
-            return res.status(StatusCodes.NOT_FOUND).json({ error: emailResult.error });
-        }
+        // if (emailResult.error) {
+        //     return res.status(StatusCodes.NOT_FOUND).json({ error: emailResult.error });
+        // }
 
         return res.status(StatusCodes.CREATED).json({ message: 'User registered successfully' });
     } catch (error) {

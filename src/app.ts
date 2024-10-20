@@ -21,6 +21,7 @@ import serviceAccount from './config/service-account.json';
 import { infoMiddleware } from './middlewares/author-info';
 import { errorHandler } from './middlewares/error-handler';
 import loggingMiddleware from './middlewares/logging';
+import { rateLimiter5Minutes } from './middlewares/rate-limiter';
 import routes from './routes';
 import { specs } from './utils/swagger-options';
 
@@ -236,7 +237,7 @@ cron.schedule('0 0 1 * *', function () {
  * This middleware function is used to limit repeated requests to public APIs and/or endpoints such as password reset.
  * It is based on express-rate-limit.
  */
-// app.use(rateLimiter);
+app.use(rateLimiter5Minutes);
 
 // Set timeout on all requests
 app.use((req, res, next) => {
