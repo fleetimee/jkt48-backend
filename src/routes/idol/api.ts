@@ -25,6 +25,7 @@ import {
     createMember,
     createMemberMessage,
     deleteMemberById,
+    getMemberByAdminId,
     getMemberById,
     getMemberIdByUserId,
     getMemberMessage,
@@ -111,10 +112,11 @@ router.get('/getLoggedOnIdol', authenticateUser, requireMemberRole, async (req, 
 router.get('/:id', authenticateUser, async (req, res, next) => {
     try {
         const id = req.params.id;
+        const roles = req.user.roles;
 
         if (!validateMemberId(id)) throw new UnprocessableEntityError('The member ID is not valid JKT48 member ID');
 
-        const member = await getMemberById(id);
+        const member = roles.includes('admin') ? await getMemberByAdminId(id) : await getMemberById(id);
         if (!member) throw new NotFoundError('Member not found');
 
         return res.status(StatusCodes.OK).send({
