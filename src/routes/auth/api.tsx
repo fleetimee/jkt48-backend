@@ -11,7 +11,6 @@ import { formatResponse } from '../../utils/response-formatter';
 import { sendEmail } from '../../utils/send-emails';
 import { whitelistedEmails } from '../../utils/whitelisted-email';
 import { DeleteAccountEmail } from '../../views/emails/DeletedAccount';
-import { ForgotPasswordEmail } from '../../views/emails/ForgotPassword';
 import { RegisterAccountEmail } from '../../views/emails/RegisterAccount';
 import { RequestDeletionEmail } from '../../views/emails/RequestDeletion';
 import { ResendVerificationEmail } from '../../views/emails/ResendVerification';
@@ -188,19 +187,21 @@ router.post('/forgot_password', validateSchema(forgotPasswordSchema), rateLimite
 
         if (user) await forgotPasswordUser(email, randomStringToken);
 
-        const emailResult = await sendEmail({
-            to: [email],
-            // to: ['zane.227@gmail.com'],
-            subject: 'Your Reset Password Token',
-            // text: `Your reset password token is: ${randomStringToken}, use this token to reset your password.`,
-            react: <ForgotPasswordEmail validationCode={randomStringToken} />,
-        });
+        // const emailResult = await sendEmail({
+        //     to: [email],
+        //     // to: ['zane.227@gmail.com'],
+        //     subject: 'Your Reset Password Token',
+        //     // text: `Your reset password token is: ${randomStringToken}, use this token to reset your password.`,
+        //     react: <ForgotPasswordEmail validationCode={randomStringToken} />,
+        // });
 
-        if (emailResult.error) {
-            return res.status(StatusCodes.BAD_REQUEST).json({ error: emailResult.error });
-        }
+        // if (emailResult.error) {
+        //     return res.status(StatusCodes.BAD_REQUEST).json({ error: emailResult.error });
+        // }
 
-        return res.status(StatusCodes.OK).json({ message: 'Success send token to reset password' });
+        return res
+            .status(StatusCodes.OK)
+            .json({ message: 'Registration in process, please login with email and password' });
     } catch (error) {
         next(error);
     }
