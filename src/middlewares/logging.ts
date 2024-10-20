@@ -58,6 +58,7 @@ const loggingMiddleware = async (req: Request, res: Response, next: NextFunction
                 `User: ${user}`,
                 `IP: ${req.ip}`,
                 `Route: ${req.method} ${req.url}`,
+                `User Agent: ${userAgent}`,
             ],
             service: 'jkt48-pm',
         });
