@@ -18,17 +18,8 @@ const loggingMiddleware = async (req: Request, res: Response, next: NextFunction
         try {
             const payload = verifyToken(token);
             user = `${payload.name} - ${payload.email} - ${payload.roles}`;
-            logger.info({
-                level: 'info',
-                message: `Authenticated user: ${user}`,
-                service: 'jkt48-pm',
-            });
         } catch (err) {
-            logger.warn({
-                level: 'warn',
-                message: `Unauthenticated access attempt: ${err}`,
-                service: 'jkt48-pm',
-            });
+            // Handle error if needed
         }
     }
 
@@ -44,18 +35,33 @@ const loggingMiddleware = async (req: Request, res: Response, next: NextFunction
         hour12: true,
     });
 
-    logger.info({
-        level: 'info',
-        message: [
-            `Date: ${date}`,
-            `Time: ${time}`,
-            `User: ${user}`,
-            `IP: ${req.ip}`,
-            `User Agent: ${req.headers['user-agent']}`,
-            `Route: ${req.method} ${req.url}`,
-        ],
-        service: 'jkt48-pm',
-    });
+    const userAgent = req.headers['user-agent'];
+    if (userAgent && !userAgent.includes('Dart')) {
+        logger.info({
+            level: 'info',
+            message: [
+                `Date: ${date}`,
+                `Time: ${time}`,
+                `User: ${user}`,
+                `IP: ${req.ip}`,
+                `User Agent: ${userAgent}`,
+                `Route: ${req.method} ${req.url}`,
+            ],
+            service: 'jkt48-pm',
+        });
+    } else {
+        logger.info({
+            level: 'info',
+            message: [
+                `Date: ${date}`,
+                `Time: ${time}`,
+                `User: ${user}`,
+                `IP: ${req.ip}`,
+                `Route: ${req.method} ${req.url}`,
+            ],
+            service: 'jkt48-pm',
+        });
+    }
     next();
 };
 
