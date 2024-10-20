@@ -68,7 +68,7 @@ export const requireSubscription = async (req: Request, res: Response, next: Nex
         if (subscription) {
             next();
         } else {
-            res.status(403).json({ message: 'Subscription required, dont scrape it please lmeow :P' });
+            res.status(403).json({ message: 'Subscription required' });
         }
     } catch (error) {
         res.status(500).json({ message: 'Internal server error' });
