@@ -108,7 +108,7 @@ app.use(
 app.use(loggingMiddleware);
 
 // Use the user agent middleware
-app.use(userAgentMiddleware);
+// app.use(userAgentMiddleware);
 
 /**
  * Helmet, a collection of middleware functions that help secure Express apps by setting various HTTP headers.
