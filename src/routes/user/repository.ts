@@ -226,6 +226,19 @@ export const checkUserSubscription = async (userId: string) => {
     return subscription;
 };
 
+export const hasActiveSubscription = async (userId: string): Promise<boolean> => {
+    const [subscription] = await db.execute(sql`
+    SELECT o.id
+    FROM "order" o
+            INNER JOIN package p ON o.package_id = p.id
+    WHERE o.user_id = ${userId}
+    AND o.order_status = 'success'
+    AND o.expired_at > NOW();
+    `);
+
+    return !!subscription;
+};
+
 /**
  * Checks if a user has a subscription to a specific idol.
  * @param userId - The ID of the user.
