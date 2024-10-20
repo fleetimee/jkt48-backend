@@ -63,7 +63,7 @@ router.get('/checkAccountDeletionStatus', authenticateUser, async (req, res, nex
     }
 });
 
-router.post('/register', validateSchema(registerSchema), rateLimiterStrict, async (req, res, next) => {
+router.post('/register', validateSchema(registerSchema), async (req, res, next) => {
     try {
         const { email, password, name, birthday, nickName, phoneNumber } = req.body;
 
@@ -92,7 +92,7 @@ router.post('/register', validateSchema(registerSchema), rateLimiterStrict, asyn
     }
 });
 
-router.post('/login', validateSchema(loginSchema), rateLimiterStrict, async (req, res, next) => {
+router.post('/login', validateSchema(loginSchema), async (req, res, next) => {
     try {
         const { email, password } = req.body;
 
