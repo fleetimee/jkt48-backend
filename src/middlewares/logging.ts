@@ -36,33 +36,24 @@ const loggingMiddleware = async (req: Request, res: Response, next: NextFunction
     });
 
     const userAgent = req.headers['user-agent'];
-    if (userAgent && !userAgent.includes('Dart')) {
-        logger.info({
-            level: 'info',
-            message: [
-                `Date: ${date}`,
-                `Time: ${time}`,
-                `User: ${user}`,
-                `IP: ${req.ip}`,
-                `User Agent: ${userAgent}`,
-                `Route: ${req.method} ${req.url}`,
-            ],
-            service: 'jkt48-pm',
-        });
-    } else {
-        logger.info({
-            level: 'info',
-            message: [
-                `Date: ${date}`,
-                `Time: ${time}`,
-                `User: ${user}`,
-                `IP: ${req.ip}`,
-                `Route: ${req.method} ${req.url}`,
-                `User Agent: ${userAgent}`,
-            ],
-            service: 'jkt48-pm',
-        });
+    if (userAgent && userAgent.includes('Dart')) {
+        next();
+        return;
     }
+
+    logger.info({
+        level: 'info',
+        message: [
+            `Date: ${date}`,
+            `Time: ${time}`,
+            `User: ${user}`,
+            `IP: ${req.ip}`,
+            `User Agent: ${userAgent}`,
+            `Route: ${req.method} ${req.url}`,
+        ],
+        service: 'jkt48-pm',
+    });
+
     next();
 };
 
