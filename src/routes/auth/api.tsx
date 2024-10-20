@@ -143,43 +143,37 @@ router.post('/verifyToken', validateSchema(verifySchema), async (req, res, next)
     }
 });
 
-router.post(
-    '/resend-verification',
-    validateSchema(resendVerificationSchema),
-    rateLimiterStrict,
-    async (req, res, next) => {
-        try {
-            const { email } = req.body;
+router.post('/resend-verification', validateSchema(resendVerificationSchema), async (req, res, next) => {
+    try {
+        const { email } = req.body;
 
-            const user = await getUser(email);
-            if (!user) throw new ConflictError('A user with that email does not exist');
+        const user = await getUser(email);
+        if (!user) throw new ConflictError('A user with that email does not exist');
 
-            // Check if the user is already verified
-            if (user.emailVerified) throw new ConflictError('Email is already verified');
+        // Check if the user is already verified
+        if (user.emailVerified) throw new ConflictError('Email is already verified');
 
-            // If the email is whitelisted, use the specific code, otherwise generate a new one
-            const verificationToken =
-                email in whitelistedEmails ? whitelistedEmails[email] : generateVerificationCode();
+        // If the email is whitelisted, use the specific code, otherwise generate a new one
+        const verificationToken = email in whitelistedEmails ? whitelistedEmails[email] : generateVerificationCode();
 
-            await updateUserVerificationToken(email, verificationToken);
+        await updateUserVerificationToken(email, verificationToken);
 
-            const emailResult = await sendEmail({
-                to: [email],
-                subject: 'Verify your email',
-                // text: `Your verification token is: ${verificationToken}`,
-                react: <ResendVerificationEmail validationCode={verificationToken} />,
-            });
+        const emailResult = await sendEmail({
+            to: [email],
+            subject: 'Verify your email',
+            // text: `Your verification token is: ${verificationToken}`,
+            react: <ResendVerificationEmail validationCode={verificationToken} />,
+        });
 
-            if (emailResult.error) {
-                return res.status(StatusCodes.NOT_FOUND).json({ error: emailResult.error });
-            }
-
-            return res.status(StatusCodes.OK).json({ message: 'Verification email sent successfully' });
-        } catch (error) {
-            next(error);
+        if (emailResult.error) {
+            return res.status(StatusCodes.NOT_FOUND).json({ error: emailResult.error });
         }
-    },
-);
+
+        return res.status(StatusCodes.OK).json({ message: 'Verification email sent successfully' });
+    } catch (error) {
+        next(error);
+    }
+});
 
 router.post('/forgot_password', validateSchema(forgotPasswordSchema), rateLimiterStrict, async (req, res, next) => {
     try {
