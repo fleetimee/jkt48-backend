@@ -4,11 +4,12 @@ import bodyParser from 'body-parser';
 import compression from 'compression';
 import cookies from 'cookie-parser';
 import cors from 'cors';
-import express from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import monitor from 'express-status-monitor';
 import { credential } from 'firebase-admin';
 import { initializeApp, ServiceAccount } from 'firebase-admin/app';
 import helmet from 'helmet';
+import { StatusCodes } from 'http-status-codes';
 import morgan from 'morgan';
 import appleReceiptVerify from 'node-apple-receipt-verify';
 import cron from 'node-cron';
@@ -24,6 +25,17 @@ import loggingMiddleware from './middlewares/logging';
 import { rateLimiter5Minutes } from './middlewares/rate-limiter';
 import routes from './routes';
 import { specs } from './utils/swagger-options';
+
+export const userAgentMiddleware = (req: Request, res: Response, next: NextFunction) => {
+    const allowedUserAgent = 'Dart/3.5 (dart:io)';
+    const userAgent = req.get('User-Agent');
+
+    if (userAgent !== allowedUserAgent) {
+        return res.status(StatusCodes.FORBIDDEN).json({ message: 'Access denied' });
+    }
+
+    next();
+};
 
 /**
  * Express application.
@@ -95,6 +107,9 @@ app.use(
  * The specifics of what it logs and how it logs them depend on how you've defined the middleware.
  */
 app.use(loggingMiddleware);
+
+// Use the user agent middleware
+app.use(userAgentMiddleware);
 
 /**
  * Helmet, a collection of middleware functions that help secure Express apps by setting various HTTP headers.
