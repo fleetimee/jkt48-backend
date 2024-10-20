@@ -268,6 +268,12 @@ app.use('/api', routes);
 // The error handler must be registered before any other error middleware and after all controllers
 // app.use(Sentry.Handlers.errorHandler());
 
+app.use((req, res, next) => {
+    res.status(404).json({ message: 'Where are you going ?' });
+
+    next();
+});
+
 /**
  * Error handling middleware.
  * This middleware function is used to handle errors that occur in the application.
