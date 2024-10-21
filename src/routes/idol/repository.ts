@@ -70,7 +70,7 @@ export const getMemberById = async (memberId: string) => {
             i.height,
             i.instagram_url,
             i.x_url,
-            0 AS subscriber_count
+            '0' AS subscriber_count
         FROM users u
         INNER JOIN idol i ON u.id = i.user_id
         WHERE u.roles = 'member'
