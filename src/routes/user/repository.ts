@@ -393,6 +393,16 @@ export const getUserConversationList = async (userId: string) => {
     return conversation;
 };
 
+export const getBlockList = async (email: string): Promise<boolean> => {
+    const blockList = await db.execute(sql`
+    SELECT email
+    FROM blockList
+    WHERE email = ${email};
+    `);
+
+    return blockList.length > 0;
+};
+
 /**
  * Retrieves the messages of a user in a specific conversation.
  *

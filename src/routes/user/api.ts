@@ -25,6 +25,7 @@ import {
     countActiveSubscriptionsUsers,
     countRegisteredUsers,
     deleteUserReactToMessage,
+    getBlockList,
     getUserActiveIdols,
     getUserBirthdayMessages,
     getUserById,
@@ -265,9 +266,19 @@ router.get('/me/transactionDetail/:orderId', authenticateUser, async (req, res, 
 router.get('/me/conversationList', authenticateUser, async (req, res, next) => {
     try {
         const id = req.user.id;
+        const email = req.user.email;
 
         const user = await getUserById(id);
         if (!user) throw new NotFoundError('User not found');
+
+        const blockList = await getBlockList(email);
+
+        if (blockList) {
+            return {
+                status: 404,
+                message: 'You have been sent to shadow realm',
+            };
+        }
 
         const conversationList = await getUserConversationList(id);
 
@@ -289,6 +300,8 @@ router.get('/me/conversationList', authenticateUser, async (req, res, next) => {
 router.get('/me/conversation/:conversationId', authenticateUser, async (req, res, next) => {
     try {
         const id = req.user.id;
+        const email = req.user.email;
+
         const conversationId = req.params.conversationId;
 
         const page = parseInt(req.query.page as string) || 1;
@@ -298,6 +311,15 @@ router.get('/me/conversation/:conversationId', authenticateUser, async (req, res
 
         const user = await getUserById(id);
         if (!user) throw new NotFoundError('User not found');
+
+        const blockList = await getBlockList(email);
+
+        if (blockList) {
+            return {
+                status: 404,
+                message: 'You have been sent to shadow realm',
+            };
+        }
 
         // Get the conversation list
         const conversationList = await getUserConversationList(id);
