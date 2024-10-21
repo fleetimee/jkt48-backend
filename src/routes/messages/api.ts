@@ -248,7 +248,8 @@ router.patch(
             ]);
 
             if (userFcmTokens.length > 0 && isApproved) {
-                const arrayOfStrings = userFcmTokens.map(item => item.token);
+                // Explicitly type the tokens as string[]
+                const arrayOfStrings: string[] = userFcmTokens.map(item => item.token as string);
 
                 const notificationMessage: Notification = {
                     title: messageDetail.nickname as string,
@@ -257,43 +258,24 @@ router.patch(
 
                 const buildAvatar = `${BASE_URL}${messageDetail.profile_image}`;
 
-                const chunkArray = (array: unknown[], size: number): unknown[][] => {
-                    const result: unknown[][] = [];
+                const chunkArray = (array: string[], size: number): string[][] => {
+                    const result: string[][] = [];
                     for (let i = 0; i < array.length; i += size) {
                         result.push(array.slice(i, i + size));
                     }
                     return result;
                 };
 
-                // Split the tokens array into chunks of 500
-                const tokenChunks = chunkArray(arrayOfStrings, 500);
+                // Split the tokens array into chunks of 400
+                const tokenChunks = chunkArray(arrayOfStrings, 400);
 
-                // Iterate over each chunk and send the notification
-                for (const tokenChunk of tokenChunks) {
-                    await messaging().sendEachForMulticast({
-                        tokens: tokenChunk as unknown as string[],
-                        notification: notificationMessage,
-                        android: {
-                            notification: {
-                                imageUrl: buildAvatar,
-                                sound: 'default',
-                            },
-                        },
-                        apns: {
-                            payload: {
-                                aps: {
-                                    'mutable-content': 1,
-                                    sound: 'notification_sound.caf',
-                                },
-                            },
-                            fcmOptions: {
-                                imageUrl: buildAvatar,
-                            },
-                        },
-                    });
-                }
+                console.log(`Token Count : ${arrayOfStrings.length}`);
+
+                // Asynchronously send notifications without awaiting the result
+                sendNotificationsInBackground(tokenChunks, notificationMessage, buildAvatar).catch(console.error);
             }
 
+            // Return response immediately without waiting for notifications to be sent
             return res.status(StatusCodes.OK).send({
                 success: true,
                 code: StatusCodes.OK,
@@ -306,5 +288,149 @@ router.patch(
         }
     },
 );
+
+const isFCMError = (
+    error: any,
+): error is {
+    code: string;
+    message: string;
+    response?: { headers?: { 'retry-after'?: string } };
+} => {
+    return typeof error?.code === 'string' && typeof error?.message === 'string';
+};
+
+const sendNotificationsInBackground = async (
+    tokenChunks: string[][],
+    notificationMessage: Notification,
+    buildAvatar: string,
+) => {
+    const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+    const maxRetries = 5;
+    const maxRPS = 5000; // Max Requests Per Second based on FCM limits
+    const maxDelay = 60000; // Maximum delay cap (60 seconds)
+
+    // Ramp-up schedule configuration
+    const rampUpSchedule = [
+        { step: 0, percentage: 0.01, duration: 3600 * 1000 }, // 1% ramp-up over 1 hour
+        { step: 1, percentage: 0.05, duration: 7200 * 1000 }, // 5% ramp-up over 2 hours
+        { step: 2, percentage: 0.1, duration: 7200 * 1000 }, // 10% ramp-up over 2 hours
+        { step: 3, percentage: 0.25, duration: 10800 * 1000 }, // 25% ramp-up over 3 hours
+        { step: 4, percentage: 0.5, duration: 21600 * 1000 }, // 50% ramp-up over 6 hours
+        { step: 5, percentage: 0.75, duration: 21600 * 1000 }, // 75% ramp-up over 6 hours
+        { step: 6, percentage: 1.0, duration: 21600 * 1000 }, // 100% ramp-up over 6 hours
+    ];
+
+    const sendChunkWithRetries = async (tokenChunk: string[], attempt = 0) => {
+        try {
+            await messaging().sendEachForMulticast({
+                tokens: tokenChunk,
+                notification: notificationMessage,
+                android: {
+                    notification: {
+                        imageUrl: buildAvatar,
+                        sound: 'default',
+                    },
+                },
+                apns: {
+                    payload: {
+                        aps: {
+                            'mutable-content': 1,
+                            sound: 'notification_sound.caf',
+                        },
+                    },
+                    fcmOptions: {
+                        imageUrl: buildAvatar,
+                    },
+                },
+            });
+        } catch (error) {
+            if (isFCMError(error)) {
+                if (
+                    error.code === 'messaging/quota-exceeded' ||
+                    error.code === 'messaging/server-unavailable' ||
+                    error.code === 'messaging/unknown-error'
+                ) {
+                    const retryAfter = error?.response?.headers?.['retry-after'];
+                    let retryDelay = retryAfter ? parseInt(retryAfter) * 1000 : 1000 * Math.pow(2, attempt);
+
+                    // Cap the delay to a maximum value and add jittering
+                    retryDelay = Math.min(retryDelay, maxDelay) * (0.8 + Math.random() * 0.4);
+
+                    console.error(`Error sending notification for chunk on attempt ${attempt}: ${error.message}`);
+                    console.log(`Retrying chunk after ${retryDelay} ms...`);
+                    if (attempt < maxRetries) {
+                        await delay(retryDelay);
+                        return sendChunkWithRetries(tokenChunk, attempt + 1);
+                    } else {
+                        console.error(`Max retries reached for this chunk. Skipping...`);
+                    }
+                } else {
+                    console.error(`Non-retryable error occurred: ${error.message}`);
+                }
+            } else {
+                console.error(`An unknown error occurred: ${JSON.stringify(error)}`);
+            }
+        }
+    };
+
+    const avoidOnTheHourTraffic = async () => {
+        const now = new Date();
+        const minutes = now.getMinutes();
+        const seconds = now.getSeconds();
+
+        if (
+            (minutes >= 0 && minutes < 2) ||
+            (minutes >= 15 && minutes < 17) ||
+            (minutes >= 30 && minutes < 32) ||
+            (minutes >= 45 && minutes < 47)
+        ) {
+            const waitTime = ((2 - (minutes % 15)) * 60 - seconds) * 1000;
+            console.log(`Waiting ${waitTime / 1000} seconds to avoid peak traffic...`);
+            await delay(waitTime);
+        }
+    };
+
+    let currentStep = 0;
+    let currentRPS = 0;
+    let stepStartTime = Date.now();
+
+    const adjustDelayAndRPS = (index: number) => {
+        const stepInfo = rampUpSchedule[currentStep];
+        const elapsedTime = Date.now() - stepStartTime;
+
+        if (elapsedTime >= stepInfo.duration) {
+            if (currentStep < rampUpSchedule.length - 1) {
+                currentStep++;
+                stepStartTime = Date.now(); // Reset the start time for the next step
+            }
+        }
+
+        const targetRPS = maxRPS * stepInfo.percentage;
+
+        if (currentRPS < targetRPS) {
+            currentRPS += maxRPS * 0.01; // Increase RPS by 1% of max per iteration
+        } else {
+            currentRPS = targetRPS;
+        }
+
+        // Calculate delay based on the current RPS and chunk index
+        const delayTime = Math.max((1000 / currentRPS) * (index + 1), 200);
+        console.log(
+            `Step ${currentStep}, Target RPS: ${targetRPS}, Actual RPS: ${currentRPS}, Delay for index ${index}: ${delayTime} ms`,
+        );
+        return delayTime;
+    };
+
+    const promises = tokenChunks.map(async (tokenChunk, index) => {
+        await avoidOnTheHourTraffic();
+
+        const delayTime = adjustDelayAndRPS(index);
+        await delay(delayTime);
+
+        await sendChunkWithRetries(tokenChunk);
+    });
+
+    await Promise.all(promises);
+};
 
 export default router;
