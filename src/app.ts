@@ -27,7 +27,9 @@ import { specs } from './utils/swagger-options';
 export const userAgentMiddleware = (req: Request, res: Response, next: NextFunction) => {
     const userAgent = req.get('User-Agent');
 
-    if (userAgent && userAgent.includes('axios')) {
+    const blockedAgents = ['node-fetch', 'curl', 'wget', 'python-requests', 'PostmanRuntime'];
+
+    if (userAgent && blockedAgents.some(agent => userAgent.includes(agent))) {
         return res.status(StatusCodes.FORBIDDEN).json({ message: 'Access denied' });
     }
 
@@ -106,7 +108,7 @@ app.use(
 app.use(loggingMiddleware);
 
 // Use the user agent middleware
-// app.use(userAgentMiddleware);
+app.use(userAgentMiddleware);
 
 /**
  * Helmet, a collection of middleware functions that help secure Express apps by setting various HTTP headers.
