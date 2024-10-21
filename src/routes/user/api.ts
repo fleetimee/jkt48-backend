@@ -6,6 +6,7 @@ import { StatusCodes } from 'http-status-codes';
 import path from 'path';
 
 import { authenticateUser, requireAdminRole } from '../../middlewares/authenticate-user';
+import { rateLimiterStrict } from '../../middlewares/rate-limiter';
 import { validateSchema } from '../../middlewares/validate-request';
 import { NotFoundError } from '../../utils/errors';
 import { uploadUserProfile } from '../../utils/multer';
@@ -297,7 +298,7 @@ router.get('/me/conversationList', authenticateUser, async (req, res, next) => {
     }
 });
 
-router.get('/me/conversation/:conversationId', authenticateUser, async (req, res, next) => {
+router.get('/me/conversation/:conversationId', authenticateUser, rateLimiterStrict, async (req, res, next) => {
     try {
         const id = req.user.id;
         const email = req.user.email;
@@ -349,8 +350,6 @@ router.get('/me/conversation/:conversationId', authenticateUser, async (req, res
             pageSize,
             page,
         );
-
-        console.log(conversation);
 
         if (!conversation) throw new NotFoundError('Conversation not found');
 
