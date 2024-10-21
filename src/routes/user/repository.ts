@@ -335,59 +335,48 @@ export const getUserTransactionDetail = async (userId: string, orderId: string) 
  */
 export const getUserConversationList = async (userId: string) => {
     const conversation = await db.execute(sql`
-    SELECT *
-        FROM (
-            SELECT DISTINCT ON (i.id)
-            c.id            AS conversation_id,
-            u.id            AS user_id,
-            i.id            AS idol_id,
-            u.nickname      AS idol_name,
-            U.profile_image AS idol_image,
-                              COALESCE(
-                                        CASE
-                                            WHEN m.created_at < (SELECT created_at
-                                                                 FROM users
-                                                                 WHERE id = ${userId}) OR
-                                                 m.approved = FALSE THEN 'hasnt sent a message yet'
-                                              WHEN m.message = ''  THEN 'sent you a photo/sent you a voice note'
-                                            ELSE m.message
-                                            END,
-                                        'hasnt sent a message yet'
-                                )                                                                        AS last_message,
-            m.created_at    AS last_message_time,
-            (
-                SELECT COUNT(*)
-                FROM message
-                WHERE conversation_id = c.id 
-                AND message.approved = TRUE
-                AND (
-                    created_at > (
-                        SELECT last_read_at
-                        FROM users_conversation
-                        WHERE user_id = ${userId} AND conversation_id = c.id
-                    ) OR (
-                        SELECT last_read_at
-                        FROM users_conversation
-                        WHERE user_id = ${userId} AND conversation_id = c.id
-                    ) IS NULL
-                )
-                AND created_at > (
-                    SELECT created_at
-                    FROM users
-                    WHERE id = ${userId}
-                )
-            ) AS unread_count
-            FROM order_idol
-                INNER JOIN "order" o ON order_idol.order_id = o.id
-                INNER JOIN idol i ON order_idol.idol_id = i.id
-                INNER JOIN conversation c ON i.id = c.idol_id
-                INNER JOIN users u ON i.user_id = u.id
-                LEFT JOIN message m ON c.id = m.conversation_id AND m.approved = TRUE
-            WHERE o.user_id = ${userId}
-            AND o.order_status = 'success'
-            ORDER BY i.id, m.created_at DESC
-        ) AS subquery
-        ORDER BY unread_count DESC, idol_name;
+    SELECT
+        c.id            AS conversation_id,
+        u.id            AS user_id,
+        i.id            AS idol_id,
+        u.nickname      AS idol_name,
+        u.profile_image AS idol_image,
+        COALESCE(
+            CASE
+                WHEN m.created_at < users.created_at OR m.approved = FALSE THEN 'hasnt sent a message yet'
+                WHEN m.message = '' THEN 'sent you a photo/sent you a voice note'
+                ELSE m.message
+            END,
+            'hasnt sent a message yet'
+        ) AS last_message,
+        m.created_at AS last_message_time,
+        unread_count.unread_count
+    FROM order_idol
+    INNER JOIN "order" o ON order_idol.order_id = o.id
+    INNER JOIN idol i ON order_idol.idol_id = i.id
+    INNER JOIN conversation c ON i.id = c.idol_id
+    INNER JOIN users u ON i.user_id = u.id
+    LEFT JOIN LATERAL (
+        SELECT m1.*
+        FROM message m1
+        WHERE m1.conversation_id = c.id AND m1.approved = TRUE
+        ORDER BY m1.created_at DESC
+        LIMIT 1
+    ) m ON TRUE
+    INNER JOIN users ON users.id = ${userId}
+    LEFT JOIN LATERAL (
+        SELECT COUNT(*) AS unread_count
+        FROM message m2
+        LEFT JOIN users_conversation uc ON uc.user_id = ${userId} AND uc.conversation_id = c.id
+        WHERE m2.conversation_id = c.id
+          AND m2.approved = TRUE
+          AND (
+              m2.created_at > COALESCE(uc.last_read_at, users.created_at)
+          )
+    ) unread_count ON TRUE
+    WHERE o.user_id = ${userId}
+      AND o.order_status = 'success'
+    ORDER BY unread_count.unread_count DESC, u.nickname;
     `);
 
     return conversation;
