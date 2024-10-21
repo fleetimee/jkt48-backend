@@ -276,7 +276,7 @@ router.get('/me/conversationList', authenticateUser, async (req, res, next) => {
         if (blockList) {
             return {
                 status: 404,
-                message: 'You have been sent to shadow realm',
+                message: 'Invalid conversation',
             };
         }
 
@@ -317,7 +317,7 @@ router.get('/me/conversation/:conversationId', authenticateUser, async (req, res
         if (blockList) {
             return {
                 status: 404,
-                message: 'You have been sent to shadow realm',
+                message: 'Invalid conversation',
             };
         }
 
