@@ -3,6 +3,7 @@ import { messaging } from 'firebase-admin';
 import { Notification } from 'firebase-admin/lib/messaging/messaging-api';
 import { StatusCodes } from 'http-status-codes';
 
+import { verifyXenditToken } from '../../middlewares/xendit-auth';
 import { fetchFcmTokenByOrderId } from '../token/repository';
 import { updateOrderStatusXenditCallback, updateOrderStatusXenditSubscriptionCallback } from './repository';
 
@@ -18,7 +19,7 @@ export enum XenditRecurringStatus {
     PAYMENT_ACTIVATED = 'payment_method.activated',
 }
 
-router.post('/', async (req, res, next) => {
+router.post('/', verifyXenditToken, async (req, res, next) => {
     try {
         const { body } = req;
 
@@ -71,16 +72,12 @@ router.post('/', async (req, res, next) => {
             return res.status(StatusCodes.OK).send({
                 message: 'Xendit callback received for successful payment',
             });
-
-            return;
         } else if (body.status === 'FAILED') {
             await updateOrderStatusXenditCallback(body.external_id, 'failed', body);
 
             return res.status(StatusCodes.OK).send({
                 message: 'Xendit callback received for failed payment',
             });
-
-            return;
         }
 
         return res.status(StatusCodes.BAD_REQUEST).send({
