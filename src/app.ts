@@ -15,7 +15,6 @@ import appleReceiptVerify from 'node-apple-receipt-verify';
 import cron from 'node-cron';
 import responseTime from 'response-time';
 import swStat from 'swagger-stats';
-import swaggerUi from 'swagger-ui-express';
 
 import { APPLE_SECRET_KET, BASE_URL } from './config';
 import serviceAccount from './config/service-account.json';
@@ -80,7 +79,7 @@ appleReceiptVerify.config({
 // // TracingHandler creates a trace for every incoming request
 // app.use(Sentry.Handlers.tracingHandler());
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, { explorer: true }));
+// app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, { explorer: true }));
 
 /**
  * Morgan, a HTTP request logger middleware for Node.js.
