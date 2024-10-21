@@ -41,13 +41,15 @@ const loggingMiddleware = async (req: Request, res: Response, next: NextFunction
         return;
     }
 
+    const clientIp = req.headers['x-forwarded-for'] || req.ip;
+
     logger.info({
         level: 'info',
         message: [
             `Date: ${date}`,
             `Time: ${time}`,
             `User: ${user}`,
-            `IP: ${req.ip}`,
+            `IP: ${clientIp}`,
             `User Agent: ${userAgent}`,
             `Route: ${req.method} ${req.url}`,
         ],
