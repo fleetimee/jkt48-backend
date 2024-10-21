@@ -1,7 +1,9 @@
 import { and, desc, eq, lt, sql } from 'drizzle-orm';
 
+import { PPN_PERCENTAGE } from '../../config';
 import db from '../../db';
 import { order } from '../../models/order';
+import { calculateTaxAndTotal } from '../../utils/lib';
 
 /**
  * Retrieves an order by its ID.
@@ -57,6 +59,36 @@ export const createOrder = async (
     appleOriginalTransactionId?: string,
 ) => {
     const order = await db.transaction(async trx => {
+        // Fetch package price based on the packageId
+        const [packageDetails] = await trx.execute(sql`
+            SELECT price
+            FROM package
+            WHERE id = ${packageId} AND is_active = TRUE;
+        `);
+
+        const { tax: expectedTax, total: expectedTotal } = calculateTaxAndTotal(
+            Number(packageDetails.price),
+            PPN_PERCENTAGE,
+        );
+
+        const matchPrice = packageDetails.price == subtotal;
+        const matchTax = tax == expectedTax;
+        const matchTotal = total == expectedTotal;
+
+        console.log('matchPrice', matchPrice);
+
+        if (!matchPrice) {
+            throw new Error('Invalid input: The subtotal does not match the expected value.');
+        }
+
+        if (!matchTax) {
+            throw new Error('Invalid input: The tax does not match the expected value.');
+        }
+
+        if (!matchTotal) {
+            throw new Error('Invalid input: The total does not match the expected value.');
+        }
+
         let order;
         if (expiredAt && appleOriginalTransactionId) {
             [order] = await trx.execute(sql`
