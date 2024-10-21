@@ -241,8 +241,6 @@ router.patch(
 
             const { isApproved } = req.body;
 
-            // await approveMessage(messageId, isApproved);
-
             const [approveMessageRes, userFcmTokens, messageDetail] = await Promise.all([
                 approveMessage(messageId, isApproved),
                 fetchSubscribedFcmTokens(messageId),
@@ -259,27 +257,41 @@ router.patch(
 
                 const buildAvatar = `${BASE_URL}${messageDetail.profile_image}`;
 
-                await messaging().sendEachForMulticast({
-                    tokens: arrayOfStrings as unknown as string[],
-                    notification: notificationMessage,
-                    android: {
-                        notification: {
-                            imageUrl: buildAvatar,
-                            sound: 'default',
-                        },
-                    },
-                    apns: {
-                        payload: {
-                            aps: {
-                                'mutable-content': 1,
-                                sound: 'notification_sound.caf',
+                const chunkArray = (array: unknown[], size: number): unknown[][] => {
+                    const result: unknown[][] = [];
+                    for (let i = 0; i < array.length; i += size) {
+                        result.push(array.slice(i, i + size));
+                    }
+                    return result;
+                };
+
+                // Split the tokens array into chunks of 500
+                const tokenChunks = chunkArray(arrayOfStrings, 500);
+
+                // Iterate over each chunk and send the notification
+                for (const tokenChunk of tokenChunks) {
+                    await messaging().sendEachForMulticast({
+                        tokens: tokenChunk as unknown as string[],
+                        notification: notificationMessage,
+                        android: {
+                            notification: {
+                                imageUrl: buildAvatar,
+                                sound: 'default',
                             },
                         },
-                        fcmOptions: {
-                            imageUrl: buildAvatar,
+                        apns: {
+                            payload: {
+                                aps: {
+                                    'mutable-content': 1,
+                                    sound: 'notification_sound.caf',
+                                },
+                            },
+                            fcmOptions: {
+                                imageUrl: buildAvatar,
+                            },
                         },
-                    },
-                });
+                    });
+                }
             }
 
             return res.status(StatusCodes.OK).send({
