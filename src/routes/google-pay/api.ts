@@ -70,8 +70,6 @@ router.post('/verifyGoogle', async (req, res, next) => {
                             message: 'Google Pay verified',
                             data: null,
                         });
-
-                        return;
                     }
                     case GoogleNotificationType.SUBSCRIPTION_RENEWED: {
                         // Handle subscription renewal
@@ -122,7 +120,17 @@ router.post('/verifyGoogle', async (req, res, next) => {
                         break;
                     }
                     default: {
-                        throw new Error('No valid subscription notification found');
+                        const expiryDate = new Date();
+                        expiryDate.setMonth(expiryDate.getMonth() + 1);
+
+                        await updateOrderPurchasedGoogle(subscriptionNotification.purchaseToken, expiryDate);
+
+                        return res.status(StatusCodes.OK).send({
+                            success: true,
+                            code: StatusCodes.OK,
+                            message: 'Google Pay verified',
+                            data: null,
+                        });
                     }
                 }
 
