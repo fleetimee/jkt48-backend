@@ -3,7 +3,7 @@ import { StatusCodes } from 'http-status-codes';
 import React from 'react';
 
 import { authenticateUser } from '../../middlewares/authenticate-user';
-import { rateLimiterStrict } from '../../middlewares/rate-limiter';
+import { rateLimiter, rateLimiterStrict } from '../../middlewares/rate-limiter';
 import { validateSchema } from '../../middlewares/validate-request';
 import { ConflictError } from '../../utils/errors';
 import { generateResetTokenPassword, generateVerificationCode } from '../../utils/lib';
@@ -61,7 +61,7 @@ router.get('/checkAccountDeletionStatus', authenticateUser, async (req, res, nex
     }
 });
 
-router.post('/register', validateSchema(registerSchema), async (req, res, next) => {
+router.post('/register', validateSchema(registerSchema), rateLimiter, async (req, res, next) => {
     try {
         const { email, password, name, birthday, nickName, phoneNumber } = req.body;
 

@@ -5,7 +5,6 @@ import { Notification } from 'firebase-admin/lib/messaging/messaging-api';
 import { StatusCodes } from 'http-status-codes';
 import path from 'path';
 
-import { userAgentMiddleware } from '../../app';
 import { authenticateUser, requireAdminRole } from '../../middlewares/authenticate-user';
 import { rateLimiter } from '../../middlewares/rate-limiter';
 import { validateSchema } from '../../middlewares/validate-request';
@@ -265,7 +264,7 @@ router.get('/me/transactionDetail/:orderId', authenticateUser, async (req, res, 
     }
 });
 
-router.get('/me/conversationList', authenticateUser, userAgentMiddleware, async (req, res, next) => {
+router.get('/me/conversationList', authenticateUser, async (req, res, next) => {
     try {
         const id = req.user.id;
         const email = req.user.email;
@@ -299,86 +298,80 @@ router.get('/me/conversationList', authenticateUser, userAgentMiddleware, async 
     }
 });
 
-router.get(
-    '/me/conversation/:conversationId',
-    authenticateUser,
-    rateLimiter,
-    userAgentMiddleware,
-    async (req, res, next) => {
-        try {
-            const id = req.user.id;
-            const email = req.user.email;
+router.get('/me/conversation/:conversationId', authenticateUser, rateLimiter, async (req, res, next) => {
+    try {
+        const id = req.user.id;
+        const email = req.user.email;
 
-            const conversationId = req.params.conversationId;
+        const conversationId = req.params.conversationId;
 
-            const page = parseInt(req.query.page as string) || 1;
-            const pageSize = parseInt(req.query.pageSize as string) || 10;
-            const orderBy = (req.query.orderBy as string) || 'created_at';
-            const orderDirection = (req.query.orderDirection as string) || 'DESC';
+        const page = parseInt(req.query.page as string) || 1;
+        const pageSize = parseInt(req.query.pageSize as string) || 10;
+        const orderBy = (req.query.orderBy as string) || 'created_at';
+        const orderDirection = (req.query.orderDirection as string) || 'DESC';
 
-            const user = await getUserById(id);
-            if (!user) throw new NotFoundError('User not found');
+        const user = await getUserById(id);
+        if (!user) throw new NotFoundError('User not found');
 
-            const blockList = await getBlockList(email);
+        const blockList = await getBlockList(email);
 
-            if (blockList) {
-                return {
-                    status: 404,
-                    message: 'Invalid conversation',
-                };
-            }
-
-            // Get the conversation list
-            const conversationList = await getUserConversationList(id);
-            if (!conversationList) throw new NotFoundError('Conversation not found');
-
-            // Get the list of idols from the conversation list
-            const idolList = conversationList.map(conversation => conversation.idol_id);
-
-            // Check if the user is subscribed to any of the idols in the conversation
-            const subscriptions = await Promise.all(
-                idolList.map(idolId => checkUserSubscriptionOderIdol(id, idolId as string)),
-            );
-
-            // If the user is not subscribed to any of the idols, throw an error
-            if (subscriptions.every(subscription => !subscription)) {
-                throw new NotFoundError(
-                    'User does not have an active subscription to any of the idols in this conversation',
-                );
-            }
-
-            // Get the conversation messages
-            const conversation = await getUserConversationMessages(
-                id,
-                conversationId,
-                orderBy,
-                orderDirection,
-                pageSize,
-                page,
-            );
-
-            if (!conversation) throw new NotFoundError('Conversation not found');
-
-            return res.status(StatusCodes.OK).send(
-                formatResponsePaginated({
-                    code: StatusCodes.OK,
-                    message: 'User conversation',
-                    data: conversation,
-                    meta: {
-                        page,
-                        pageSize,
-                        orderBy,
-                        orderDirection,
-                    },
-                    success: true,
-                }),
-            );
-        } catch (error) {
-            console.log(error);
-            next(error);
+        if (blockList) {
+            return {
+                status: 404,
+                message: 'Invalid conversation',
+            };
         }
-    },
-);
+
+        // Get the conversation list
+        const conversationList = await getUserConversationList(id);
+        if (!conversationList) throw new NotFoundError('Conversation not found');
+
+        // Get the list of idols from the conversation list
+        const idolList = conversationList.map(conversation => conversation.idol_id);
+
+        // Check if the user is subscribed to any of the idols in the conversation
+        const subscriptions = await Promise.all(
+            idolList.map(idolId => checkUserSubscriptionOderIdol(id, idolId as string)),
+        );
+
+        // If the user is not subscribed to any of the idols, throw an error
+        if (subscriptions.every(subscription => !subscription)) {
+            throw new NotFoundError(
+                'User does not have an active subscription to any of the idols in this conversation',
+            );
+        }
+
+        // Get the conversation messages
+        const conversation = await getUserConversationMessages(
+            id,
+            conversationId,
+            orderBy,
+            orderDirection,
+            pageSize,
+            page,
+        );
+
+        if (!conversation) throw new NotFoundError('Conversation not found');
+
+        return res.status(StatusCodes.OK).send(
+            formatResponsePaginated({
+                code: StatusCodes.OK,
+                message: 'User conversation',
+                data: conversation,
+                meta: {
+                    page,
+                    pageSize,
+                    orderBy,
+                    orderDirection,
+                },
+                success: true,
+            }),
+        );
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
+});
 
 router.get('/me/conversation/:conversationId/images', authenticateUser, async (req, res, next) => {
     try {
