@@ -13,14 +13,6 @@ const fileTransport = new winston.transports.DailyRotateFile({
     maxFiles: '14d',
 });
 
-const fileTransportGoogle = new winston.transports.DailyRotateFile({
-    filename: 'logs/google/application-%DATE%.log',
-    datePattern: 'YYYY-MM-DD',
-    zippedArchive: true,
-    maxSize: '20m',
-    maxFiles: '14d',
-});
-
 /**
  * Winston logger instance.
  */
@@ -36,16 +28,4 @@ const logger = winston.createLogger({
     ],
 });
 
-const loggerGoogle = winston.createLogger({
-    level: 'info',
-    format: winston.format.json(),
-    defaultMeta: { service: 'jkt48-pm-google' },
-    transports: [
-        fileTransportGoogle,
-        new winston.transports.Console({
-            format: winston.format.simple(),
-        }),
-    ],
-});
-
-export { logger, loggerGoogle };
+export default logger;

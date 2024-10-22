@@ -1,13 +1,35 @@
+import 'winston-daily-rotate-file';
+
 import express from 'express';
 // import { google } from 'googleapis';
 import { StatusCodes } from 'http-status-codes';
+import winston from 'winston';
 
 import { DeveloperNotification } from '../../types/google-purchase';
 import { GoogleNotificationType } from '../../utils/enum';
-import { loggerGoogle } from '../../utils/winston';
 import { updateOrderCanceledGoogle, updateOrderPurchasedGoogle, updateOrderRenewedGoogle } from '../order/repository';
 
 const router = express.Router();
+
+const fileTransportGoogle = new winston.transports.DailyRotateFile({
+    filename: 'logs/google/application-%DATE%.log',
+    datePattern: 'YYYY-MM-DD',
+    zippedArchive: true,
+    maxSize: '20m',
+    maxFiles: '14d',
+});
+
+const loggerGoogle = winston.createLogger({
+    level: 'info',
+    format: winston.format.json(),
+    defaultMeta: { service: 'jkt48-pm-google' },
+    transports: [
+        fileTransportGoogle,
+        new winston.transports.Console({
+            format: winston.format.simple(),
+        }),
+    ],
+});
 
 router.post('/verifyGoogle', async (req, res, next) => {
     try {
