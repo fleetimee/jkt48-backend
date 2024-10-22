@@ -286,6 +286,36 @@ export const updateOrderPurchasedGoogle = async (purchaseToken: string, expiredA
 };
 
 /**
+ * Updates the order status to 'renewed' and sets the new expiration date and update date for a given Google purchase token.
+ * @param purchaseToken - The Google purchase token.
+ * @param expiredAt - The new expiration date for the renewed order.
+ * @returns A promise that resolves when the update is complete.
+ */
+export const updateOrderRenewedGoogle = async (purchaseToken: string, expiredAt: Date) => {
+    const date = new Date();
+
+    await db
+        .update(order)
+        .set({ orderStatus: 'success', expiredAt: expiredAt, updatedAt: date })
+        .where(and(eq(order.googlePurchaseToken, purchaseToken), eq(order.orderStatus, 'success')));
+};
+
+/**
+ * Updates the order status to 'canceled' and sets the cancellation date for a given Google purchase token.
+ * @param purchaseToken - The Google purchase token.
+ * @param cancellationDate - The date when the subscription was canceled.
+ * @returns A promise that resolves when the update is complete.
+ */
+export const updateOrderCanceledGoogle = async (purchaseToken: string, cancellationDate: Date) => {
+    const date = new Date();
+
+    await db
+        .update(order)
+        .set({ orderStatus: 'cancelled', createdAt: cancellationDate, updatedAt: date })
+        .where(and(eq(order.googlePurchaseToken, purchaseToken), eq(order.orderStatus, 'success')));
+};
+
+/**
  * Updates the appleOriginalTransactionId of an order in the database.
  *
  * @param {string} orderId - The ID of the order to update.
