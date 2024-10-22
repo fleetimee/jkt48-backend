@@ -66,7 +66,6 @@ export const userAgentMiddleware = (req: Request, res: Response, next: NextFunct
         'playwright',
 
         // Generic and other known tools
-        'dart',
         'fetch', // Generic fetch API clients
         'okhttp', // Java-based HTTP client
         'winhttprequest', // Windows HTTP client
@@ -78,6 +77,7 @@ export const userAgentMiddleware = (req: Request, res: Response, next: NextFunct
         'jmeter', // Apache JMeter, often used for load testing
         'nutch', // Apache Nutch, a web crawler
         'httpunit', // Java web testing framework
+        'undici', // Node.js HTTP client
     ];
 
     if (userAgent && blockedAgents.some(agent => userAgent.toLowerCase().includes(agent))) {
