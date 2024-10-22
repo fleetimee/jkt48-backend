@@ -17,6 +17,7 @@ import {
     updateAppleOriginalTransactionId,
     updateExpiredOrderStatus,
     updateGooglePurchaseToken,
+    updateOrderStatusGpay,
 } from './repository';
 import {
     createOrderSchema,
@@ -182,7 +183,7 @@ router.patch('/updateStatus', validateSchema(updateOrderStatusSchema), authentic
 
         if (!order) throw new NotFoundError('Order not found');
 
-        // await updateOrderStatusGpay(orderId);
+        await updateOrderStatusGpay(orderId);
 
         // Hey
 
