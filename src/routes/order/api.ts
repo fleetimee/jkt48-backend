@@ -17,7 +17,6 @@ import {
     updateAppleOriginalTransactionId,
     updateExpiredOrderStatus,
     updateGooglePurchaseToken,
-    updateOrderStatusGpay,
 } from './repository';
 import {
     createOrderSchema,
@@ -183,13 +182,13 @@ router.patch('/updateStatus', validateSchema(updateOrderStatusSchema), authentic
 
         if (!order) throw new NotFoundError('Order not found');
 
-        await updateOrderStatusGpay(orderId);
+        // await updateOrderStatusGpay(orderId);
 
         return res.status(StatusCodes.OK).send(
             formatResponse({
                 success: true,
                 code: StatusCodes.OK,
-                message: 'Order status updated',
+                message: 'Invalid credentials',
                 data: null,
             }),
         );
