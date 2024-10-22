@@ -440,8 +440,6 @@ export const getUserConversationMessages = async (
             ),
         );
 
-        console.log('messages', messages);
-
         await trx.execute(
             sql.raw(
                 `
