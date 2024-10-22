@@ -5,6 +5,7 @@ import compression from 'compression';
 import cookies from 'cookie-parser';
 import cors from 'cors';
 import express, { NextFunction, Request, Response } from 'express';
+import monitor from 'express-status-monitor';
 import { credential } from 'firebase-admin';
 import { initializeApp, ServiceAccount } from 'firebase-admin/app';
 import helmet from 'helmet';
@@ -26,61 +27,9 @@ import { specs } from './utils/swagger-options';
 export const userAgentMiddleware = (req: Request, res: Response, next: NextFunction) => {
     const userAgent = req.get('User-Agent');
 
-    const blockedAgents = [
-        // CLI tools and libraries
-        'node-fetch',
-        'curl',
-        'wget',
-        'python-requests',
-        'postmanruntime',
-        'httpie',
-        'libwww-perl',
-        'httpclient',
-        'java',
-        'axios',
+    const blockedAgents = ['node-fetch', 'curl', 'wget', 'python-requests', 'PostmanRuntime'];
 
-        // API testing tools
-        'insomnia',
-        'soapui',
-        'restclient',
-        'paw',
-        'swagger',
-        'bruno', // Bruno API client
-        'advancedrestclient', // Advanced REST Client
-
-        // Scraping frameworks
-        'scrapy',
-        'beautifulsoup',
-        'mechanize',
-        'guzzlehttp', // Guzzle HTTP client (PHP)
-        'unirest',
-        'jsoup', // Java scraping library
-        'puppeteer',
-        'selenium',
-
-        // Headless browsers and automated browsers
-        'phantomjs',
-        'headlesschrome',
-        'chromeheadless',
-        'slimerjs',
-        'playwright',
-
-        // Generic and other known tools
-        'fetch', // Generic fetch API clients
-        'okhttp', // Java-based HTTP client
-        'winhttprequest', // Windows HTTP client
-        'go-http-client', // Go language HTTP client
-        'cobweb', // Cobweb, a Python scraping library
-        'httprequest2', // PHP PEAR HTTP_Request2 package
-        'httrack', // Website copier utility
-        'sitebot', // Generic site bot
-        'jmeter', // Apache JMeter, often used for load testing
-        'nutch', // Apache Nutch, a web crawler
-        'httpunit', // Java web testing framework
-        'undici', // Node.js HTTP client
-    ];
-
-    if (userAgent && blockedAgents.some(agent => userAgent.toLowerCase().includes(agent))) {
+    if (userAgent && blockedAgents.some(agent => userAgent.includes(agent))) {
         return res.status(StatusCodes.FORBIDDEN).json({ message: 'Access denied' });
     }
 
@@ -144,6 +93,13 @@ app.use(morgan('dev'));
 
 app.use(responseTime());
 
+app.use(
+    monitor({
+        path: '/health-check',
+        title: 'JKT48 API PM Status',
+    }),
+);
+
 /**
  * My logging middleware.
  * This middleware function is used to log details about the request and response objects.
@@ -152,7 +108,7 @@ app.use(responseTime());
 app.use(loggingMiddleware);
 
 // Use the user agent middleware
-// app.use(userAgentMiddleware);
+app.use(userAgentMiddleware);
 
 /**
  * Helmet, a collection of middleware functions that help secure Express apps by setting various HTTP headers.
@@ -214,7 +170,7 @@ app.use(
 );
 
 // Serve Static files
-app.use('/static', userAgentMiddleware, express.static('static'));
+app.use('/static', express.static('static'));
 
 app.use('/robots.txt', express.static('static/robots.txt'));
 
