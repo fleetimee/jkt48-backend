@@ -30,7 +30,7 @@ const config = {
  */
 export const rateLimiter = rateLimit({
     windowMs: 60 * 1000, // 1 minute window
-    max: 1000, // 1000 requests allowed per minute
+    max: 300, // 300 requests allowed per minute
     ...config,
 });
 
@@ -50,5 +50,11 @@ export const rateLimiter5Minutes = rateLimit({
 export const rateLimiterStrict = rateLimit({
     windowMs: 10 * 1000,
     max: 3,
+    ...config,
+});
+
+export const rateLimiterVeryStrict = rateLimit({
+    windowMs: 5 * 1000, // 5 seconds window
+    max: 1, // 1 request allowed per 5 seconds
     ...config,
 });
