@@ -5,6 +5,7 @@ import { authenticateUser } from '../../middlewares/authenticate-user';
 import { validateSchema } from '../../middlewares/validate-request';
 import { NotFoundError } from '../../utils/errors';
 import { formatResponse } from '../../utils/response-formatter';
+import { getPackage } from '../packet/repository';
 import { deleteFcmTokensByUserId } from '../token/repository';
 import { checkUserSubscription } from '../user/repository';
 import {
@@ -139,6 +140,12 @@ router.post('/', validateSchema(createOrderSchema), authenticateUser, async (req
         // If user have a subscription, then the user can't buy a package
         const checkSubscription = await checkUserSubscription(userId);
         if (checkSubscription) throw new NotFoundError('User already have an active subscription');
+
+        // Validate idols count from package
+        const packageIdol = await getPackage(packageId);
+
+        const idolCount = packageIdol.totalMembers;
+        if (idolIds.length !== idolCount) throw new NotFoundError('Idol count not match with package');
 
         const createOrderItem = await createOrder(userId, packageId, paymentMethod, subtotal, tax, total, idolIds);
 
