@@ -6,6 +6,7 @@ import { StatusCodes } from 'http-status-codes';
 import path from 'path';
 
 import { authenticateUser, requireAdminRole } from '../../middlewares/authenticate-user';
+import { cacheResponse, redisClient } from '../../middlewares/caching';
 import { checkBlockedUserAgent } from '../../middlewares/ip-block';
 import { rateLimiter } from '../../middlewares/rate-limiter';
 import { validateSchema } from '../../middlewares/validate-request';
@@ -23,7 +24,7 @@ import { fetchFcmTokenByUserId } from '../token/repository';
 import {
     cancelSubscription,
     checkUserSubscription,
-    checkUserSubscriptionOderIdol,
+    checkUserSubscriptionByConversation,
     countActiveSubscriptionsUsers,
     countRegisteredUsers,
     deleteUserReactToMessage,
@@ -37,6 +38,7 @@ import {
     getUserIdWithUnreadBirthdayMessageCount,
     getUserTransactionDetail,
     getUserTransactionList,
+    insertBlockList,
     setUserReactionToMessage,
     updateAdminCredentials,
     updateUser,
@@ -45,6 +47,9 @@ import {
 import { postReaction, updateUserSchema } from './schema';
 
 const router = express.Router();
+
+const BURST_THRESHOLD = 5; // Number of requests
+const BURST_WINDOW = 5; // Time window in seconds
 
 router.get('/me', authenticateUser, async (req, res, next) => {
     try {
@@ -270,11 +275,48 @@ router.get('/me/conversationList', authenticateUser, checkBlockedUserAgent, asyn
         const id = req.user.id;
         const email = req.user.email;
 
+        const redisBurstKey = `burst:${email}`;
+        const requests = await redisClient.incr(redisBurstKey);
+        if (requests === 1) {
+            await redisClient.expire(redisBurstKey, BURST_WINDOW);
+        }
+
+        if (requests > BURST_THRESHOLD) {
+            const blockList = await getBlockList(email);
+
+            if (blockList) {
+                return res.status(404).send(
+                    formatResponse({
+                        code: 404,
+                        message: 'Invalid conversation',
+                        success: false,
+                        data: null,
+                    }),
+                );
+            }
+
+            await insertBlockList(email);
+            console.log(`Burst detected and blocked email: ${email}`);
+
+            return res.status(403).send({
+                message: 'Your access is blocked due to suspicious activity',
+                success: false,
+            });
+        }
+
+        const cacheKey = `conversation-list:${id}`;
+
+        const cachedData = await redisClient.get(cacheKey);
+        if (cachedData) {
+            console.log(`Cache hit for ${cacheKey}`);
+            res.setHeader('Content-Type', 'application/json');
+            return res.send(JSON.parse(cachedData));
+        }
+
         const user = await getUserById(id);
         if (!user) throw new NotFoundError('User not found');
 
         const blockList = await getBlockList(email);
-
         if (blockList) {
             return res.status(404).send(
                 formatResponse({
@@ -288,22 +330,25 @@ router.get('/me/conversationList', authenticateUser, checkBlockedUserAgent, asyn
 
         const conversationList = await getUserConversationList(id);
 
-        return res.status(StatusCodes.OK).send(
-            formatResponse({
-                code: StatusCodes.OK,
-                message: 'User conversation list',
-                data: conversationList,
-                success: true,
-            }),
-        );
+        const response = formatResponse({
+            code: StatusCodes.OK,
+            message: 'User conversation list',
+            data: conversationList,
+            success: true,
+        });
+
+        await cacheResponse(cacheKey, response, 60);
+
+        return res.status(StatusCodes.OK).send(response);
     } catch (error) {
         console.log(error);
-
         next(error);
     }
 });
 
 // Middleware function to check if the user agent is blocked
+
+// Define thresholds
 
 router.get(
     '/me/conversation/:conversationId',
@@ -314,6 +359,49 @@ router.get(
         try {
             const id = req.user.id;
             const email = req.user.email;
+            const conversationIdParams = req.params.conversationId;
+
+            // Implement burst detection
+            const redisKey = `burst:${email}`;
+            const requests = await redisClient.incr(redisKey);
+            if (requests === 1) {
+                await redisClient.expire(redisKey, BURST_WINDOW);
+            }
+
+            if (requests > BURST_THRESHOLD) {
+                const blockList = await getBlockList(email);
+
+                if (blockList) {
+                    return res.status(404).send(
+                        formatResponse({
+                            code: 404,
+                            message: 'Invalid conversation',
+                            success: false,
+                            data: null,
+                        }),
+                    );
+                }
+
+                // Add email to blocklist as the burst threshold is exceeded
+                await insertBlockList(email);
+
+                // Log or notify about the burst detection
+                console.log(`Burst detected and blocked email: ${email}`);
+
+                return res.status(403).send({
+                    message: 'Your access is blocked due to suspicious activity',
+                    success: false,
+                });
+            }
+
+            const cacheKey = `conversation:${id}:${conversationIdParams}`;
+
+            const cachedData = await redisClient.get(cacheKey);
+            if (cachedData) {
+                console.log(`Cache hit for ${cacheKey}`);
+                res.setHeader('Content-Type', 'application/json');
+                return res.send(JSON.parse(cachedData));
+            }
 
             const conversationId = req.params.conversationId;
 
@@ -325,31 +413,31 @@ router.get(
             const user = await getUserById(id);
             if (!user) throw new NotFoundError('User not found');
 
-            const blockList = await getBlockList(email);
-
-            if (blockList) {
-                return {
-                    status: 404,
-                    message: 'Invalid conversation',
-                };
-            }
-
-            // Get the conversation list
             const conversationList = await getUserConversationList(id);
             if (!conversationList) throw new NotFoundError('Conversation not found');
 
-            // Get the list of idols from the conversation list
-            const idolList = conversationList.map(conversation => conversation.idol_id);
+            const blockList = await getBlockList(email);
 
-            // Check if the user is subscribed to any of the idols in the conversation
-            const subscriptions = await Promise.all(
-                idolList.map(idolId => checkUserSubscriptionOderIdol(id, idolId as string)),
-            );
+            if (blockList) {
+                return res.status(404).send(
+                    formatResponse({
+                        code: 404,
+                        message: 'Invalid conversation',
+                        success: false,
+                        data: null,
+                    }),
+                );
+            }
 
-            // If the user is not subscribed to any of the idols, throw an error
-            if (subscriptions.every(subscription => !subscription)) {
-                throw new NotFoundError(
-                    'User does not have an active subscription to any of the idols in this conversation',
+            const isValidSubs = await checkUserSubscriptionByConversation(id, conversationId);
+            if (!isValidSubs) {
+                return res.status(404).send(
+                    formatResponse({
+                        code: 404,
+                        message: '🤣👉',
+                        success: false,
+                        data: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                    }),
                 );
             }
 
@@ -365,20 +453,22 @@ router.get(
 
             if (!conversation) throw new NotFoundError('Conversation not found');
 
-            return res.status(StatusCodes.OK).send(
-                formatResponsePaginated({
-                    code: StatusCodes.OK,
-                    message: 'User conversation',
-                    data: conversation,
-                    meta: {
-                        page,
-                        pageSize,
-                        orderBy,
-                        orderDirection,
-                    },
-                    success: true,
-                }),
-            );
+            const response = formatResponsePaginated({
+                code: StatusCodes.OK,
+                message: 'User conversation',
+                data: conversation,
+                meta: {
+                    page,
+                    pageSize,
+                    orderBy,
+                    orderDirection,
+                },
+                success: true,
+            });
+
+            await cacheResponse(cacheKey, response, 60);
+
+            return res.status(StatusCodes.OK).send(response);
         } catch (error) {
             console.log(error);
             next(error);
@@ -402,30 +492,79 @@ router.get(
             const isValidUuid = validateUuid(conversationId);
             if (!isValidUuid) throw new NotFoundError('ConversationId not valid (uuid)');
 
-            const blockList = await getBlockList(email);
-
-            if (blockList) {
-                return {
-                    status: 404,
-                    message: 'Invalid conversation',
-                };
+            // Implement burst detection
+            const redisKey = `burst:${email}`;
+            const requests = await redisClient.incr(redisKey);
+            if (requests === 1) {
+                await redisClient.expire(redisKey, BURST_WINDOW);
             }
 
-            // Check if the conversation exists
+            if (requests > BURST_THRESHOLD) {
+                const blockList = await getBlockList(email);
+
+                if (blockList) {
+                    return res.status(404).send(
+                        formatResponse({
+                            code: 404,
+                            message: 'Invalid conversation',
+                            success: false,
+                            data: null,
+                        }),
+                    );
+                }
+
+                // Add email to blocklist as the burst threshold is exceeded
+                await insertBlockList(email);
+
+                // Log or notify about the burst detection
+                console.log(`Burst detected and blocked email: ${email}`);
+
+                return res.status(403).send({
+                    message: 'Your access is blocked due to suspicious activity',
+                    success: false,
+                });
+            }
+
+            const cacheKey = `conversation:${id}:${conversationId}:images`;
+
+            const cachedData = await redisClient.get(cacheKey);
+            if (cachedData) {
+                console.log(`Cache hit for ${cacheKey}`);
+                res.setHeader('Content-Type', 'application/json');
+                return res.send(JSON.parse(cachedData));
+            }
+
+            const isValidSubs = await checkUserSubscriptionByConversation(id, conversationId);
+
+            console.log(isValidSubs);
+
+            if (!isValidSubs) {
+                return res.status(404).send(
+                    formatResponse({
+                        code: 404,
+                        message: '🤣👉',
+                        success: false,
+                        data: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                    }),
+                );
+            }
+
             const conversation = await getConversationsById(conversationId);
             if (!conversation) throw new NotFoundError('Conversation not found');
 
             const images = await getAllAttachmentsByConversationId(conversationId, id);
             if (!images) throw new NotFoundError('Images not found');
 
-            return res.status(StatusCodes.OK).send(
-                formatResponse({
-                    code: StatusCodes.OK,
-                    message: 'Conversation images',
-                    data: images,
-                    success: true,
-                }),
-            );
+            const response = formatResponse({
+                code: StatusCodes.OK,
+                message: 'Conversation images',
+                data: images,
+                success: true,
+            });
+
+            await cacheResponse(cacheKey, response, 60);
+
+            return res.status(StatusCodes.OK).send(response);
         } catch (error) {
             next(error);
         }

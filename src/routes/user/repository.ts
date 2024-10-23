@@ -245,20 +245,26 @@ export const hasActiveSubscription = async (userId: string): Promise<boolean> =>
  * @param idolId - The ID of the idol.
  * @returns A boolean indicating whether the user has a subscription to the idol.
  */
-export const checkUserSubscriptionOderIdol = async (userId: string, idolId: string) => {
-    const [subscription] = await db.execute(sql`
-    SELECT EXISTS (SELECT 1
-                FROM "order" o
-                            INNER JOIN package p ON o.package_id = p.id
-                WHERE o.user_id = ${userId}
-                    AND o.order_status = 'success'
-                    AND o.expired_at > NOW()
-                    AND o.id IN (SELECT order_id
-                                FROM order_idol
-                                WHERE idol_id = ${idolId})) AS order_exists;
+export const checkUserSubscriptionByConversation = async (userId: string, conversationId: string) => {
+    const [result] = await db.execute(sql`
+        SELECT EXISTS (
+            SELECT 1
+            FROM "order" o
+            INNER JOIN package p ON o.package_id = p.id
+            INNER JOIN order_idol oi ON o.id = oi.order_id
+            INNER JOIN conversation c ON oi.idol_id = c.idol_id
+            WHERE o.user_id = ${userId}
+                AND c.id = ${conversationId}
+                AND o.order_status = 'success'
+                AND o.expired_at > NOW()
+        ) AS order_exists;
     `);
 
-    return subscription;
+    // Assuming the result structure looks like { order_exists: true/false }
+    const subscriptionExists = result?.order_exists ?? false;
+    console.log(subscriptionExists); // Ensure this is a boolean
+
+    return subscriptionExists;
 };
 
 /**
@@ -390,6 +396,13 @@ export const getBlockList = async (email: string): Promise<boolean> => {
     `);
 
     return blockList.length > 0;
+};
+
+export const insertBlockList = async (email: string): Promise<void> => {
+    await db.execute(sql`
+    INSERT INTO blockList (email)
+    VALUES (${email});
+    `);
 };
 
 /**
