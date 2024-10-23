@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import Redis from 'ioredis';
 
-const redisClient = new Redis({
+export const redisClient = new Redis({
     host: '152.42.224.68',
     port: 6379,
 });
