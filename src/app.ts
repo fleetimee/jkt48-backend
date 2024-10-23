@@ -5,7 +5,6 @@ import compression from 'compression';
 import cookies from 'cookie-parser';
 import cors from 'cors';
 import express, { NextFunction, Request, Response } from 'express';
-import monitor from 'express-status-monitor';
 import { credential } from 'firebase-admin';
 import { initializeApp, ServiceAccount } from 'firebase-admin/app';
 import helmet from 'helmet';
@@ -20,20 +19,25 @@ import { APPLE_SECRET_KET, BASE_URL } from './config';
 import serviceAccount from './config/service-account.json';
 import { infoMiddleware } from './middlewares/author-info';
 import { errorHandler } from './middlewares/error-handler';
+import { checkBlockedUserAgent } from './middlewares/ip-block';
 import loggingMiddleware from './middlewares/logging';
 import routes from './routes';
 import { specs } from './utils/swagger-options';
 
 export const userAgentMiddleware = (req: Request, res: Response, next: NextFunction) => {
-    const userAgent = req.get('User-Agent');
+    try {
+        const userAgent = req.get('User-Agent');
 
-    const blockedAgents = ['node-fetch', 'curl', 'wget', 'python-requests', 'PostmanRuntime'];
+        const blockedAgents = ['node-fetch', 'curl', 'wget', 'python-requests', 'PostmanRuntime'];
 
-    if (userAgent && blockedAgents.some(agent => userAgent.includes(agent))) {
-        return res.status(StatusCodes.FORBIDDEN).json({ message: 'Access denied' });
+        if (userAgent && blockedAgents.some(agent => userAgent.includes(agent))) {
+            return res.status(StatusCodes.FORBIDDEN).json({ message: 'Access denied' });
+        }
+
+        next();
+    } catch (error) {
+        next(error);
     }
-
-    next();
 };
 
 /**
@@ -93,22 +97,12 @@ app.use(morgan('dev'));
 
 app.use(responseTime());
 
-app.use(
-    monitor({
-        path: '/health-check',
-        title: 'JKT48 API PM Status',
-    }),
-);
-
 /**
  * My logging middleware.
  * This middleware function is used to log details about the request and response objects.
  * The specifics of what it logs and how it logs them depend on how you've defined the middleware.
  */
 app.use(loggingMiddleware);
-
-// Use the user agent middleware
-app.use(userAgentMiddleware);
 
 /**
  * Helmet, a collection of middleware functions that help secure Express apps by setting various HTTP headers.
@@ -170,7 +164,7 @@ app.use(
 );
 
 // Serve Static files
-app.use('/static', express.static('static'));
+app.use('/static', checkBlockedUserAgent, express.static('static'));
 
 app.use('/robots.txt', express.static('static/robots.txt'));
 
