@@ -145,7 +145,10 @@ router.post('/', validateSchema(createOrderSchema), authenticateUser, async (req
         const packageIdol = await getPackage(packageId);
 
         const idolCount = packageIdol.totalMembers;
-        if (idolIds.length !== idolCount) throw new NotFoundError('Idol count not match with package');
+
+        console.log('idolIds', idolIds.length);
+        console.log('idolCount', idolCount);
+        if (idolIds.length != idolCount) throw new NotFoundError('Idol count not match with package');
 
         const createOrderItem = await createOrder(userId, packageId, paymentMethod, subtotal, tax, total, idolIds);
 
