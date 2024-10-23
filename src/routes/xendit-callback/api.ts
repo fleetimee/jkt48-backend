@@ -5,7 +5,11 @@ import { StatusCodes } from 'http-status-codes';
 
 import { verifyXenditToken } from '../../middlewares/xendit-auth';
 import { fetchFcmTokenByOrderId } from '../token/repository';
-import { updateOrderStatusXenditCallback, updateOrderStatusXenditSubscriptionCallback } from './repository';
+import {
+    deleteOrderStatusXenditCallback,
+    updateOrderStatusXenditCallback,
+    updateOrderStatusXenditSubscriptionCallback,
+} from './repository';
 
 const router = express.Router();
 
@@ -30,54 +34,68 @@ router.post('/', verifyXenditToken, async (req, res, next) => {
             });
         }
 
-        if (body.status === 'PAID') {
-            await updateOrderStatusXenditCallback(body.external_id, 'success', body);
+        switch (body.status) {
+            case 'PAID': {
+                await updateOrderStatusXenditCallback(body.external_id, 'success', body);
 
-            const tokens = await fetchFcmTokenByOrderId(body.external_id);
+                const tokens = await fetchFcmTokenByOrderId(body.external_id);
 
-            console.log('FCM Tokens:', tokens);
+                if (tokens.length > 0) {
+                    const fcmTokens = tokens.map(token => token.token);
 
-            if (tokens.length > 0) {
-                const fcmTokens = tokens.map(token => token.token);
+                    const notificationMessage: Notification = {
+                        title: 'Payment Success',
+                        body: 'Your payment has been successfully processed',
+                    };
 
-                const notificationMessage: Notification = {
-                    title: 'Payment Success',
-                    body: 'Your payment has been successfully processed',
-                };
-
-                // Send FCM notification
-                await messaging().sendEachForMulticast({
-                    tokens: fcmTokens as unknown as string[],
-                    notification: notificationMessage,
-                    android: {
-                        notification: {
-                            imageUrl: 'https://jkt48pm.my.id/static/logo_jkt48pm_2.png',
-                            sound: 'default',
-                        },
-                    },
-                    apns: {
-                        payload: {
-                            aps: {
-                                'mutable-content': 1,
-                                sound: 'notification_sound.caf',
+                    await messaging().sendEachForMulticast({
+                        tokens: fcmTokens as unknown as string[],
+                        notification: notificationMessage,
+                        android: {
+                            notification: {
+                                imageUrl: 'https://jkt48pm.my.id/static/logo_jkt48pm_2.png',
+                                sound: 'default',
                             },
                         },
-                        fcmOptions: {
-                            imageUrl: 'https://jkt48pm.my.id/static/logo_jkt48pm_2.png',
+                        apns: {
+                            payload: {
+                                aps: {
+                                    'mutable-content': 1,
+                                    sound: 'notification_sound.caf',
+                                },
+                            },
+                            fcmOptions: {
+                                imageUrl: 'https://jkt48pm.my.id/static/logo_jkt48pm_2.png',
+                            },
                         },
-                    },
+                    });
+                }
+
+                return res.status(StatusCodes.OK).send({
+                    message: 'Xendit callback received for successful payment',
                 });
             }
 
-            return res.status(StatusCodes.OK).send({
-                message: 'Xendit callback received for successful payment',
-            });
-        } else if (body.status === 'FAILED') {
-            await updateOrderStatusXenditCallback(body.external_id, 'failed', body);
+            case 'FAILED': {
+                await updateOrderStatusXenditCallback(body.external_id, 'failed', body);
 
-            return res.status(StatusCodes.OK).send({
-                message: 'Xendit callback received for failed payment',
-            });
+                return res.status(StatusCodes.OK).send({
+                    message: 'Xendit callback received for failed payment',
+                });
+            }
+
+            case 'EXPIRED': {
+                await deleteOrderStatusXenditCallback(body.external_id);
+
+                return res.status(StatusCodes.OK).send({
+                    message: 'Xendit callback received for expired payment',
+                });
+            }
+
+            default:
+                return res.status(StatusCodes.BAD_REQUEST).send({
+                    message: 'Invalid status received',
+                });
         }
 
         return res.status(StatusCodes.BAD_REQUEST).send({
