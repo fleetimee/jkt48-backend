@@ -6,6 +6,7 @@ import { StatusCodes } from 'http-status-codes';
 import path from 'path';
 
 import { authenticateUser, requireAdminRole } from '../../middlewares/authenticate-user';
+import { checkBlockedUserAgent } from '../../middlewares/ip-block';
 import { rateLimiter } from '../../middlewares/rate-limiter';
 import { validateSchema } from '../../middlewares/validate-request';
 import { NotFoundError } from '../../utils/errors';
@@ -264,7 +265,7 @@ router.get('/me/transactionDetail/:orderId', authenticateUser, async (req, res, 
     }
 });
 
-router.get('/me/conversationList', authenticateUser, async (req, res, next) => {
+router.get('/me/conversationList', authenticateUser, checkBlockedUserAgent, async (req, res, next) => {
     try {
         const id = req.user.id;
         const email = req.user.email;
@@ -275,10 +276,14 @@ router.get('/me/conversationList', authenticateUser, async (req, res, next) => {
         const blockList = await getBlockList(email);
 
         if (blockList) {
-            return {
-                status: 404,
-                message: 'Invalid conversation',
-            };
+            return res.status(404).send(
+                formatResponse({
+                    code: 404,
+                    message: 'Invalid conversation',
+                    success: false,
+                    data: null,
+                }),
+            );
         }
 
         const conversationList = await getUserConversationList(id);
@@ -298,120 +303,134 @@ router.get('/me/conversationList', authenticateUser, async (req, res, next) => {
     }
 });
 
-router.get('/me/conversation/:conversationId', authenticateUser, rateLimiter, async (req, res, next) => {
-    try {
-        const id = req.user.id;
-        const email = req.user.email;
+// Middleware function to check if the user agent is blocked
 
-        const conversationId = req.params.conversationId;
+router.get(
+    '/me/conversation/:conversationId',
+    authenticateUser,
+    checkBlockedUserAgent,
+    rateLimiter,
+    async (req, res, next) => {
+        try {
+            const id = req.user.id;
+            const email = req.user.email;
 
-        const page = parseInt(req.query.page as string) || 1;
-        const pageSize = parseInt(req.query.pageSize as string) || 10;
-        const orderBy = (req.query.orderBy as string) || 'created_at';
-        const orderDirection = (req.query.orderDirection as string) || 'DESC';
+            const conversationId = req.params.conversationId;
 
-        const user = await getUserById(id);
-        if (!user) throw new NotFoundError('User not found');
+            const page = parseInt(req.query.page as string) || 1;
+            const pageSize = parseInt(req.query.pageSize as string) || 10;
+            const orderBy = (req.query.orderBy as string) || 'created_at';
+            const orderDirection = (req.query.orderDirection as string) || 'DESC';
 
-        const blockList = await getBlockList(email);
+            const user = await getUserById(id);
+            if (!user) throw new NotFoundError('User not found');
 
-        if (blockList) {
-            return {
-                status: 404,
-                message: 'Invalid conversation',
-            };
-        }
+            const blockList = await getBlockList(email);
 
-        // Get the conversation list
-        const conversationList = await getUserConversationList(id);
-        if (!conversationList) throw new NotFoundError('Conversation not found');
+            if (blockList) {
+                return {
+                    status: 404,
+                    message: 'Invalid conversation',
+                };
+            }
 
-        // Get the list of idols from the conversation list
-        const idolList = conversationList.map(conversation => conversation.idol_id);
+            // Get the conversation list
+            const conversationList = await getUserConversationList(id);
+            if (!conversationList) throw new NotFoundError('Conversation not found');
 
-        // Check if the user is subscribed to any of the idols in the conversation
-        const subscriptions = await Promise.all(
-            idolList.map(idolId => checkUserSubscriptionOderIdol(id, idolId as string)),
-        );
+            // Get the list of idols from the conversation list
+            const idolList = conversationList.map(conversation => conversation.idol_id);
 
-        // If the user is not subscribed to any of the idols, throw an error
-        if (subscriptions.every(subscription => !subscription)) {
-            throw new NotFoundError(
-                'User does not have an active subscription to any of the idols in this conversation',
+            // Check if the user is subscribed to any of the idols in the conversation
+            const subscriptions = await Promise.all(
+                idolList.map(idolId => checkUserSubscriptionOderIdol(id, idolId as string)),
             );
+
+            // If the user is not subscribed to any of the idols, throw an error
+            if (subscriptions.every(subscription => !subscription)) {
+                throw new NotFoundError(
+                    'User does not have an active subscription to any of the idols in this conversation',
+                );
+            }
+
+            // Get the conversation messages
+            const conversation = await getUserConversationMessages(
+                id,
+                conversationId,
+                orderBy,
+                orderDirection,
+                pageSize,
+                page,
+            );
+
+            if (!conversation) throw new NotFoundError('Conversation not found');
+
+            return res.status(StatusCodes.OK).send(
+                formatResponsePaginated({
+                    code: StatusCodes.OK,
+                    message: 'User conversation',
+                    data: conversation,
+                    meta: {
+                        page,
+                        pageSize,
+                        orderBy,
+                        orderDirection,
+                    },
+                    success: true,
+                }),
+            );
+        } catch (error) {
+            console.log(error);
+            next(error);
         }
+    },
+);
 
-        // Get the conversation messages
-        const conversation = await getUserConversationMessages(
-            id,
-            conversationId,
-            orderBy,
-            orderDirection,
-            pageSize,
-            page,
-        );
+router.get(
+    '/me/conversation/:conversationId/images',
+    authenticateUser,
+    checkBlockedUserAgent,
+    rateLimiter,
+    async (req, res, next) => {
+        try {
+            const conversationId = req.params.conversationId;
 
-        if (!conversation) throw new NotFoundError('Conversation not found');
+            const id = req.user.id;
+            const email = req.user.email;
 
-        return res.status(StatusCodes.OK).send(
-            formatResponsePaginated({
-                code: StatusCodes.OK,
-                message: 'User conversation',
-                data: conversation,
-                meta: {
-                    page,
-                    pageSize,
-                    orderBy,
-                    orderDirection,
-                },
-                success: true,
-            }),
-        );
-    } catch (error) {
-        console.log(error);
-        next(error);
-    }
-});
+            // Check if conversation id is valid uuid
+            const isValidUuid = validateUuid(conversationId);
+            if (!isValidUuid) throw new NotFoundError('ConversationId not valid (uuid)');
 
-router.get('/me/conversation/:conversationId/images', authenticateUser, async (req, res, next) => {
-    try {
-        const conversationId = req.params.conversationId;
+            const blockList = await getBlockList(email);
 
-        const id = req.user.id;
-        const email = req.user.email;
+            if (blockList) {
+                return {
+                    status: 404,
+                    message: 'Invalid conversation',
+                };
+            }
 
-        // Check if conversation id is valid uuid
-        const isValidUuid = validateUuid(conversationId);
-        if (!isValidUuid) throw new NotFoundError('ConversationId not valid (uuid)');
+            // Check if the conversation exists
+            const conversation = await getConversationsById(conversationId);
+            if (!conversation) throw new NotFoundError('Conversation not found');
 
-        const blockList = await getBlockList(email);
+            const images = await getAllAttachmentsByConversationId(conversationId, id);
+            if (!images) throw new NotFoundError('Images not found');
 
-        if (blockList) {
-            return {
-                status: 404,
-                message: 'Invalid conversation',
-            };
+            return res.status(StatusCodes.OK).send(
+                formatResponse({
+                    code: StatusCodes.OK,
+                    message: 'Conversation images',
+                    data: images,
+                    success: true,
+                }),
+            );
+        } catch (error) {
+            next(error);
         }
-
-        // Check if the conversation exists
-        const conversation = await getConversationsById(conversationId);
-        if (!conversation) throw new NotFoundError('Conversation not found');
-
-        const images = await getAllAttachmentsByConversationId(conversationId, id);
-        if (!images) throw new NotFoundError('Images not found');
-
-        return res.status(StatusCodes.OK).send(
-            formatResponse({
-                code: StatusCodes.OK,
-                message: 'Conversation images',
-                data: images,
-                success: true,
-            }),
-        );
-    } catch (error) {
-        next(error);
-    }
-});
+    },
+);
 
 router.get('/me/getActiveIdols', authenticateUser, async (req, res, next) => {
     try {
