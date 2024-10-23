@@ -11,6 +11,8 @@ import { formatResponse } from '../../utils/response-formatter';
 import { sendEmail } from '../../utils/send-emails';
 import { whitelistedEmails } from '../../utils/whitelisted-email';
 import { DeleteAccountEmail } from '../../views/emails/DeletedAccount';
+import { ForgotPasswordEmail } from '../../views/emails/ForgotPassword';
+import { RegisterAccountEmail } from '../../views/emails/RegisterAccount';
 import { RequestDeletionEmail } from '../../views/emails/RequestDeletion';
 import { ResendVerificationEmail } from '../../views/emails/ResendVerification';
 import { ResetPasswordEmail } from '../../views/emails/ResetPassword';
@@ -74,15 +76,15 @@ router.post('/register', validateSchema(registerSchema), rateLimiter, async (req
 
         await registerUser(email, password, name, nickName, birthdayDate, verificationToken, phoneNumber);
 
-        // const emailResult = await sendEmail({
-        //     to: [email],
-        //     subject: 'Confirm Your Email Address for New Account Registration',
-        //     react: <RegisterAccountEmail validationCode={verificationToken} />,
-        // });
+        const emailResult = await sendEmail({
+            to: [email],
+            subject: 'Confirm Your Email Address for New Account Registration',
+            react: <RegisterAccountEmail validationCode={verificationToken} />,
+        });
 
-        // if (emailResult.error) {
-        //     return res.status(StatusCodes.NOT_FOUND).json({ error: emailResult.error });
-        // }
+        if (emailResult.error) {
+            return res.status(StatusCodes.NOT_FOUND).json({ error: emailResult.error });
+        }
 
         return res.status(StatusCodes.CREATED).json({ message: 'User registered successfully' });
     } catch (error) {
@@ -141,37 +143,42 @@ router.post('/verifyToken', validateSchema(verifySchema), async (req, res, next)
     }
 });
 
-router.post('/resend-verification', validateSchema(resendVerificationSchema), async (req, res, next) => {
-    try {
-        const { email } = req.body;
+router.post(
+    '/resend-verification',
+    validateSchema(resendVerificationSchema),
+    rateLimiterStrict,
+    async (req, res, next) => {
+        try {
+            const { email } = req.body;
 
-        const user = await getUser(email);
-        if (!user) throw new ConflictError('A user with that email does not exist');
+            const user = await getUser(email);
+            if (!user) throw new ConflictError('A user with that email does not exist');
 
-        // Check if the user is already verified
-        if (user.emailVerified) throw new ConflictError('Email is already verified');
+            // Check if the user is already verified
+            if (user.emailVerified) throw new ConflictError('Email is already verified');
 
-        // If the email is whitelisted, use the specific code, otherwise generate a new one
-        const verificationToken = email in whitelistedEmails ? whitelistedEmails[email] : generateVerificationCode();
+            // If the email is whitelisted, use the specific code, otherwise generate a new one
+            const verificationToken =
+                email in whitelistedEmails ? whitelistedEmails[email] : generateVerificationCode();
 
-        await updateUserVerificationToken(email, verificationToken);
+            await updateUserVerificationToken(email, verificationToken);
 
-        const emailResult = await sendEmail({
-            to: [email],
-            subject: 'Verify your email',
-            // text: `Your verification token is: ${verificationToken}`,
-            react: <ResendVerificationEmail validationCode={verificationToken} />,
-        });
+            const emailResult = await sendEmail({
+                to: [email],
+                subject: 'Verify your email',
+                react: <ResendVerificationEmail validationCode={verificationToken} />,
+            });
 
-        if (emailResult.error) {
-            return res.status(StatusCodes.NOT_FOUND).json({ error: emailResult.error });
+            if (emailResult.error) {
+                return res.status(StatusCodes.NOT_FOUND).json({ error: emailResult.error });
+            }
+
+            return res.status(StatusCodes.OK).json({ message: 'Verification email sent successfully' });
+        } catch (error) {
+            next(error);
         }
-
-        return res.status(StatusCodes.OK).json({ message: 'Verification email sent successfully' });
-    } catch (error) {
-        next(error);
-    }
-});
+    },
+);
 
 router.post('/forgot_password', validateSchema(forgotPasswordSchema), rateLimiterStrict, async (req, res, next) => {
     try {
@@ -186,17 +193,16 @@ router.post('/forgot_password', validateSchema(forgotPasswordSchema), rateLimite
 
         if (user) await forgotPasswordUser(email, randomStringToken);
 
-        // const emailResult = await sendEmail({
-        //     to: [email],
-        //     // to: ['zane.227@gmail.com'],
-        //     subject: 'Your Reset Password Token',
-        //     // text: `Your reset password token is: ${randomStringToken}, use this token to reset your password.`,
-        //     react: <ForgotPasswordEmail validationCode={randomStringToken} />,
-        // });
+        const emailResult = await sendEmail({
+            to: [email],
+            // to: ['zane.227@gmail.com'],
+            subject: 'Your Reset Password Token',
+            react: <ForgotPasswordEmail validationCode={randomStringToken} />,
+        });
 
-        // if (emailResult.error) {
-        //     return res.status(StatusCodes.BAD_REQUEST).json({ error: emailResult.error });
-        // }
+        if (emailResult.error) {
+            return res.status(StatusCodes.BAD_REQUEST).json({ error: emailResult.error });
+        }
 
         return res
             .status(StatusCodes.OK)
@@ -233,7 +239,6 @@ router.post(
             const emailResult = await sendEmail({
                 to: [email],
                 subject: 'Your Account Deletion Token',
-                // text: `Your delete account token is: ${randomStringToken}, use this token to delete your account.`,
                 react: <RequestDeletionEmail validationCode={randomStringToken} />,
             });
 
