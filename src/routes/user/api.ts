@@ -48,8 +48,8 @@ import { postReaction, updateUserSchema } from './schema';
 
 const router = express.Router();
 
-const BURST_THRESHOLD = 5; // Number of requests
-const BURST_WINDOW = 5; // Time window in seconds
+const BURST_THRESHOLD = 10; // Number of requests
+const BURST_WINDOW = 1; // Time window in seconds
 
 router.get('/me', authenticateUser, async (req, res, next) => {
     try {
@@ -337,7 +337,7 @@ router.get('/me/conversationList', authenticateUser, checkBlockedUserAgent, asyn
             success: true,
         });
 
-        await cacheResponse(cacheKey, response, 60);
+        await cacheResponse(cacheKey, response, 3);
 
         return res.status(StatusCodes.OK).send(response);
     } catch (error) {
@@ -466,7 +466,7 @@ router.get(
                 success: true,
             });
 
-            await cacheResponse(cacheKey, response, 60);
+            await cacheResponse(cacheKey, response, 10);
 
             return res.status(StatusCodes.OK).send(response);
         } catch (error) {
@@ -562,7 +562,7 @@ router.get(
                 success: true,
             });
 
-            await cacheResponse(cacheKey, response, 60);
+            await cacheResponse(cacheKey, response, 2);
 
             return res.status(StatusCodes.OK).send(response);
         } catch (error) {
