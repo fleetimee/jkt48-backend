@@ -1,6 +1,5 @@
 import express from 'express';
 import { StatusCodes } from 'http-status-codes';
-import React from 'react';
 
 import { authenticateUser } from '../../middlewares/authenticate-user';
 import { rateLimiterStrict, rateLimiterVeryStrict } from '../../middlewares/rate-limiter';
@@ -8,9 +7,7 @@ import { validateSchema } from '../../middlewares/validate-request';
 import { ConflictError } from '../../utils/errors';
 import { generateResetTokenPassword, generateVerificationCode } from '../../utils/lib';
 import { formatResponse } from '../../utils/response-formatter';
-import { sendEmail } from '../../utils/send-emails';
 import { whitelistedEmails } from '../../utils/whitelisted-email';
-import { RegisterAccountEmail } from '../../views/emails/RegisterAccount';
 import {
     checkDeleteStep,
     deleteAccountUser,
@@ -70,17 +67,17 @@ router.post('/register', validateSchema(registerSchema), rateLimiterVeryStrict, 
 
         await registerUser(email, password, name, nickName, birthdayDate, verificationToken, phoneNumber);
 
-        const emailResult = await sendEmail({
-            to: [email],
-            subject: 'Confirm Your Email Address for New Account Registration',
-            react: <RegisterAccountEmail validationCode={verificationToken} />,
-        });
+        // const emailResult = await sendEmail({
+        //     to: [email],
+        //     subject: 'Confirm Your Email Address for New Account Registration',
+        //     react: <RegisterAccountEmail validationCode={verificationToken} />,
+        // });
 
-        if (emailResult.error) {
-            return res.status(StatusCodes.NOT_FOUND).json({ error: emailResult.error });
-        }
+        // if (emailResult.error) {
+        //     return res.status(StatusCodes.NOT_FOUND).json({ error: emailResult.error });
+        // }
 
-        return res.status(StatusCodes.CREATED).json({ message: 'User registered successfully' });
+        return res.status(StatusCodes.CREATED).json({ message: 'Langsung login aja ya :), Gak usah verifikasi' });
     } catch (error) {
         next(error);
     }
