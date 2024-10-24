@@ -308,6 +308,7 @@ const sendNotificationsInBackground = async (
     const maxRetries = 5;
     const maxRPS = 5000; // Max Requests Per Second based on FCM limits
     const maxDelay = 60000; // Maximum delay cap (60 seconds)
+    const notificationDelay = 120000; // 2 minutes delay between sending each chunk
 
     // Ramp-up schedule configuration
     const rampUpSchedule = [
@@ -426,6 +427,12 @@ const sendNotificationsInBackground = async (
 
         const delayTime = adjustDelayAndRPS(index);
         await delay(delayTime);
+
+        // Adding a delay of 2 minutes before processing the next chunk
+        if (index > 0) {
+            console.log(`Waiting for ${notificationDelay / 1000} seconds before sending the next chunk...`);
+            await delay(notificationDelay);
+        }
 
         await sendChunkWithRetries(tokenChunk);
     });
