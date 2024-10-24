@@ -556,6 +556,18 @@ export const setUserReactionToMessage = async (userId: string, messageId: string
     }
 };
 
+export const getConversationId = async (messageId: string): Promise<string> => {
+    const [result] = await db.execute(sql`
+    SELECT conversation_id
+    FROM message
+    WHERE id = ${messageId};
+    `);
+
+    const { conversation_id } = result;
+
+    return conversation_id as string;
+};
+
 /**
  * Deletes a user's reaction to a message.
  * @param userId - The ID of the user.

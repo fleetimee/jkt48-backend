@@ -29,6 +29,7 @@ import {
     countRegisteredUsers,
     deleteUserReactToMessage,
     getBlockList,
+    getConversationId,
     getUserActiveIdols,
     getUserBirthdayMessages,
     getUserById,
@@ -471,7 +472,7 @@ router.get(
                 success: true,
             });
 
-            await cacheResponse(cacheKey, response, 10);
+            await cacheResponse(cacheKey, response, 5);
 
             return res.status(StatusCodes.OK).send(response);
         } catch (error) {
@@ -606,12 +607,16 @@ router.post('/me/reactMessage/:messageId', validateSchema(postReaction), authent
         const messageId = req.params.messageId;
         const { reactionId } = req.body;
 
-        // Let these functions throw errors if something goes wrong
+        const conversationId = await getConversationId(messageId);
+
         await getMessagesById(messageId);
         await getReactionById(reactionId);
 
-        // Post the reaction
-        await await setUserReactionToMessage(id, messageId, reactionId);
+        await setUserReactionToMessage(id, messageId, reactionId);
+
+        const cacheKey = `conversation:${id}:${conversationId}`;
+
+        await redisClient.del(cacheKey);
 
         return res.status(StatusCodes.OK).send(
             formatResponse({
@@ -632,12 +637,19 @@ router.delete('/me/unReactMessage/:messageId/reaction/:reactionId', authenticate
         const messageId = req.params.messageId;
         const reactionId = req.params.reactionId;
 
+        // Fetch the conversation ID
+        const conversationId = await getConversationId(messageId);
+
         // Let these functions throw errors if something goes wrong
         await getMessagesById(messageId);
         await getReactionById(reactionId);
 
-        // Post the reaction
+        // Remove the reaction
         await deleteUserReactToMessage(id, messageId, reactionId);
+
+        // Clear the cache for the conversation
+        const cacheKey = `conversation:${id}:${conversationId}`;
+        await redisClient.del(cacheKey);
 
         return res.status(StatusCodes.OK).send(
             formatResponse({
