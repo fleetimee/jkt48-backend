@@ -53,7 +53,6 @@ const appCheckVerification = async (req: Request, res: Response, next: NextFunct
             });
         }
 
-        // If verification succeeds, proceed to the next middleware
         return next();
     } catch (err) {
         const appCheckError = err as FirebaseAppCheckError;
@@ -61,56 +60,55 @@ const appCheckVerification = async (req: Request, res: Response, next: NextFunct
         console.error('Error verifying app check token:', appCheckError);
 
         if (appCheckError.errorInfo) {
-            // Return structured JSON error response based on error code
-            switch (appCheckError.errorInfo.code) {
+            const { code, message } = appCheckError.errorInfo;
+            switch (code) {
                 case 'app-check/invalid-argument':
                     return res.status(400).json({
                         status: 'error',
-                        code: appCheckError.errorInfo.code,
-                        message: 'Invalid App Check token. Please check the token format.',
+                        code,
+                        message,
                     });
                 case 'app-check/token-expired':
                     return res.status(401).json({
                         status: 'error',
-                        code: appCheckError.errorInfo.code,
-                        message: 'App Check token expired. Please refresh the token.',
+                        code,
+                        message,
                     });
                 case 'app-check/token-revoked':
                     return res.status(401).json({
                         status: 'error',
-                        code: appCheckError.errorInfo.code,
-                        message: 'App Check token revoked. Obtain a new token.',
+                        code,
+                        message,
                     });
                 case 'app-check/invalid-token':
                     return res.status(400).json({
                         status: 'error',
-                        code: appCheckError.errorInfo.code,
-                        message: 'Invalid token provided. Ensure you are using the correct token.',
+                        code,
+                        message,
                     });
                 case 'app-check/project-id-mismatch':
                     return res.status(403).json({
                         status: 'error',
-                        code: appCheckError.errorInfo.code,
-                        message: 'Project ID mismatch. The token does not belong to this project.',
+                        code,
+                        message,
                     });
                 case 'app-check/certificate-check-failed':
                     return res.status(500).json({
                         status: 'error',
-                        code: appCheckError.errorInfo.code,
-                        message: 'Certificate check failed. Please verify your environment setup.',
+                        code,
+                        message,
                     });
                 default:
                     return res.status(500).json({
                         status: 'error',
-                        code: appCheckError.errorInfo.code,
+                        code,
                         message: 'An unknown error occurred while verifying the App Check token.',
                     });
             }
         } else {
-            // If the error does not match FirebaseAppCheckError, return a generic response
             return res.status(401).json({
                 status: 'error',
-                message: 'Unauthorized',
+                message: appCheckError.message || 'Unauthorized',
             });
         }
     }
