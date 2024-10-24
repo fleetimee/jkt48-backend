@@ -44,12 +44,12 @@ const appCheckVerification = async (req: Request, res: Response, next: NextFunct
     }
 
     try {
-        const appCheck = await getAppCheck().verifyToken(appCheckToken);
+        const appCheckClaims = await getAppCheck().verifyToken(appCheckToken, { consume: true });
 
-        if (!appCheck) {
+        if (appCheckClaims.alreadyConsumed) {
             return res.status(401).json({
                 status: 'error',
-                message: 'App check verification failed',
+                message: 'Unauthorized',
             });
         }
 
