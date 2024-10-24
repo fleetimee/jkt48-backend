@@ -1,6 +1,7 @@
 import express from 'express';
 import { StatusCodes } from 'http-status-codes';
 
+import { userAgentMiddleware } from '../../app';
 import { authenticateUser } from '../../middlewares/authenticate-user';
 import { validateSchema } from '../../middlewares/validate-request';
 import { NotFoundError } from '../../utils/errors';
@@ -185,30 +186,36 @@ router.post('/createAppleResubscribe', async (req, res, next) => {
     }
 });
 
-router.patch('/updateStatus', validateSchema(updateOrderStatusSchema), authenticateUser, async (req, res, next) => {
-    try {
-        const { orderId } = req.body;
+router.patch(
+    '/updateStatus',
+    validateSchema(updateOrderStatusSchema),
+    authenticateUser,
+    userAgentMiddleware,
+    async (req, res, next) => {
+        try {
+            const { orderId } = req.body;
 
-        const order = await getOrderById(orderId);
+            const order = await getOrderById(orderId);
 
-        if (!order) throw new NotFoundError('Order not found');
+            if (!order) throw new NotFoundError('Order not found');
 
-        await updateOrderStatusGpay(orderId);
+            await updateOrderStatusGpay(orderId);
 
-        // Hey
+            // Hey
 
-        return res.status(StatusCodes.OK).send(
-            formatResponse({
-                success: true,
-                code: StatusCodes.OK,
-                message: 'Invalid credentials',
-                data: null,
-            }),
-        );
-    } catch (error) {
-        next(error);
-    }
-});
+            return res.status(StatusCodes.OK).send(
+                formatResponse({
+                    success: true,
+                    code: StatusCodes.OK,
+                    message: 'Invalid credentials',
+                    data: null,
+                }),
+            );
+        } catch (error) {
+            next(error);
+        }
+    },
+);
 
 router.patch(
     '/updateAppleOriginalTransactionId',
