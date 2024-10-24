@@ -1,8 +1,8 @@
 import express from 'express';
 import { StatusCodes } from 'http-status-codes';
 
-import { userAgentMiddleware } from '../../app';
 import { authenticateUser } from '../../middlewares/authenticate-user';
+import { checkBlockedUserAgent } from '../../middlewares/ip-block';
 import { validateSchema } from '../../middlewares/validate-request';
 import { NotFoundError } from '../../utils/errors';
 import { formatResponse } from '../../utils/response-formatter';
@@ -190,10 +190,12 @@ router.patch(
     '/updateStatus',
     validateSchema(updateOrderStatusSchema),
     authenticateUser,
-    userAgentMiddleware,
+    checkBlockedUserAgent,
     async (req, res, next) => {
         try {
             const { orderId } = req.body;
+
+            // Change
 
             const order = await getOrderById(orderId);
 
