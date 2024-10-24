@@ -291,7 +291,7 @@ router.get('/me/conversationList', authenticateUser, checkBlockedUserAgent, asyn
                     formatResponse({
                         code: 404,
                         message:
-                            'Anda terdeteksi melakukan scraping dan melakukan abuse pada sistem kami, akun anda semetara akan di block untuk mendapatkan chat terbaru member. silahkan kontak custumer support. Terimakasih',
+                            'Anda terdeteksi melakukan aktivitas scraping dan penyalahgunaan pada sistem kami. Demi menjaga integritas dan keamanan layanan, akun Anda akan diblokir sementara dari akses chat terbaru member. Harap diperhatikan bahwa aktivitas ini melanggar ketentuan layanan kami, dan IP Anda telah dicatat sebagai bukti pelanggaran. Jika aktivitas ini terus berlanjut, kami tidak segan-segan untuk melaporkannya kepada pihak berwajib. Untuk mengaktifkan kembali akun Anda atau jika Anda merasa ini adalah kesalahan, silakan segera hubungi customer support. Terima kasih atas perhatian Anda.',
                         success: false,
                         data: null,
                     }),
@@ -325,7 +325,7 @@ router.get('/me/conversationList', authenticateUser, checkBlockedUserAgent, asyn
                 formatResponse({
                     code: 404,
                     message:
-                        'Anda terdeteksi melakukan scraping dan melakukan abuse pada sistem kami, akun anda semetara akan di block untuk mendapatkan chat terbaru member. silahkan kontak custumer support. Terimakasih',
+                        'Anda terdeteksi melakukan aktivitas scraping dan penyalahgunaan pada sistem kami. Demi menjaga integritas dan keamanan layanan, akun Anda akan diblokir sementara dari akses chat terbaru member. Harap diperhatikan bahwa aktivitas ini melanggar ketentuan layanan kami, dan IP Anda telah dicatat sebagai bukti pelanggaran. Jika aktivitas ini terus berlanjut, kami tidak segan-segan untuk melaporkannya kepada pihak berwajib. Untuk mengaktifkan kembali akun Anda atau jika Anda merasa ini adalah kesalahan, silakan segera hubungi customer support. Terima kasih atas perhatian Anda.',
                     success: false,
                     data: null,
                 }),
@@ -380,7 +380,7 @@ router.get(
                         formatResponse({
                             code: 404,
                             message:
-                                'Anda terdeteksi melakukan scraping dan melakukan abuse pada sistem kami, akun anda semetara akan di block untuk mendapatkan chat terbaru member. silahkan kontak custumer support. Terimakasih',
+                                'Anda terdeteksi melakukan aktivitas scraping dan penyalahgunaan pada sistem kami. Demi menjaga integritas dan keamanan layanan, akun Anda akan diblokir sementara dari akses chat terbaru member. Harap diperhatikan bahwa aktivitas ini melanggar ketentuan layanan kami, dan IP Anda telah dicatat sebagai bukti pelanggaran. Jika aktivitas ini terus berlanjut, kami tidak segan-segan untuk melaporkannya kepada pihak berwajib. Untuk mengaktifkan kembali akun Anda atau jika Anda merasa ini adalah kesalahan, silakan segera hubungi customer support. Terima kasih atas perhatian Anda.',
                             success: false,
                             data: null,
                         }),
@@ -428,7 +428,7 @@ router.get(
                     formatResponse({
                         code: 404,
                         message:
-                            'Anda terdeteksi melakukan scraping dan melakukan abuse pada sistem kami, akun anda semetara akan di block untuk mendapatkan chat terbaru member. silahkan kontak custumer support. Terimakasih',
+                            'Anda terdeteksi melakukan aktivitas scraping dan penyalahgunaan pada sistem kami. Demi menjaga integritas dan keamanan layanan, akun Anda akan diblokir sementara dari akses chat terbaru member. Harap diperhatikan bahwa aktivitas ini melanggar ketentuan layanan kami, dan IP Anda telah dicatat sebagai bukti pelanggaran. Jika aktivitas ini terus berlanjut, kami tidak segan-segan untuk melaporkannya kepada pihak berwajib. Untuk mengaktifkan kembali akun Anda atau jika Anda merasa ini adalah kesalahan, silakan segera hubungi customer support. Terima kasih atas perhatian Anda.',
                         success: false,
                         data: null,
                     }),
@@ -513,7 +513,7 @@ router.get(
                         formatResponse({
                             code: 404,
                             message:
-                                'Anda terdeteksi melakukan scraping dan melakukan abuse pada sistem kami, akun anda semetara akan di block untuk mendapatkan chat terbaru member. silahkan kontak custumer support. Terimakasih',
+                                'Anda terdeteksi melakukan aktivitas scraping dan penyalahgunaan pada sistem kami. Demi menjaga integritas dan keamanan layanan, akun Anda akan diblokir sementara dari akses chat terbaru member. Harap diperhatikan bahwa aktivitas ini melanggar ketentuan layanan kami, dan IP Anda telah dicatat sebagai bukti pelanggaran. Jika aktivitas ini terus berlanjut, kami tidak segan-segan untuk melaporkannya kepada pihak berwajib. Untuk mengaktifkan kembali akun Anda atau jika Anda merasa ini adalah kesalahan, silakan segera hubungi customer support. Terima kasih atas perhatian Anda.',
                             success: false,
                             data: null,
                         }),
