@@ -569,7 +569,7 @@ router.get(
                 success: true,
             });
 
-            await cacheResponse(cacheKey, response, 2);
+            await cacheResponse(cacheKey, response, 6);
 
             return res.status(StatusCodes.OK).send(response);
         } catch (error) {
