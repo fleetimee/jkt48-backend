@@ -48,8 +48,9 @@ import { postReaction, updateUserSchema } from './schema';
 
 const router = express.Router();
 
-const BURST_THRESHOLD = 10; // Number of requests
-const BURST_WINDOW = 1; // Time window in seconds
+const possibleThresholds = [5, 7, 8, 9, 10];
+const BURST_THRESHOLD = possibleThresholds[Math.floor(Math.random() * possibleThresholds.length)];
+const BURST_WINDOW = 1;
 
 router.get('/me', authenticateUser, async (req, res, next) => {
     try {
