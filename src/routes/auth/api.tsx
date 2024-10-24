@@ -2,7 +2,8 @@ import express from 'express';
 import { StatusCodes } from 'http-status-codes';
 
 import { authenticateUser } from '../../middlewares/authenticate-user';
-import { rateLimiterStrict, rateLimiterVeryStrict } from '../../middlewares/rate-limiter';
+import { checkBlockedUserAgent } from '../../middlewares/ip-block';
+import { rateLimiter, rateLimiterStrict } from '../../middlewares/rate-limiter';
 import { validateSchema } from '../../middlewares/validate-request';
 import { ConflictError } from '../../utils/errors';
 import { generateResetTokenPassword, generateVerificationCode } from '../../utils/lib';
@@ -54,7 +55,7 @@ router.get('/checkAccountDeletionStatus', authenticateUser, async (req, res, nex
     }
 });
 
-router.post('/register', validateSchema(registerSchema), rateLimiterVeryStrict, async (req, res, next) => {
+router.post('/register', validateSchema(registerSchema), checkBlockedUserAgent, rateLimiter, async (req, res, next) => {
     try {
         const { email, password, name, birthday, nickName, phoneNumber } = req.body;
 
@@ -83,7 +84,7 @@ router.post('/register', validateSchema(registerSchema), rateLimiterVeryStrict, 
     }
 });
 
-router.post('/login', validateSchema(loginSchema), async (req, res, next) => {
+router.post('/login', validateSchema(loginSchema), checkBlockedUserAgent, rateLimiter, async (req, res, next) => {
     try {
         const { email, password } = req.body;
 
