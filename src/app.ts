@@ -9,7 +9,6 @@ import { credential } from 'firebase-admin';
 import { initializeApp, ServiceAccount } from 'firebase-admin/app';
 import { getAppCheck } from 'firebase-admin/app-check';
 import helmet from 'helmet';
-import { StatusCodes } from 'http-status-codes';
 import morgan from 'morgan';
 import appleReceiptVerify from 'node-apple-receipt-verify';
 import cron from 'node-cron';
@@ -111,22 +110,6 @@ const appCheckVerification = async (req: Request, res: Response, next: NextFunct
                 message: appCheckError.message || 'Unauthorized',
             });
         }
-    }
-};
-
-export const userAgentMiddleware = (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const userAgent = req.get('User-Agent');
-
-        const blockedAgents = ['node-fetch', 'curl', 'wget', 'python-requests', 'PostmanRuntime'];
-
-        if (userAgent && blockedAgents.some(agent => userAgent.includes(agent))) {
-            return res.status(StatusCodes.FORBIDDEN).json({ message: 'Access denied' });
-        }
-
-        next();
-    } catch (error) {
-        next(error);
     }
 };
 

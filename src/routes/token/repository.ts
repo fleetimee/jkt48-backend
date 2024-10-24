@@ -1,7 +1,24 @@
 import { and, eq, sql } from 'drizzle-orm';
+import { messaging } from 'firebase-admin';
 
 import db from '../../db';
 import { fcmTokens } from '../../models/fcm_token';
+
+const getUserSubscribedIdols = async (userId: string) => {
+    const idolIds = await db.execute(
+        sql`
+        SELECT i.id FROM users u
+        INNER JOIN "order" o ON u.id = o.user_id
+        INNER JOIN order_idol oi ON o.id = oi.order_id
+        INNER JOIN idol i ON oi.idol_id = i.id
+        WHERE o.order_status = 'success'
+        AND o.expired_at > NOW()
+        AND U.id = ${userId}
+        `,
+    );
+
+    return idolIds.map(idol => idol.idol_id);
+};
 
 /**
  * Sends the FCM token to the server and updates the last accessed time.
@@ -33,6 +50,22 @@ export const sendTokenToServer = async (token: string, userId: string, model: st
             UPDATE fcm_token SET last_accessed = ${currentTime}, model = ${model} WHERE token = ${token} AND user_id = ${userId}
             `,
         );
+    }
+
+    const idolIds = await getUserSubscribedIdols(userId);
+
+    const subscribePromises = idolIds.map(idolId => {
+        const topicName = `idol_${idolId}`;
+        return messaging().subscribeToTopic(token, topicName);
+    });
+
+    console.log(`Subscribing FCM token for user ${userId} to ${idolIds.length} topics.`);
+
+    try {
+        await Promise.all(subscribePromises);
+        console.log(`FCM token for user ${userId} subscribed to ${idolIds.length} topics.`);
+    } catch (error) {
+        console.error(`Error subscribing FCM token for user ${userId} to topics:`, error);
     }
 };
 
@@ -154,11 +187,37 @@ export const deleteFcmTokensByUserId = async (userId: string) => {
 };
 
 /**
- * Removes FCM tokens from the database based on the given user ID and device model.
+ * Removes FCM tokens from the database based on the given user ID and device model,
+ * and unsubscribes the tokens from all subscribed idol topics.
  * @param userId - The ID of the user.
  * @param model - The device model.
  */
 export const removeFcmTokensByUserIdAndDeviceModel = async (userId: string, model: string) => {
+    const tokens = await db
+        .select()
+        .from(fcmTokens)
+        .where(and(eq(fcmTokens.userId, userId), eq(fcmTokens.model, model)));
+
+    if (tokens.length > 0) {
+        const idolIds = await getUserSubscribedIdols(userId);
+
+        const unsubscribePromises = tokens.map(tokenRecord => {
+            const token = tokenRecord.token;
+            const unsubPromises = idolIds.map(idolId => {
+                const topicName = `idol_${idolId}`;
+                return messaging().unsubscribeFromTopic(token, topicName);
+            });
+            return Promise.all(unsubPromises);
+        });
+
+        try {
+            await Promise.all(unsubscribePromises);
+            console.log(`Tokens for user ${userId} unsubscribed from ${idolIds.length} topics.`);
+        } catch (error) {
+            console.error(`Error unsubscribing tokens for user ${userId} from topics:`, error);
+        }
+    }
+
     const result = await db.delete(fcmTokens).where(and(eq(fcmTokens.userId, userId), eq(fcmTokens.model, model)));
 
     return result;

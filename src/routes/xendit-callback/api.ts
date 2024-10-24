@@ -1,9 +1,9 @@
 import express from 'express';
 import { messaging } from 'firebase-admin';
-import { Notification } from 'firebase-admin/lib/messaging/messaging-api';
 import { StatusCodes } from 'http-status-codes';
 
 import { verifyXenditToken } from '../../middlewares/xendit-auth';
+import { fetchIdolIdByOrderId } from '../order/repository';
 import { fetchFcmTokenByOrderId } from '../token/repository';
 import {
     deleteOrderStatusXenditCallback,
@@ -38,37 +38,22 @@ router.post('/', verifyXenditToken, async (req, res, next) => {
             case 'PAID': {
                 await updateOrderStatusXenditCallback(body.external_id, 'success', body);
 
-                const tokens = await fetchFcmTokenByOrderId(body.external_id);
+                // Fetch the FCM tokens and the idol ID associated with the order
+                const [tokens, idolId] = await Promise.all([
+                    fetchFcmTokenByOrderId(body.external_id),
+                    fetchIdolIdByOrderId(body.external_id),
+                ]);
 
-                if (tokens.length > 0) {
-                    const fcmTokens = tokens.map(token => token.token);
-
-                    const notificationMessage: Notification = {
-                        title: 'Payment Success',
-                        body: 'Your payment has been successfully processed',
-                    };
-
-                    await messaging().sendEachForMulticast({
-                        tokens: fcmTokens as unknown as string[],
-                        notification: notificationMessage,
-                        android: {
-                            notification: {
-                                imageUrl: 'https://jkt48pm.my.id/static/logo_jkt48pm_2.png',
-                                sound: 'default',
-                            },
-                        },
-                        apns: {
-                            payload: {
-                                aps: {
-                                    'mutable-content': 1,
-                                    sound: 'notification_sound.caf',
-                                },
-                            },
-                            fcmOptions: {
-                                imageUrl: 'https://jkt48pm.my.id/static/logo_jkt48pm_2.png',
-                            },
-                        },
+                if (tokens.length > 0 && idolId) {
+                    const subscribePromises = tokens.map(tokenRecord => {
+                        const token = tokenRecord.token as string;
+                        const topicName = `idol_${idolId}`;
+                        return messaging().subscribeToTopic(token, topicName);
                     });
+
+                    // Wait for all subscriptions to complete
+                    await Promise.all(subscribePromises);
+                    console.log(`Successfully subscribed tokens to topic idol_${idolId}`);
                 }
 
                 return res.status(StatusCodes.OK).send({
@@ -102,6 +87,7 @@ router.post('/', verifyXenditToken, async (req, res, next) => {
             message: 'Invalid status',
         });
     } catch (error) {
+        console.error('Error processing Xendit callback:', error);
         next(error);
     }
 });

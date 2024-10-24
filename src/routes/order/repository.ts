@@ -401,3 +401,15 @@ export const getCloseToExpirationOrders = async () => {
 
     return orders;
 };
+
+export const fetchIdolIdByOrderId = async (orderId: string) => {
+    const [idolId] = await db.execute(
+        sql`
+        SELECT idol_id 
+        FROM order_idol 
+        WHERE order_id = ${orderId};
+        `,
+    );
+
+    return idolId;
+};
