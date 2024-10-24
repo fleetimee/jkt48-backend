@@ -288,7 +288,8 @@ router.get('/me/conversationList', authenticateUser, checkBlockedUserAgent, asyn
                 return res.status(404).send(
                     formatResponse({
                         code: 404,
-                        message: 'Invalid conversation',
+                        message:
+                            'Anda terdeteksi melakukan scraping dan melakukan abuse pada sistem kami, akun anda semetara akan di block untuk mendapatkan chat terbaru member. silahkan kontak custumer support. Terimakasih',
                         success: false,
                         data: null,
                     }),
@@ -321,7 +322,8 @@ router.get('/me/conversationList', authenticateUser, checkBlockedUserAgent, asyn
             return res.status(404).send(
                 formatResponse({
                     code: 404,
-                    message: 'Invalid conversation',
+                    message:
+                        'Anda terdeteksi melakukan scraping dan melakukan abuse pada sistem kami, akun anda semetara akan di block untuk mendapatkan chat terbaru member. silahkan kontak custumer support. Terimakasih',
                     success: false,
                     data: null,
                 }),
@@ -375,7 +377,8 @@ router.get(
                     return res.status(404).send(
                         formatResponse({
                             code: 404,
-                            message: 'Invalid conversation',
+                            message:
+                                'Anda terdeteksi melakukan scraping dan melakukan abuse pada sistem kami, akun anda semetara akan di block untuk mendapatkan chat terbaru member. silahkan kontak custumer support. Terimakasih',
                             success: false,
                             data: null,
                         }),
@@ -422,7 +425,8 @@ router.get(
                 return res.status(404).send(
                     formatResponse({
                         code: 404,
-                        message: 'Invalid conversation',
+                        message:
+                            'Anda terdeteksi melakukan scraping dan melakukan abuse pada sistem kami, akun anda semetara akan di block untuk mendapatkan chat terbaru member. silahkan kontak custumer support. Terimakasih',
                         success: false,
                         data: null,
                     }),
@@ -506,7 +510,8 @@ router.get(
                     return res.status(404).send(
                         formatResponse({
                             code: 404,
-                            message: 'Invalid conversation',
+                            message:
+                                'Anda terdeteksi melakukan scraping dan melakukan abuse pada sistem kami, akun anda semetara akan di block untuk mendapatkan chat terbaru member. silahkan kontak custumer support. Terimakasih',
                             success: false,
                             data: null,
                         }),
