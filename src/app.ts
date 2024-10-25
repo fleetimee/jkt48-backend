@@ -113,6 +113,18 @@ const appCheckVerification = async (req: Request, res: Response, next: NextFunct
     }
 };
 
+// Middleware to check FILE-Token header
+const checkFileToken = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const expectedToken = 'amt0NDhUb2tlbg==';
+    const fileToken = req.headers['file-token'];
+
+    if (fileToken === expectedToken) {
+        next();
+    } else {
+        res.status(403).send('Forbidden');
+    }
+};
+
 /**
  * Express application.
  * An instance of the express module is created and assigned to the app variable.
@@ -237,7 +249,7 @@ app.use(
 );
 
 // Serve Static files
-app.use('/static', checkBlockedUserAgent, express.static('static'));
+app.use('/static', checkBlockedUserAgent, checkFileToken, express.static('static'));
 
 app.use('/robots.txt', express.static('static/robots.txt'));
 
