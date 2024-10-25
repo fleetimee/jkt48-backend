@@ -47,13 +47,13 @@ router.post('/', verifyXenditToken, async (req, res, next) => {
                 if (tokens.length > 0 && idolId) {
                     const subscribePromises = tokens.map(tokenRecord => {
                         const token = tokenRecord.token as string;
-                        const topicName = `idol_${idolId}`;
+                        const topicName = `idol_${idolId.idol_id}`;
                         return messaging().subscribeToTopic(token, topicName);
                     });
 
                     // Wait for all subscriptions to complete
                     await Promise.all(subscribePromises);
-                    console.log(`Successfully subscribed tokens to topic idol_${idolId}`);
+                    console.log(`Successfully subscribed tokens to topic idol_${idolId.idol_id}`);
                 }
 
                 return res.status(StatusCodes.OK).send({
