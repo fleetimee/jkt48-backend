@@ -1,6 +1,5 @@
 import CryptoJS from 'crypto-js';
 import { NextFunction, Request, Response } from 'express';
-import moment from 'moment-timezone';
 
 const SERVER_CLIENT_SECRET = '$argon2id$v=19$m=16,t=2,p=1$dWkzYkxFbUdGNHVUN2piVQ$LS1pc1xfL/BeZbAS5mEs7A';
 
@@ -22,42 +21,28 @@ const validateSignatureMiddleware = (req: Request, res: Response, next: NextFunc
         return res.status(403).json({ message: 'Invalid client secret' });
     }
 
-    // Parse the timestamp and verify it is within an acceptable range (e.g., 5 minutes)
-    const requestTime = moment.tz(timestamp, 'Asia/Jakarta');
-    const currentTime = moment().tz('Asia/Jakarta');
+    // Construct the payload for HMAC signature verification
+    const requestBody = req.method !== 'GET' ? JSON.stringify(req.body) : '';
+    const payload = `path=${requestUrl}&verb=${httpMethod}&timestamp=${timestamp}&body=${requestBody}`;
 
-    const timeDifference = Math.abs(currentTime.diff(requestTime, 'minutes'));
-    const allowedTimeDifference = 5; // 5 minutes tolerance for replay protection
+    // Generate HMAC signature using SHA256 and encode it in Base64
+    const hmac = CryptoJS.HmacSHA256(payload, SERVER_CLIENT_SECRET);
+    const expectedSignature = CryptoJS.enc.Base64.stringify(hmac);
 
-    if (timeDifference > allowedTimeDifference) {
-        return res.status(401).json({ message: 'Request timestamp is too far from server time' });
+    console.log('Payload:', payload);
+    console.log('Expected Signature:', expectedSignature);
+    console.log('Incoming Signature:', signature);
+    console.log('Timestamp:', timestamp);
+    console.log('HTTP Method:', httpMethod);
+    console.log('Request URL:', requestUrl);
+    console.log('Request Body:', requestBody);
+    console.log('API Client Secret:', apiClientSecret);
+
+    // Verify the signature
+    if (signature !== expectedSignature) {
+        return res.status(403).json({ message: 'Invalid signature' });
     }
 
-    // Get the request body in string format
-    const requestBody = JSON.stringify(req.body || '');
-
-    // Helper function to extract the path
-    function getPath(url: string): string {
-        const pathRegex = /.+?:\/\/.+?(\/.+?)(?:#|\?|$)/;
-        const result = url.match(pathRegex);
-        return result && result.length > 1 ? result[1] : '';
-    }
-
-    const requestPath = getPath(requestUrl);
-
-    // Recreate payload as in the original hashing process
-    const payload = `path=${requestPath}&verb=${httpMethod}&timestamp=${timestamp}&body=${requestBody}`;
-
-    // Generate HMAC signature with CryptoJS
-    const hashed = CryptoJS.HmacSHA256(payload, apiClientSecret);
-    const generatedSignature = CryptoJS.enc.Base64.stringify(hashed);
-
-    // Compare the generated signature with the incoming signature
-    if (generatedSignature !== signature) {
-        return res.status(401).json({ message: 'Invalid signature' });
-    }
-
-    // Proceed to the next middleware if validation is successful
     next();
 };
 

@@ -4,8 +4,8 @@ import { Notification } from 'firebase-admin/lib/messaging/messaging-api';
 import fs from 'fs';
 import { StatusCodes } from 'http-status-codes';
 
-import { appCheckVerification } from '../../app';
 import { BASE_URL } from '../../config';
+import { appCheckVerification } from '../../middlewares/appcheck';
 import { authenticateUser, requireAdminRole, requireMemberRole } from '../../middlewares/authenticate-user';
 import { validateSchema } from '../../middlewares/validate-request';
 import { UnprocessableEntityError } from '../../utils/errors';

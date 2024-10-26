@@ -5,7 +5,7 @@ import { Notification } from 'firebase-admin/lib/messaging/messaging-api';
 import { StatusCodes } from 'http-status-codes';
 import path from 'path';
 
-import { appCheckVerification } from '../../app';
+import { appCheckVerification } from '../../middlewares/appcheck';
 import { authenticateUser, requireAdminRole } from '../../middlewares/authenticate-user';
 import { cacheResponse, redisClient } from '../../middlewares/caching';
 import { checkBlockedUserAgent } from '../../middlewares/ip-block';

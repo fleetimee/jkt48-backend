@@ -1,7 +1,6 @@
 import express from 'express';
 import { StatusCodes } from 'http-status-codes';
 
-import { appCheckVerification } from '../../app';
 import { authenticateUser } from '../../middlewares/authenticate-user';
 import { checkBlockedUserAgent } from '../../middlewares/ip-block';
 import { validateSchema } from '../../middlewares/validate-request';
@@ -192,7 +191,6 @@ router.patch(
     validateSchema(updateOrderStatusSchema),
     authenticateUser,
     checkBlockedUserAgent,
-    appCheckVerification,
     async (req, res, next) => {
         try {
             const { orderId } = req.body;

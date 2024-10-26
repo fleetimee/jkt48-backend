@@ -1,7 +1,7 @@
 import express from 'express';
 import { StatusCodes } from 'http-status-codes';
 
-import { appCheckVerification } from '../../app';
+import { appCheckVerification } from '../../middlewares/appcheck';
 import { authenticateUser } from '../../middlewares/authenticate-user';
 import { checkBlockedUserAgent } from '../../middlewares/ip-block';
 import { rateLimiter, rateLimiterStrict } from '../../middlewares/rate-limiter';
@@ -60,8 +60,8 @@ router.post(
     '/register',
     validateSchema(registerSchema),
     checkBlockedUserAgent,
-    appCheckVerification,
     rateLimiter,
+    appCheckVerification,
     async (req, res, next) => {
         try {
             const { email, password, name, birthday, nickName, phoneNumber } = req.body;
@@ -223,8 +223,9 @@ router.post(
 router.post(
     '/request_deletion',
     validateSchema(requestDeletionSchema),
-    rateLimiterStrict,
     authenticateUser,
+    appCheckVerification,
+    rateLimiterStrict,
     appCheckVerification,
     async (req, res, next) => {
         try {
@@ -257,6 +258,8 @@ router.post(
 
             return res.status(StatusCodes.OK).json({ message: 'Success send token to delete account' });
         } catch (error) {
+            console.log(error);
+
             next(error);
         }
     },

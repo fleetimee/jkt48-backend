@@ -9,8 +9,8 @@ import { StatusCodes } from 'http-status-codes';
 import path from 'path';
 import sharp from 'sharp';
 
-import { appCheckVerification } from '../../app';
 import { BASE_URL } from '../../config';
+import { appCheckVerification } from '../../middlewares/appcheck';
 import { authenticateUser, requireAdminRole, requireMemberRole } from '../../middlewares/authenticate-user';
 import { validateSchema } from '../../middlewares/validate-request';
 import { BadRequestError, NotFoundError, UnprocessableEntityError } from '../../utils/errors';
