@@ -104,6 +104,8 @@ router.post('/login', validateSchema(loginSchema), checkBlockedUserAgent, rateLi
 
         return res.status(StatusCodes.OK).send({ accessToken });
     } catch (error) {
+        console.log(error);
+
         next(error);
     }
 });
