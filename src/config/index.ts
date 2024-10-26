@@ -54,3 +54,5 @@ export const APPLE_SECRET_KET = process.env.APPLE_SECRET_KET;
 export const APPLE_ISSUER_ID = process.env.APPLE_ISSUER_ID;
 export const APPLE_KEY_ID = process.env.APPLE_KEY_ID;
 export const APPLE_BUNDLE_ID = process.env.APPLE_BUNDLE_ID;
+
+export const ENABLE_APP_CHECK = process.env.ENABLE_APP_CHECK;

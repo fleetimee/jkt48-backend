@@ -9,6 +9,7 @@ import { StatusCodes } from 'http-status-codes';
 import path from 'path';
 import sharp from 'sharp';
 
+import { appCheckVerification } from '../../app';
 import { BASE_URL } from '../../config';
 import { authenticateUser, requireAdminRole, requireMemberRole } from '../../middlewares/authenticate-user';
 import { validateSchema } from '../../middlewares/validate-request';
@@ -69,7 +70,7 @@ router.get('/', authenticateUser, async (req, res, next) => {
     }
 });
 
-router.get('/getIdolMessage', authenticateUser, requireMemberRole, async (req, res, next) => {
+router.get('/getIdolMessage', authenticateUser, requireMemberRole, appCheckVerification, async (req, res, next) => {
     try {
         const id = req.user.id;
 

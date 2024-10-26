@@ -4,6 +4,7 @@ import { Notification } from 'firebase-admin/lib/messaging/messaging-api';
 import fs from 'fs';
 import { StatusCodes } from 'http-status-codes';
 
+import { appCheckVerification } from '../../app';
 import { BASE_URL } from '../../config';
 import { authenticateUser, requireAdminRole, requireMemberRole } from '../../middlewares/authenticate-user';
 import { validateSchema } from '../../middlewares/validate-request';
@@ -86,7 +87,7 @@ router.get('/:id', authenticateUser, requireAdminRole, async (req, res, next) =>
     }
 });
 
-router.get('/conversation/:id', authenticateUser, requireAdminRole, async (req, res, next) => {
+router.get('/conversation/:id', authenticateUser, requireAdminRole, appCheckVerification, async (req, res, next) => {
     try {
         const id = req.user.id;
 

@@ -1,6 +1,7 @@
 import express from 'express';
 import { StatusCodes } from 'http-status-codes';
 
+import { appCheckVerification } from '../../app';
 import { authenticateUser } from '../../middlewares/authenticate-user';
 import { checkBlockedUserAgent } from '../../middlewares/ip-block';
 import { rateLimiter, rateLimiterStrict } from '../../middlewares/rate-limiter';
@@ -55,34 +56,42 @@ router.get('/checkAccountDeletionStatus', authenticateUser, async (req, res, nex
     }
 });
 
-router.post('/register', validateSchema(registerSchema), checkBlockedUserAgent, rateLimiter, async (req, res, next) => {
-    try {
-        const { email, password, name, birthday, nickName, phoneNumber } = req.body;
+router.post(
+    '/register',
+    validateSchema(registerSchema),
+    checkBlockedUserAgent,
+    appCheckVerification,
+    rateLimiter,
+    async (req, res, next) => {
+        try {
+            const { email, password, name, birthday, nickName, phoneNumber } = req.body;
 
-        const user = await getUser(email);
-        if (user) throw new ConflictError('A user with that email already exists');
+            const user = await getUser(email);
+            if (user) throw new ConflictError('A user with that email already exists');
 
-        const verificationToken = email in whitelistedEmails ? whitelistedEmails[email] : generateVerificationCode();
+            const verificationToken =
+                email in whitelistedEmails ? whitelistedEmails[email] : generateVerificationCode();
 
-        const birthdayDate = birthday ? new Date(birthday) : new Date('1900-01-01');
+            const birthdayDate = birthday ? new Date(birthday) : new Date('1900-01-01');
 
-        await registerUser(email, password, name, nickName, birthdayDate, verificationToken, phoneNumber);
+            await registerUser(email, password, name, nickName, birthdayDate, verificationToken, phoneNumber);
 
-        // const emailResult = await sendEmail({
-        //     to: [email],
-        //     subject: 'Confirm Your Email Address for New Account Registration',
-        //     react: <RegisterAccountEmail validationCode={verificationToken} />,
-        // });
+            // const emailResult = await sendEmail({
+            //     to: [email],
+            //     subject: 'Confirm Your Email Address for New Account Registration',
+            //     react: <RegisterAccountEmail validationCode={verificationToken} />,
+            // });
 
-        // if (emailResult.error) {
-        //     return res.status(StatusCodes.NOT_FOUND).json({ error: emailResult.error });
-        // }
+            // if (emailResult.error) {
+            //     return res.status(StatusCodes.NOT_FOUND).json({ error: emailResult.error });
+            // }
 
-        return res.status(StatusCodes.CREATED).json({ message: 'Langsung login aja ya :), Gak usah verifikasi' });
-    } catch (error) {
-        next(error);
-    }
-});
+            return res.status(StatusCodes.CREATED).json({ message: 'Langsung login aja ya :), Gak usah verifikasi' });
+        } catch (error) {
+            next(error);
+        }
+    },
+);
 
 router.post('/login', validateSchema(loginSchema), checkBlockedUserAgent, rateLimiter, async (req, res, next) => {
     try {
@@ -139,6 +148,7 @@ router.post(
     '/resend-verification',
     validateSchema(resendVerificationSchema),
     rateLimiterStrict,
+    appCheckVerification,
     async (req, res, next) => {
         try {
             const { email } = req.body;
@@ -172,43 +182,50 @@ router.post(
     },
 );
 
-router.post('/forgot_password', validateSchema(forgotPasswordSchema), rateLimiterStrict, async (req, res, next) => {
-    try {
-        const { email } = req.body;
-        const randomStringToken = generateResetTokenPassword();
+router.post(
+    '/forgot_password',
+    validateSchema(forgotPasswordSchema),
+    rateLimiterStrict,
+    appCheckVerification,
+    async (req, res, next) => {
+        try {
+            const { email } = req.body;
+            const randomStringToken = generateResetTokenPassword();
 
-        const user = await getUser(email);
+            const user = await getUser(email);
 
-        if (!user) {
-            return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Email not found' });
+            if (!user) {
+                return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Email not found' });
+            }
+
+            if (user) await forgotPasswordUser(email, randomStringToken);
+
+            // const emailResult = await sendEmail({
+            //     to: [email],
+            //     // to: ['zane.227@gmail.com'],
+            //     subject: 'Your Reset Password Token',
+            //     react: <ForgotPasswordEmail validationCode={randomStringToken} />,
+            // });
+
+            // if (emailResult.error) {
+            //     return res.status(StatusCodes.BAD_REQUEST).json({ error: emailResult.error });
+            // }
+
+            return res
+                .status(StatusCodes.OK)
+                .json({ message: 'Registration in process, please login with email and password' });
+        } catch (error) {
+            next(error);
         }
-
-        if (user) await forgotPasswordUser(email, randomStringToken);
-
-        // const emailResult = await sendEmail({
-        //     to: [email],
-        //     // to: ['zane.227@gmail.com'],
-        //     subject: 'Your Reset Password Token',
-        //     react: <ForgotPasswordEmail validationCode={randomStringToken} />,
-        // });
-
-        // if (emailResult.error) {
-        //     return res.status(StatusCodes.BAD_REQUEST).json({ error: emailResult.error });
-        // }
-
-        return res
-            .status(StatusCodes.OK)
-            .json({ message: 'Registration in process, please login with email and password' });
-    } catch (error) {
-        next(error);
-    }
-});
+    },
+);
 
 router.post(
     '/request_deletion',
     validateSchema(requestDeletionSchema),
     rateLimiterStrict,
     authenticateUser,
+    appCheckVerification,
     async (req, res, next) => {
         try {
             const emailLoggedOn = req.user.email;
@@ -245,28 +262,34 @@ router.post(
     },
 );
 
-router.post('/reset_password', validateSchema(resetPasswordSchema), rateLimiterStrict, async (req, res, next) => {
-    try {
-        const { token, password } = req.body;
-        // const user = await getUserByResetToken(token);
-        if (token && password) await resetPasswordUser(token, password);
+router.post(
+    '/reset_password',
+    validateSchema(resetPasswordSchema),
+    rateLimiterStrict,
+    appCheckVerification,
+    async (req, res, next) => {
+        try {
+            const { token, password } = req.body;
+            // const user = await getUserByResetToken(token);
+            if (token && password) await resetPasswordUser(token, password);
 
-        // const emailResult = await sendEmail({
-        //     to: [user.email],
-        //     subject: 'Your Password Has Been Changed',
-        //     // text: `Your Password successfully changed`,
-        //     react: <ResetPasswordEmail />,
-        // });
+            // const emailResult = await sendEmail({
+            //     to: [user.email],
+            //     subject: 'Your Password Has Been Changed',
+            //     // text: `Your Password successfully changed`,
+            //     react: <ResetPasswordEmail />,
+            // });
 
-        // if (emailResult.error) {
-        //     return res.status(StatusCodes.BAD_REQUEST).json({ error: emailResult.error });
-        // }
+            // if (emailResult.error) {
+            //     return res.status(StatusCodes.BAD_REQUEST).json({ error: emailResult.error });
+            // }
 
-        return res.status(StatusCodes.OK).json({ message: 'Success reset password' });
-    } catch (error) {
-        next(error);
-    }
-});
+            return res.status(StatusCodes.OK).json({ message: 'Success reset password' });
+        } catch (error) {
+            next(error);
+        }
+    },
+);
 
 router.post(
     '/verify_deletion',

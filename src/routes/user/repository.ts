@@ -410,8 +410,8 @@ export const insertBlockList = async (email: string): Promise<void> => {
  *
  * @param userId - The ID of the user.
  * @param conversationId - The ID of the conversation.
- * @param _limit - The maximum number of messages to retrieve.
- * @param _offset - The number of messages to skip before retrieving.
+ * @param limit - The maximum number of messages to retrieve.
+ * @param offset - The number of messages to skip before retrieving.
  * @returns A promise that resolves to an array of messages.
  */
 export const getUserConversationMessages = async (
@@ -419,10 +419,8 @@ export const getUserConversationMessages = async (
     conversationId: string,
     oderBy: string,
     sortDirection: string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _limit: number,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _offset: number,
+    limit: number,
+    offset: number,
 ) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let messages: any[] = [];
@@ -449,7 +447,9 @@ export const getUserConversationMessages = async (
         WHERE c.id = '${conversationId}'
         AND m.approved = TRUE
         AND m.created_at > (SELECT created_at FROM users WHERE id = '${userId}')
-        ORDER BY ${oderBy} ${sortDirection}`,
+        ORDER BY ${oderBy} ${sortDirection}
+        LIMIT ${limit} OFFSET ${offset};
+        `,
             ),
         );
 

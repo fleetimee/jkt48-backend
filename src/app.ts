@@ -15,12 +15,13 @@ import cron from 'node-cron';
 import responseTime from 'response-time';
 import swStat from 'swagger-stats';
 
-import { APPLE_SECRET_KET, BASE_URL } from './config';
+import { APPLE_SECRET_KET, BASE_URL, ENABLE_APP_CHECK } from './config';
 import serviceAccount from './config/service-account.json';
 import { infoMiddleware } from './middlewares/author-info';
 import { errorHandler } from './middlewares/error-handler';
 import { checkBlockedUserAgent } from './middlewares/ip-block';
 import loggingMiddleware from './middlewares/logging';
+import validateSignatureMiddleware from './middlewares/signature';
 import routes from './routes';
 import { specs } from './utils/swagger-options';
 
@@ -32,8 +33,12 @@ export interface FirebaseAppCheckError extends Error {
     codePrefix: string; // The prefix (usually 'app-check')
 }
 
-const appCheckVerification = async (req: Request, res: Response, next: NextFunction) => {
-    const appCheckToken = req.header('X-Firebase-AppCheck');
+export const appCheckVerification = async (req: Request, res: Response, next: NextFunction) => {
+    if (ENABLE_APP_CHECK === 'false') {
+        return next();
+    }
+
+    const appCheckToken = req.header('ip-token');
 
     if (!appCheckToken) {
         return res.status(401).json({
@@ -249,7 +254,7 @@ app.use(
 );
 
 // Serve Static files
-app.use('/static', checkBlockedUserAgent, checkFileToken, express.static('static'));
+app.use('/static', checkBlockedUserAgent, checkFileToken, validateSignatureMiddleware, express.static('static'));
 
 app.use('/robots.txt', express.static('static/robots.txt'));
 
@@ -348,7 +353,7 @@ app.use((req, res, next) => {
 /**
  * Root Route Introduction.
  */
-app.get('/', infoMiddleware, (req, res) => {
+app.get('/', infoMiddleware, appCheckVerification, (req, res) => {
     res.json(res.locals.info);
 });
 
