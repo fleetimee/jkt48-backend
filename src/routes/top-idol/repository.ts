@@ -48,8 +48,7 @@ export const getTopIdolByOrderTransaction = async () => {
     WHERE order_id IN (
         SELECT id
         FROM "order"
-        WHERE created_at >= CURRENT_DATE AND order_status = 'success'
-    )
+        WHERE created_at BETWEEN CURRENT_DATE - INTERVAL '7 days' AND CURRENT_DATE AND order_status = 'success'    )
     GROUP BY idol_id;
     `);
     return topIdolCount;
