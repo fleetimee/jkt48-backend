@@ -10,20 +10,28 @@ import { attachment } from '../../models/message_attachment';
  */
 export const getAllAttachmentsByConversationId = async (conversationId: string, userId: string) => {
     const attachments = await db.execute(sql`
-        SELECT ma.file_path, ma.created_at
-        FROM message_attachment ma
-        INNER JOIN message m ON m.id = ma.message_id
-        INNER JOIN conversation c ON c.id = m.conversation_id
-        WHERE (ma.file_path LIKE '%.jpg'
-        OR ma.file_path LIKE '%.png'
-        OR ma.file_path LIKE '%.gif'
-        OR ma.file_path LIKE '%.bmp'
-        OR ma.file_path LIKE '%.tiff'
-        OR ma.file_path LIKE '%.ico'
-        OR ma.file_path LIKE '%.webp')
-        AND m.approved = TRUE
-        AND c.id = ${conversationId}
-        AND m.created_at > (SELECT created_at FROM users WHERE id = ${userId})
+        SELECT m.id         AS message_id,
+                m.message    AS message,
+                m.created_at AS created_at,
+                i.id         AS idol_id,
+                u2.name      AS idol_name,
+                u2.nickname  AS idol_nickname,
+                m.approved   AS approved
+            FROM message m
+            INNER JOIN users u ON m.user_id = u.id
+            INNER JOIN conversation c ON m.conversation_id = c.id
+            INNER JOIN idol i ON c.idol_id = i.id
+            INNER JOIN users u2 ON i.user_id = u2.id
+            INNER JOIN "order" o ON o.user_id = ${userId}
+            INNER JOIN (
+                SELECT user_id, MAX(updated_at) AS last_successful_order
+                FROM "order"
+                WHERE user_id = ${userId} AND order_status = 'success'
+                GROUP BY user_id
+            ) AS last_order ON o.user_id = last_order.user_id
+            WHERE c.id = ${conversationId}
+            AND m.approved = TRUE
+            AND m.created_at > last_order.last_successful_order
         ORDER BY ma.created_at DESC;
     `);
 

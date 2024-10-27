@@ -3,7 +3,7 @@ import { StatusCodes } from 'http-status-codes';
 
 import { authenticateUser } from '../../middlewares/authenticate-user';
 import { checkBlockedUserAgent } from '../../middlewares/ip-block';
-import { rateLimiter, rateLimiterStrict } from '../../middlewares/rate-limiter';
+import { rateLimiter, rateLimiterStrict, rateLimiterVeryStrict } from '../../middlewares/rate-limiter';
 import { validateSchema } from '../../middlewares/validate-request';
 import { ConflictError } from '../../utils/errors';
 import { generateResetTokenPassword, generateVerificationCode } from '../../utils/lib';
@@ -55,34 +55,41 @@ router.get('/checkAccountDeletionStatus', authenticateUser, async (req, res, nex
     }
 });
 
-router.post('/register', validateSchema(registerSchema), checkBlockedUserAgent, rateLimiter, async (req, res, next) => {
-    try {
-        const { email, password, name, birthday, nickName, phoneNumber } = req.body;
+router.post(
+    '/register',
+    validateSchema(registerSchema),
+    checkBlockedUserAgent,
+    rateLimiterVeryStrict,
+    async (req, res, next) => {
+        try {
+            const { email, password, name, birthday, nickName, phoneNumber } = req.body;
 
-        const user = await getUser(email);
-        if (user) throw new ConflictError('A user with that email already exists');
+            const user = await getUser(email);
+            if (user) throw new ConflictError('A user with that email already exists');
 
-        const verificationToken = email in whitelistedEmails ? whitelistedEmails[email] : generateVerificationCode();
+            const verificationToken =
+                email in whitelistedEmails ? whitelistedEmails[email] : generateVerificationCode();
 
-        const birthdayDate = birthday ? new Date(birthday) : new Date('1900-01-01');
+            const birthdayDate = birthday ? new Date(birthday) : new Date('1900-01-01');
 
-        await registerUser(email, password, name, nickName, birthdayDate, verificationToken, phoneNumber);
+            await registerUser(email, password, name, nickName, birthdayDate, verificationToken, phoneNumber);
 
-        // const emailResult = await sendEmail({
-        //     to: [email],
-        //     subject: 'Confirm Your Email Address for New Account Registration',
-        //     react: <RegisterAccountEmail validationCode={verificationToken} />,
-        // });
+            // const emailResult = await sendEmail({
+            //     to: [email],
+            //     subject: 'Confirm Your Email Address for New Account Registration',
+            //     react: <RegisterAccountEmail validationCode={verificationToken} />,
+            // });
 
-        // if (emailResult.error) {
-        //     return res.status(StatusCodes.NOT_FOUND).json({ error: emailResult.error });
-        // }
+            // if (emailResult.error) {
+            //     return res.status(StatusCodes.NOT_FOUND).json({ error: emailResult.error });
+            // }
 
-        return res.status(StatusCodes.CREATED).json({ message: 'Langsung login aja ya :), Gak usah verifikasi' });
-    } catch (error) {
-        next(error);
-    }
-});
+            return res.status(StatusCodes.CREATED).json({ message: 'Langsung login aja ya :), Gak usah verifikasi' });
+        } catch (error) {
+            next(error);
+        }
+    },
+);
 
 router.post('/login', validateSchema(loginSchema), checkBlockedUserAgent, rateLimiter, async (req, res, next) => {
     try {

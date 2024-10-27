@@ -417,7 +417,7 @@ export const insertBlockList = async (email: string): Promise<void> => {
 export const getUserConversationMessages = async (
     userId: string,
     conversationId: string,
-    oderBy: string,
+    orderBy: string,
     sortDirection: string,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _limit: number,
@@ -427,29 +427,36 @@ export const getUserConversationMessages = async (
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let messages: any[] = [];
 
-    // const userIdTest = userId;y
-
     await db.transaction(async trx => {
         // Fetch the conversation messages
         messages = await trx.execute(
             sql.raw(
                 `
         SELECT m.id         AS message_id,
-        m.message    AS message,
-        m.created_at AS created_at,
-        i.id         AS idol_id,
-        u2.name      AS idol_name,
-        u2.nickname  AS idol_nickname,
-        m.approved  AS approved
+               m.message    AS message,
+               m.created_at AS created_at,
+               i.id         AS idol_id,
+               u2.name      AS idol_name,
+               u2.nickname  AS idol_nickname,
+               m.approved   AS approved
         FROM message m
-                INNER JOIN users u ON m.user_id = u.id
-                INNER JOIN conversation c ON m.conversation_id = c.id
-                INNER JOIN idol i ON c.idol_id = i.id
-                INNER JOIN users u2 ON i.user_id = u2.id
+        INNER JOIN users u ON m.user_id = u.id
+        INNER JOIN conversation c ON m.conversation_id = c.id
+        INNER JOIN idol i ON c.idol_id = i.id
+        INNER JOIN users u2 ON i.user_id = u2.id
+        INNER JOIN "order" o ON o.user_id = '${userId}'
+        INNER JOIN (
+            SELECT user_id, MAX(updated_at) AS last_successful_order
+            FROM "order"
+            WHERE user_id = '${userId}' AND order_status = 'success'
+            GROUP BY user_id
+        ) AS last_order ON o.user_id = last_order.user_id
         WHERE c.id = '${conversationId}'
         AND m.approved = TRUE
-        AND m.created_at > (SELECT created_at FROM users WHERE id = '${userId}')
-        ORDER BY ${oderBy} ${sortDirection}`,
+        AND m.created_at > last_order.last_successful_order
+        ORDER BY ${orderBy} ${sortDirection}
+        LIMIT ${_limit} OFFSET ${_offset};
+        `,
             ),
         );
 
