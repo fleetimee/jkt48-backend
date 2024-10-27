@@ -3,6 +3,7 @@ import { StatusCodes } from 'http-status-codes';
 
 import { authenticateUser } from '../../middlewares/authenticate-user';
 import { checkBlockedUserAgent } from '../../middlewares/ip-block';
+import { verifyCustomHeader } from '../../middlewares/legit';
 import { validateSchema } from '../../middlewares/validate-request';
 import { NotFoundError } from '../../utils/errors';
 import { formatResponse } from '../../utils/response-formatter';
@@ -30,7 +31,7 @@ import {
 
 const router = express.Router();
 
-router.get('/check-expired', async (req, res, next) => {
+router.get('/check-expired', verifyCustomHeader, async (req, res, next) => {
     try {
         await updateExpiredOrderStatus();
 

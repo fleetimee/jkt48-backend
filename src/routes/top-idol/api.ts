@@ -2,6 +2,7 @@ import express from 'express';
 import { StatusCodes } from 'http-status-codes';
 
 import { cacheMiddleware, cacheResponse } from '../../middlewares/caching';
+import { verifyCustomHeader } from '../../middlewares/legit';
 import { formatResponse } from '../../utils/response-formatter';
 import { getIdolIds, getTopIdol, getTopIdolByOrderTransaction, storeTopIdols, trunctateTopIdols } from './repository';
 
@@ -45,12 +46,10 @@ router.get('/', cacheMiddleware('top-idol'), async (req, res, next) => {
     }
 });
 
-router.get('/by-week', async (req, res, next) => {
+router.get('/by-week', verifyCustomHeader, async (req, res, next) => {
     try {
-        // Truncate table top idols
         await trunctateTopIdols();
 
-        // Build data
         const idolsCount: { id_idol: any; subscription_count: any }[] = [];
         const idolList = await getIdolIds();
         const topIdols = await getTopIdolByOrderTransaction();
