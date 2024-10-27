@@ -6,6 +6,7 @@ import { StatusCodes } from 'http-status-codes';
 
 import { BASE_URL } from '../../config';
 import { authenticateUser, requireAdminRole, requireMemberRole } from '../../middlewares/authenticate-user';
+import { redisClient } from '../../middlewares/caching';
 import { validateSchema } from '../../middlewares/validate-request';
 import { UnprocessableEntityError } from '../../utils/errors';
 import { processUserBirthday } from '../../utils/process-birthday';
@@ -228,6 +229,52 @@ router.delete('/:id', authenticateUser, requireMemberRole, async (req, res, next
     }
 });
 
+const notificationQueue: { idolId: string; notificationMessage: Notification; buildAvatar: string }[] = [];
+
+// Function to process batched notifications
+const processNotificationQueue = () => {
+    setInterval(async () => {
+        if (notificationQueue.length > 0) {
+            const notifications = [...notificationQueue];
+            notificationQueue.length = 0;
+
+            // Group notifications by idolId
+            const idolGroups = notifications.reduce(
+                (acc, notification) => {
+                    const { idolId } = notification;
+                    if (!acc[idolId]) acc[idolId] = [];
+                    acc[idolId].push(notification);
+                    return acc;
+                },
+                {} as Record<string, typeof notificationQueue>,
+            );
+
+            // Send notifications for each idolId with Redis deduplication
+            for (const idolId in idolGroups) {
+                const { notificationMessage, buildAvatar } = idolGroups[idolId][0]; // Take the first message for each idol
+
+                // Redis key for deduplication based on idolId
+                const redisKey = `notifyUser:idol:${idolId}:message`;
+                const keyExists = await redisClient.get(redisKey);
+
+                if (!keyExists) {
+                    // Send the FCM notification
+                    await sendNotificationToIdolTopic(idolId, notificationMessage, buildAvatar);
+
+                    // Set Redis key with a 5-second expiration to prevent duplicates
+                    await redisClient.set(redisKey, '1', 'EX', 60);
+
+                    // Delay between messages for each idol
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                }
+            }
+        }
+    }, 5000); // Process queue every 5 seconds
+};
+
+// Start processing the queue in the background
+processNotificationQueue();
+
 router.patch(
     '/:id/approveOrReject',
     validateSchema(approveOrRejectMessageSchema),
@@ -246,29 +293,22 @@ router.patch(
             ]);
 
             if (isApproved) {
-                // Extract the idol ID from the message details
                 const idolId = messageDetail.idol_id;
-
-                // Construct the notification message
                 const notificationMessage: Notification = {
                     title: messageDetail.nickname as string,
                     body: messageDetail.message ? (messageDetail.message as string) : 'You have a new message!',
                 };
-
-                // Build the avatar URL
                 const buildAvatar = `${BASE_URL}${messageDetail.profile_image}`;
-
                 console.log('Build Avatar:', buildAvatar);
 
-                // Send the notification to the topic corresponding to the idol
-                await sendNotificationToIdolTopic(idolId as string, notificationMessage, buildAvatar);
+                // Add notification to batch queue
+                notificationQueue.push({ idolId: idolId as string, notificationMessage, buildAvatar });
             }
 
-            // Return response immediately
             return res.status(StatusCodes.OK).send({
                 success: true,
                 code: StatusCodes.OK,
-                message: isApproved === true ? 'Success approve message' : 'Success reject message',
+                message: isApproved ? 'Success approve message' : 'Success reject message',
                 data: approveMessageRes,
             });
         } catch (error) {

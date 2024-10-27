@@ -11,6 +11,7 @@ import sharp from 'sharp';
 
 import { BASE_URL } from '../../config';
 import { authenticateUser, requireAdminRole, requireMemberRole } from '../../middlewares/authenticate-user';
+import { redisClient } from '../../middlewares/caching';
 import { validateSchema } from '../../middlewares/validate-request';
 import { BadRequestError, NotFoundError, UnprocessableEntityError } from '../../utils/errors';
 import { generateVerificationCode } from '../../utils/lib';
@@ -203,19 +204,18 @@ router.post(
             const { messages } = req.body;
             const attachments = req.files as Express.Multer.File[];
 
+            // Process attachments
             const formattedAttachments = attachments?.map(async attachment => {
                 const fileBuffer = fs.readFileSync(attachment.path);
                 const hashSum = crypto.createHash('sha1');
-                hashSum.update(new Uint8Array(fileBuffer)); // Convert Buffer to Uint8Array
+                hashSum.update(new Uint8Array(fileBuffer));
                 const checksum = hashSum.digest('hex');
                 const fileSizeToNumber = Number(attachment.size);
 
                 if (attachment.mimetype.startsWith('image/')) {
-                    const tempOutputPath = `${attachment.path}_temp`; // Create a temporary output path
-                    await sharp(attachment.path)
-                        .jpeg({ quality: 80 }) // Convert to JPEG with 70% quality
-                        .toFile(tempOutputPath); // Write to the temporary file
-                    fs.renameSync(tempOutputPath, attachment.path); // Replace the original file with the temporary one
+                    const tempOutputPath = `${attachment.path}_temp`;
+                    await sharp(attachment.path).jpeg({ quality: 80 }).toFile(tempOutputPath);
+                    fs.renameSync(tempOutputPath, attachment.path);
                 }
 
                 return {
@@ -229,6 +229,7 @@ router.post(
 
             const resolvedAttachments = await Promise.all(formattedAttachments || []);
 
+            // Fetch necessary data and create message
             const [sendMessage, adminFcmTokens, idolId] = await Promise.all([
                 createMemberMessage(userId, messages, resolvedAttachments),
                 fetchAllAdminFcmToken(),
@@ -236,10 +237,7 @@ router.post(
             ]);
 
             if (adminFcmTokens.length > 0) {
-                const arrayOfStrings = adminFcmTokens.map(token => token.token);
-
                 const idol = await getMemberById(idolId.idol_id as string);
-
                 const buildAvatar = `${BASE_URL}${idol.profile_image}`;
 
                 const notificationMessage: Notification = {
@@ -247,27 +245,38 @@ router.post(
                     body: 'Need Approval!',
                 };
 
-                await messaging().sendEachForMulticast({
-                    tokens: arrayOfStrings as unknown as string[],
-                    notification: notificationMessage,
-                    android: {
-                        notification: {
-                            imageUrl: buildAvatar,
-                            sound: 'default',
-                        },
-                    },
-                    apns: {
-                        payload: {
-                            aps: {
-                                'mutable-content': 1,
-                                sound: 'notification_sound.caf',
+                // Redis key to prevent duplicate notifications
+                const redisKey = `notifyAdmin:idol:${idolId.idol_id}:message`;
+
+                // Check if a notification has already been sent recently
+                const keyExists = await redisClient.get(redisKey);
+                if (!keyExists) {
+                    // Send the FCM notification
+                    await messaging().sendEachForMulticast({
+                        tokens: adminFcmTokens.map(token => token.token) as string[],
+                        notification: notificationMessage,
+                        android: {
+                            notification: {
+                                imageUrl: buildAvatar,
+                                sound: 'default',
                             },
                         },
-                        fcmOptions: {
-                            imageUrl: buildAvatar,
+                        apns: {
+                            payload: {
+                                aps: {
+                                    'mutable-content': 1,
+                                    sound: 'notification_sound.caf',
+                                },
+                            },
+                            fcmOptions: {
+                                imageUrl: buildAvatar,
+                            },
                         },
-                    },
-                });
+                    });
+
+                    // Set Redis key with a 5-second expiration
+                    await redisClient.set(redisKey, '1', 'EX', 60);
+                }
             }
 
             return res.status(StatusCodes.OK).send({
