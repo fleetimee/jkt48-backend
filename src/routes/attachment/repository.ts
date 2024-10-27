@@ -14,13 +14,6 @@ export const getAllAttachmentsByConversationId = async (conversationId: string, 
         FROM message_attachment ma
         INNER JOIN message m ON m.id = ma.message_id
         INNER JOIN conversation c ON c.id = m.conversation_id
-        INNER JOIN "order" o ON o.user_id = ${userId}
-        INNER JOIN (
-            SELECT user_id, MAX(updated_at) AS last_successful_order
-            FROM "order"
-            WHERE user_id = ${userId} AND order_status = 'success'
-            GROUP BY user_id
-        ) AS last_order ON o.user_id = last_order.user_id
         WHERE (ma.file_path LIKE '%.jpg'
         OR ma.file_path LIKE '%.png'
         OR ma.file_path LIKE '%.gif'
@@ -30,7 +23,7 @@ export const getAllAttachmentsByConversationId = async (conversationId: string, 
         OR ma.file_path LIKE '%.webp')
         AND m.approved = TRUE
         AND c.id = ${conversationId}
-        AND m.created_at > last_order.last_successful_order
+        AND m.created_at > (SELECT created_at FROM users WHERE id = ${userId})
         ORDER BY ma.created_at DESC;
     `);
 
