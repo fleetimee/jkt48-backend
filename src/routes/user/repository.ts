@@ -453,10 +453,8 @@ export const getUserConversationMessages = async (
         ) AS last_order ON o.user_id = last_order.user_id
         WHERE c.id = '${conversationId}'
         AND m.approved = TRUE
-        AND m.created_at > last_order.last_successful_order
-        ORDER BY ${orderBy} ${sortDirection}
-        LIMIT ${_limit} OFFSET ${_offset};
-        `,
+        AND m.created_at > (SELECT created_at FROM users WHERE id = '${userId}')
+        ORDER BY ${orderBy} ${sortDirection}`,
             ),
         );
 
