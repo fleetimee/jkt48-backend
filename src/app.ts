@@ -246,8 +246,22 @@ app.use('/robots.txt', express.static('static/robots.txt'));
 // Top idols scheduler
 cron.schedule('0 0 * * 0', function () {
     console.log('Running store top idols by order transaction every Sunday midnight');
+
+    const serverKey = process.env.SERVER_KEY;
+
+    if (!serverKey) {
+        console.error('SERVER_KEY is undefined. Please set it in the environment variables.');
+        return;
+    }
+
     try {
-        fetch(`${BASE_URL}/api/top-idol/by-week`)
+        fetch(`${BASE_URL}/api/top-idol/by-week`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-server-key': serverKey,
+            },
+        })
             .then(res => res.json())
             .then(data => console.log(data))
             .catch(err => console.error(err));
@@ -260,8 +274,22 @@ cron.schedule('0 0 * * 0', function () {
 // Check for expired orders scheduler
 cron.schedule('*/10 * * * *', function () {
     console.log('Running check for expired orders every 10 minutes');
+
+    const serverKey = process.env.SERVER_KEY;
+
+    if (!serverKey) {
+        console.error('SERVER_KEY is undefined. Please set it in the environment variables.');
+        return;
+    }
+
     try {
-        fetch(`${BASE_URL}/api/order/check-expired`)
+        fetch(`${BASE_URL}/api/order/check-expired`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-server-key': serverKey,
+            },
+        })
             .then(res => res.json())
             .then(data => console.log(data))
             .catch(err => console.error(err));
