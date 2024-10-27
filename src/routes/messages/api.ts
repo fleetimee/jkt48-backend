@@ -5,8 +5,8 @@ import fs from 'fs';
 import { StatusCodes } from 'http-status-codes';
 
 import { BASE_URL } from '../../config';
-import { appCheckVerification } from '../../middlewares/appcheck';
 import { authenticateUser, requireAdminRole, requireMemberRole } from '../../middlewares/authenticate-user';
+import validateSignatureMiddleware from '../../middlewares/signature';
 import { validateSchema } from '../../middlewares/validate-request';
 import { UnprocessableEntityError } from '../../utils/errors';
 import { processUserBirthday } from '../../utils/process-birthday';
@@ -87,38 +87,45 @@ router.get('/:id', authenticateUser, requireAdminRole, async (req, res, next) =>
     }
 });
 
-router.get('/conversation/:id', authenticateUser, requireAdminRole, appCheckVerification, async (req, res, next) => {
-    try {
-        const id = req.user.id;
+router.get(
+    '/conversation/:id',
+    authenticateUser,
+    requireAdminRole,
+    validateSignatureMiddleware,
+    async (req, res, next) => {
+        try {
+            const id = req.user.id;
 
-        const conversationId = req.params.id;
-        if (!validateUuid(conversationId)) throw new UnprocessableEntityError('The conversation ID is not valid UUID');
+            const conversationId = req.params.id;
+            if (!validateUuid(conversationId))
+                throw new UnprocessableEntityError('The conversation ID is not valid UUID');
 
-        const page = parseInt(req.query.page as string) || 1;
-        const pageSize = parseInt(req.query.pageSize as string) || 10;
+            const page = parseInt(req.query.page as string) || 1;
+            const pageSize = parseInt(req.query.pageSize as string) || 10;
 
-        const offset = (page - 1) * pageSize;
+            const offset = (page - 1) * pageSize;
 
-        const messages = await getMessages(id, conversationId, pageSize, offset);
+            const messages = await getMessages(id, conversationId, pageSize, offset);
 
-        return res.status(StatusCodes.OK).send(
-            formatResponsePaginated({
-                success: true,
-                code: StatusCodes.OK,
-                message: 'Success fetch messages',
-                data: messages,
-                meta: {
-                    page,
-                    pageSize,
-                    orderBy: 'created_at',
-                    orderDirection: 'DESC',
-                },
-            }),
-        );
-    } catch (error) {
-        next(error);
-    }
-});
+            return res.status(StatusCodes.OK).send(
+                formatResponsePaginated({
+                    success: true,
+                    code: StatusCodes.OK,
+                    message: 'Success fetch messages',
+                    data: messages,
+                    meta: {
+                        page,
+                        pageSize,
+                        orderBy: 'created_at',
+                        orderDirection: 'DESC',
+                    },
+                }),
+            );
+        } catch (error) {
+            next(error);
+        }
+    },
+);
 
 // TODO: Perlu dibatasi yang bisa post message itu yang sesuai dengan conversation id, Which is, user yang punya conversation id itu, atau admin
 // router.post('/', authenticateUser, requireMemberRole, uploadMessage.array('attachments'), async (req, res, next) => {

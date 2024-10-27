@@ -1,8 +1,8 @@
 import express from 'express';
 import { StatusCodes } from 'http-status-codes';
 
-import { appCheckVerification } from '../../middlewares/appcheck';
 import { authenticateUser, requireAdminRole } from '../../middlewares/authenticate-user';
+import validateSignatureMiddleware from '../../middlewares/signature';
 import { UnprocessableEntityError } from '../../utils/errors';
 import { formatResponsePaginated } from '../../utils/response-formatter';
 import { validateUuid } from '../../utils/validate';
@@ -10,7 +10,7 @@ import { getConversations, getConversationsById } from './repository';
 
 const router = express.Router();
 
-router.get('/', authenticateUser, requireAdminRole, appCheckVerification, async (req, res, next) => {
+router.get('/', authenticateUser, requireAdminRole, validateSignatureMiddleware, async (req, res, next) => {
     try {
         const id = req.user.id;
 

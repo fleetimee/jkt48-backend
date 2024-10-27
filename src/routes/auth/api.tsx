@@ -1,10 +1,10 @@
 import express from 'express';
 import { StatusCodes } from 'http-status-codes';
 
-import { appCheckVerification } from '../../middlewares/appcheck';
 import { authenticateUser } from '../../middlewares/authenticate-user';
 import { checkBlockedUserAgent } from '../../middlewares/ip-block';
 import { rateLimiter, rateLimiterStrict } from '../../middlewares/rate-limiter';
+import validateSignatureMiddleware from '../../middlewares/signature';
 import { validateSchema } from '../../middlewares/validate-request';
 import { ConflictError } from '../../utils/errors';
 import { generateResetTokenPassword, generateVerificationCode } from '../../utils/lib';
@@ -61,7 +61,7 @@ router.post(
     validateSchema(registerSchema),
     checkBlockedUserAgent,
     rateLimiter,
-    appCheckVerification,
+    validateSignatureMiddleware,
     async (req, res, next) => {
         try {
             const { email, password, name, birthday, nickName, phoneNumber } = req.body;
@@ -93,22 +93,29 @@ router.post(
     },
 );
 
-router.post('/login', validateSchema(loginSchema), checkBlockedUserAgent, rateLimiter, async (req, res, next) => {
-    try {
-        const { email, password } = req.body;
+router.post(
+    '/login',
+    validateSchema(loginSchema),
+    checkBlockedUserAgent,
+    rateLimiter,
+    validateSignatureMiddleware,
+    async (req, res, next) => {
+        try {
+            const { email, password } = req.body;
 
-        const user = await verifyLogin(email, password);
-        const accessToken = createAccessToken(user.id, user.email, user.name, user.roles, user.isDeleted);
-        const refreshToken = createRefreshToken(user.id, user.email, user.name, user.roles);
-        setRefreshCookie(res, refreshToken);
+            const user = await verifyLogin(email, password);
+            const accessToken = createAccessToken(user.id, user.email, user.name, user.roles, user.isDeleted);
+            const refreshToken = createRefreshToken(user.id, user.email, user.name, user.roles);
+            setRefreshCookie(res, refreshToken);
 
-        return res.status(StatusCodes.OK).send({ accessToken });
-    } catch (error) {
-        console.log(error);
+            return res.status(StatusCodes.OK).send({ accessToken });
+        } catch (error) {
+            console.log(error);
 
-        next(error);
-    }
-});
+            next(error);
+        }
+    },
+);
 
 router.post('/logout', authenticateUser, async (req, res, next) => {
     try {
@@ -150,7 +157,7 @@ router.post(
     '/resend-verification',
     validateSchema(resendVerificationSchema),
     rateLimiterStrict,
-    appCheckVerification,
+    validateSignatureMiddleware,
     async (req, res, next) => {
         try {
             const { email } = req.body;
@@ -188,7 +195,7 @@ router.post(
     '/forgot_password',
     validateSchema(forgotPasswordSchema),
     rateLimiterStrict,
-    appCheckVerification,
+    validateSignatureMiddleware,
     async (req, res, next) => {
         try {
             const { email } = req.body;
@@ -226,9 +233,8 @@ router.post(
     '/request_deletion',
     validateSchema(requestDeletionSchema),
     authenticateUser,
-    appCheckVerification,
     rateLimiterStrict,
-    appCheckVerification,
+    validateSignatureMiddleware,
     async (req, res, next) => {
         try {
             const emailLoggedOn = req.user.email;
@@ -271,7 +277,7 @@ router.post(
     '/reset_password',
     validateSchema(resetPasswordSchema),
     rateLimiterStrict,
-    appCheckVerification,
+    validateSignatureMiddleware,
     async (req, res, next) => {
         try {
             const { token, password } = req.body;

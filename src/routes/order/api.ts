@@ -4,6 +4,7 @@ import { StatusCodes } from 'http-status-codes';
 import { authenticateUser } from '../../middlewares/authenticate-user';
 import { checkBlockedUserAgent } from '../../middlewares/ip-block';
 import { verifyCustomHeader } from '../../middlewares/legit';
+import validateSignatureMiddleware from '../../middlewares/signature';
 import { validateSchema } from '../../middlewares/validate-request';
 import { NotFoundError } from '../../utils/errors';
 import { formatResponse } from '../../utils/response-formatter';
@@ -133,40 +134,46 @@ router.get('/inquiry/:orderId/idol', authenticateUser, async (req, res, next) =>
     }
 });
 
-router.post('/', validateSchema(createOrderSchema), authenticateUser, async (req, res, next) => {
-    try {
-        const userId = req.user.id;
+router.post(
+    '/',
+    validateSchema(createOrderSchema),
+    authenticateUser,
+    validateSignatureMiddleware,
+    async (req, res, next) => {
+        try {
+            const userId = req.user.id;
 
-        const { packageId, paymentMethod, subtotal, tax, total, idolIds } = req.body;
+            const { packageId, paymentMethod, subtotal, tax, total, idolIds } = req.body;
 
-        // If user have a subscription, then the user can't buy a package
-        const checkSubscription = await checkUserSubscription(userId);
-        if (checkSubscription) throw new NotFoundError('User already have an active subscription');
+            // If user have a subscription, then the user can't buy a package
+            const checkSubscription = await checkUserSubscription(userId);
+            if (checkSubscription) throw new NotFoundError('User already have an active subscription');
 
-        // Validate idols count from package
-        const packageIdol = await getPackage(packageId);
+            // Validate idols count from package
+            const packageIdol = await getPackage(packageId);
 
-        const idolCount = packageIdol.totalMembers;
+            const idolCount = packageIdol.totalMembers;
 
-        console.log('idolIds', idolIds.length);
-        console.log('idolCount', idolCount);
-        if (idolIds.length != idolCount) throw new NotFoundError('Idol count not match with package');
+            console.log('idolIds', idolIds.length);
+            console.log('idolCount', idolCount);
+            if (idolIds.length != idolCount) throw new NotFoundError('Idol count not match with package');
 
-        const createOrderItem = await createOrder(userId, packageId, paymentMethod, subtotal, tax, total, idolIds);
+            const createOrderItem = await createOrder(userId, packageId, paymentMethod, subtotal, tax, total, idolIds);
 
-        return res.status(StatusCodes.OK).send(
-            formatResponse({
-                success: true,
-                code: StatusCodes.OK,
-                message: 'Order created',
-                data: createOrderItem,
-            }),
-        );
-    } catch (error) {
-        console.log(error);
-        next(error);
-    }
-});
+            return res.status(StatusCodes.OK).send(
+                formatResponse({
+                    success: true,
+                    code: StatusCodes.OK,
+                    message: 'Order created',
+                    data: createOrderItem,
+                }),
+            );
+        } catch (error) {
+            console.log(error);
+            next(error);
+        }
+    },
+);
 
 router.post('/createAppleResubscribe', async (req, res, next) => {
     try {
@@ -192,6 +199,7 @@ router.patch(
     validateSchema(updateOrderStatusSchema),
     authenticateUser,
     checkBlockedUserAgent,
+    validateSignatureMiddleware,
     async (req, res, next) => {
         try {
             const { orderId } = req.body;

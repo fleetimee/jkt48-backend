@@ -10,6 +10,10 @@ const sanitizeBody = (body: string): string => {
 };
 
 const validateSignatureMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+    // if (ENABLE_SIGNATURE_CHECK === 'false') {
+    //     return next();
+    // }
+
     const signature = req.headers['signature-mitra'] as string;
     const timestamp = req.headers['timestamp-mitra'] as string;
     const nonce = req.headers['nonce'] as string;
@@ -37,7 +41,7 @@ const validateSignatureMiddleware = async (req: Request, res: Response, next: Ne
         return res.status(403).json({ message: 'Invalid signature' });
     }
 
-    await redisClient.set(signatureKey, 'used', 'EX', 300);
+    await redisClient.set(signatureKey, 'used', 'EX', 120);
 
     next();
 };

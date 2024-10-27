@@ -5,11 +5,11 @@ import { Notification } from 'firebase-admin/lib/messaging/messaging-api';
 import { StatusCodes } from 'http-status-codes';
 import path from 'path';
 
-import { appCheckVerification } from '../../middlewares/appcheck';
 import { authenticateUser, requireAdminRole } from '../../middlewares/authenticate-user';
 import { cacheResponse, redisClient } from '../../middlewares/caching';
 import { checkBlockedUserAgent } from '../../middlewares/ip-block';
 import { rateLimiter } from '../../middlewares/rate-limiter';
+import validateSignatureMiddleware from '../../middlewares/signature';
 import { validateSchema } from '../../middlewares/validate-request';
 import { NotFoundError } from '../../utils/errors';
 import { uploadUserProfile } from '../../utils/multer';
@@ -277,7 +277,7 @@ router.get(
     '/me/conversationList',
     authenticateUser,
     checkBlockedUserAgent,
-    appCheckVerification,
+    validateSignatureMiddleware,
     async (req, res, next) => {
         try {
             const id = req.user.id;
@@ -366,7 +366,7 @@ router.get(
     authenticateUser,
     checkBlockedUserAgent,
     rateLimiter,
-    appCheckVerification,
+    validateSignatureMiddleware,
     async (req, res, next) => {
         try {
             const id = req.user.id;
@@ -495,7 +495,7 @@ router.get(
     authenticateUser,
     checkBlockedUserAgent,
     rateLimiter,
-    appCheckVerification,
+    validateSignatureMiddleware,
     async (req, res, next) => {
         try {
             const conversationId = req.params.conversationId;

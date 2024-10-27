@@ -55,4 +55,7 @@ export const APPLE_ISSUER_ID = process.env.APPLE_ISSUER_ID;
 export const APPLE_KEY_ID = process.env.APPLE_KEY_ID;
 export const APPLE_BUNDLE_ID = process.env.APPLE_BUNDLE_ID;
 
+export const SERVER_KEY = process.env.SERVER_KEY;
+
 export const ENABLE_APP_CHECK = process.env.ENABLE_APP_CHECK;
+export const ENABLE_SIGNATURE_CHECK = process.env.ENABLE_SIGNATURE_CHECK;

@@ -10,8 +10,8 @@ import path from 'path';
 import sharp from 'sharp';
 
 import { BASE_URL } from '../../config';
-import { appCheckVerification } from '../../middlewares/appcheck';
 import { authenticateUser, requireAdminRole, requireMemberRole } from '../../middlewares/authenticate-user';
+import validateSignatureMiddleware from '../../middlewares/signature';
 import { validateSchema } from '../../middlewares/validate-request';
 import { BadRequestError, NotFoundError, UnprocessableEntityError } from '../../utils/errors';
 import { generateVerificationCode } from '../../utils/lib';
@@ -70,26 +70,32 @@ router.get('/', authenticateUser, async (req, res, next) => {
     }
 });
 
-router.get('/getIdolMessage', authenticateUser, requireMemberRole, appCheckVerification, async (req, res, next) => {
-    try {
-        const id = req.user.id;
+router.get(
+    '/getIdolMessage',
+    authenticateUser,
+    requireMemberRole,
+    validateSignatureMiddleware,
+    async (req, res, next) => {
+        try {
+            const id = req.user.id;
 
-        const idolId = await getMemberIdByUserId(id);
+            const idolId = await getMemberIdByUserId(id);
 
-        const chat = await getMemberMessage(idolId.idol_id as string);
+            const chat = await getMemberMessage(idolId.idol_id as string);
 
-        return res.status(StatusCodes.OK).send({
-            success: true,
-            code: StatusCodes.OK,
-            message: 'Success fetch member message',
-            data: chat,
-        });
-    } catch (error) {
-        console.log(error);
+            return res.status(StatusCodes.OK).send({
+                success: true,
+                code: StatusCodes.OK,
+                message: 'Success fetch member message',
+                data: chat,
+            });
+        } catch (error) {
+            console.log(error);
 
-        next(error);
-    }
-});
+            next(error);
+        }
+    },
+);
 
 router.get('/getLoggedOnIdol', authenticateUser, requireMemberRole, async (req, res, next) => {
     try {
