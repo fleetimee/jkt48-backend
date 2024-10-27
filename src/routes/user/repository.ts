@@ -341,48 +341,55 @@ export const getUserTransactionDetail = async (userId: string, orderId: string) 
  */
 export const getUserConversationList = async (userId: string) => {
     const conversation = await db.execute(sql`
-    SELECT
-        c.id            AS conversation_id,
-        u.id            AS user_id,
-        i.id            AS idol_id,
-        u.nickname      AS idol_name,
-        u.profile_image AS idol_image,
-        COALESCE(
-            CASE
-                WHEN m.created_at < users.created_at OR m.approved = FALSE THEN 'hasnt sent a message yet'
-                WHEN m.message = '' THEN 'sent you a photo/sent you a voice note'
-                ELSE m.message
-            END,
-            'hasnt sent a message yet'
-        ) AS last_message,
-        m.created_at AS last_message_time,
-        unread_count.unread_count
-    FROM order_idol
-    INNER JOIN "order" o ON order_idol.order_id = o.id
-    INNER JOIN idol i ON order_idol.idol_id = i.id
-    INNER JOIN conversation c ON i.id = c.idol_id
-    INNER JOIN users u ON i.user_id = u.id
-    LEFT JOIN LATERAL (
-        SELECT m1.*
-        FROM message m1
-        WHERE m1.conversation_id = c.id AND m1.approved = TRUE
-        ORDER BY m1.created_at DESC
-        LIMIT 1
-    ) m ON TRUE
-    INNER JOIN users ON users.id = ${userId}
-    LEFT JOIN LATERAL (
-        SELECT COUNT(*) AS unread_count
-        FROM message m2
-        LEFT JOIN users_conversation uc ON uc.user_id = ${userId} AND uc.conversation_id = c.id
-        WHERE m2.conversation_id = c.id
-          AND m2.approved = TRUE
-          AND (
-              m2.created_at > COALESCE(uc.last_read_at, users.created_at)
-          )
-    ) unread_count ON TRUE
-    WHERE o.user_id = ${userId}
-      AND o.order_status = 'success'
-    ORDER BY unread_count.unread_count DESC, u.nickname;
+        SELECT
+            c.id            AS conversation_id,
+            u.id            AS user_id,
+            i.id            AS idol_id,
+            u.nickname      AS idol_name,
+            u.profile_image AS idol_image,
+            COALESCE(
+                CASE
+                    WHEN m.created_at < users.created_at OR m.approved = FALSE THEN 'hasnt sent a message yet'
+                    WHEN m.message = '' THEN 'sent you a photo/sent you a voice note'
+                    ELSE m.message
+                END,
+                'hasnt sent a message yet'
+            ) AS last_message,
+            m.created_at AS last_message_time,
+            unread_count.unread_count
+        FROM order_idol
+        INNER JOIN "order" o ON order_idol.order_id = o.id
+        INNER JOIN idol i ON order_idol.idol_id = i.id
+        INNER JOIN conversation c ON i.id = c.idol_id
+        INNER JOIN users u ON i.user_id = u.id
+        LEFT JOIN LATERAL (
+            SELECT m1.*
+            FROM message m1
+            WHERE m1.conversation_id = c.id AND m1.approved = TRUE
+            ORDER BY m1.created_at DESC
+            LIMIT 1
+        ) m ON TRUE
+        INNER JOIN users ON users.id = ${userId}
+        INNER JOIN (
+            SELECT user_id, MAX(updated_at) AS last_successful_order
+            FROM "order"
+            WHERE user_id = ${userId} AND order_status = 'success'
+            GROUP BY user_id
+        ) AS last_order ON o.user_id = last_order.user_id
+        LEFT JOIN LATERAL (
+            SELECT COUNT(*) AS unread_count
+            FROM message m2
+            LEFT JOIN users_conversation uc ON uc.user_id = ${userId} AND uc.conversation_id = c.id
+            WHERE m2.conversation_id = c.id
+              AND m2.approved = TRUE
+              AND (
+                  m2.created_at > COALESCE(uc.last_read_at, users.created_at)
+              )
+        ) unread_count ON TRUE
+        WHERE o.user_id = ${userId}
+          AND o.order_status = 'success'
+          AND m.created_at > last_order.last_successful_order
+        ORDER BY unread_count.unread_count DESC, u.nickname;
     `);
 
     return conversation;
@@ -432,29 +439,31 @@ export const getUserConversationMessages = async (
         messages = await trx.execute(
             sql.raw(
                 `
-        SELECT m.id         AS message_id,
-               m.message    AS message,
-               m.created_at AS created_at,
-               i.id         AS idol_id,
-               u2.name      AS idol_name,
-               u2.nickname  AS idol_nickname,
-               m.approved   AS approved
+          SELECT m.id         AS message_id,
+           m.message    AS message,
+           m.created_at AS created_at,
+           i.id         AS idol_id,
+           u2.name      AS idol_name,
+           u2.nickname  AS idol_nickname,
+           m.approved   AS approved
         FROM message m
         INNER JOIN users u ON m.user_id = u.id
         INNER JOIN conversation c ON m.conversation_id = c.id
         INNER JOIN idol i ON c.idol_id = i.id
         INNER JOIN users u2 ON i.user_id = u2.id
-        INNER JOIN "order" o ON o.user_id = '${userId}'
+        INNER JOIN "order" o ON o.user_id = ${userId}
         INNER JOIN (
             SELECT user_id, MAX(updated_at) AS last_successful_order
             FROM "order"
-            WHERE user_id = '${userId}' AND order_status = 'success'
+            WHERE user_id = ${userId} AND order_status = 'success'
             GROUP BY user_id
         ) AS last_order ON o.user_id = last_order.user_id
-        WHERE c.id = '${conversationId}'
+        WHERE c.id = ${conversationId}
         AND m.approved = TRUE
-        AND m.created_at > (SELECT created_at FROM users WHERE id = '${userId}')
-        ORDER BY ${orderBy} ${sortDirection}`,
+        AND m.created_at > last_order.last_successful_order
+        ORDER BY ${orderBy} ${sortDirection}
+        LIMIT 150 OFFSET 0;
+        `,
             ),
         );
 
