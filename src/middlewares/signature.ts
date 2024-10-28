@@ -20,7 +20,6 @@ const validateSignatureMiddleware = async (req: Request, res: Response, next: Ne
         return res.status(400).json({ message: 'Missing required headers' });
     }
 
-    // Validate the timestamp in 'Asia/Jakarta' timezone
     const requestTime = moment.tz(timestamp, 'Asia/Jakarta');
     const currentTime = moment().tz('Asia/Jakarta');
     const timeDifference = currentTime.diff(requestTime, 'seconds');
