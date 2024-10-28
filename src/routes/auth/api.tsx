@@ -1,5 +1,6 @@
 import express from 'express';
 import { StatusCodes } from 'http-status-codes';
+import React from 'react';
 
 import { authenticateUser } from '../../middlewares/authenticate-user';
 import { checkBlockedUserAgent } from '../../middlewares/ip-block';
@@ -9,13 +10,21 @@ import { validateSchema } from '../../middlewares/validate-request';
 import { ConflictError } from '../../utils/errors';
 import { generateResetTokenPassword, generateVerificationCode } from '../../utils/lib';
 import { formatResponse } from '../../utils/response-formatter';
+import { sendEmail } from '../../utils/send-emails';
 import { whitelistedEmails } from '../../utils/whitelisted-email';
+import { DeleteAccountEmail } from '../../views/emails/DeletedAccount';
+import { ForgotPasswordEmail } from '../../views/emails/ForgotPassword';
+import { RegisterAccountEmail } from '../../views/emails/RegisterAccount';
+import { RequestDeletionEmail } from '../../views/emails/RequestDeletion';
+import { ResendVerificationEmail } from '../../views/emails/ResendVerification';
+import { ResetPasswordEmail } from '../../views/emails/ResetPassword';
 import {
     checkDeleteStep,
     deleteAccountUser,
     forgotPasswordUser,
     getUser,
     getUserByDeleteToken,
+    getUserByResetToken,
     registerUser,
     requestDeletionUser,
     resetPasswordUser,
@@ -76,15 +85,15 @@ router.post(
 
             await registerUser(email, password, name, nickName, birthdayDate, verificationToken, phoneNumber);
 
-            // const emailResult = await sendEmail({
-            //     to: [email],
-            //     subject: 'Confirm Your Email Address for New Account Registration',
-            //     react: <RegisterAccountEmail validationCode={verificationToken} />,
-            // });
+            const emailResult = await sendEmail({
+                to: [email],
+                subject: 'Confirm Your Email Address for New Account Registration',
+                react: <RegisterAccountEmail validationCode={verificationToken} />,
+            });
 
-            // if (emailResult.error) {
-            //     return res.status(StatusCodes.NOT_FOUND).json({ error: emailResult.error });
-            // }
+            if (emailResult.error) {
+                return res.status(StatusCodes.NOT_FOUND).json({ error: emailResult.error });
+            }
 
             return res.status(StatusCodes.CREATED).json({ message: 'Langsung login aja ya :), Gak usah verifikasi' });
         } catch (error) {
@@ -174,15 +183,15 @@ router.post(
 
             await updateUserVerificationToken(email, verificationToken);
 
-            // const emailResult = await sendEmail({
-            //     to: [email],
-            //     subject: 'Verify your email',
-            //     react: <ResendVerificationEmail validationCode={verificationToken} />,
-            // });
+            const emailResult = await sendEmail({
+                to: [email],
+                subject: 'Verify your email',
+                react: <ResendVerificationEmail validationCode={verificationToken} />,
+            });
 
-            // if (emailResult.error) {
-            //     return res.status(StatusCodes.NOT_FOUND).json({ error: emailResult.error });
-            // }
+            if (emailResult.error) {
+                return res.status(StatusCodes.NOT_FOUND).json({ error: emailResult.error });
+            }
 
             return res.status(StatusCodes.OK).json({ message: 'Verification email sent successfully' });
         } catch (error) {
@@ -209,16 +218,16 @@ router.post(
 
             if (user) await forgotPasswordUser(email, randomStringToken);
 
-            // const emailResult = await sendEmail({
-            //     to: [email],
-            //     // to: ['zane.227@gmail.com'],
-            //     subject: 'Your Reset Password Token',
-            //     react: <ForgotPasswordEmail validationCode={randomStringToken} />,
-            // });
+            const emailResult = await sendEmail({
+                to: [email],
+                // to: ['zane.227@gmail.com'],
+                subject: 'Your Reset Password Token',
+                react: <ForgotPasswordEmail validationCode={randomStringToken} />,
+            });
 
-            // if (emailResult.error) {
-            //     return res.status(StatusCodes.BAD_REQUEST).json({ error: emailResult.error });
-            // }
+            if (emailResult.error) {
+                return res.status(StatusCodes.BAD_REQUEST).json({ error: emailResult.error });
+            }
 
             return res
                 .status(StatusCodes.OK)
@@ -254,15 +263,15 @@ router.post(
             const user = await getUser(email);
             if (user) await requestDeletionUser(email, randomStringToken);
 
-            // const emailResult = await sendEmail({
-            //     to: [email],
-            //     subject: 'Your Account Deletion Token',
-            //     react: <RequestDeletionEmail validationCode={randomStringToken} />,
-            // });
+            const emailResult = await sendEmail({
+                to: [email],
+                subject: 'Your Account Deletion Token',
+                react: <RequestDeletionEmail validationCode={randomStringToken} />,
+            });
 
-            // if (emailResult.error) {
-            //     return res.status(StatusCodes.BAD_REQUEST).json({ error: emailResult.error });
-            // }
+            if (emailResult.error) {
+                return res.status(StatusCodes.BAD_REQUEST).json({ error: emailResult.error });
+            }
 
             return res.status(StatusCodes.OK).json({ message: 'Success send token to delete account' });
         } catch (error) {
@@ -281,19 +290,19 @@ router.post(
     async (req, res, next) => {
         try {
             const { token, password } = req.body;
-            // const user = await getUserByResetToken(token);
+            const user = await getUserByResetToken(token);
             if (token && password) await resetPasswordUser(token, password);
 
-            // const emailResult = await sendEmail({
-            //     to: [user.email],
-            //     subject: 'Your Password Has Been Changed',
-            //     // text: `Your Password successfully changed`,
-            //     react: <ResetPasswordEmail />,
-            // });
+            const emailResult = await sendEmail({
+                to: [user.email],
+                subject: 'Your Password Has Been Changed',
+                // text: `Your Password successfully changed`,
+                react: <ResetPasswordEmail />,
+            });
 
-            // if (emailResult.error) {
-            //     return res.status(StatusCodes.BAD_REQUEST).json({ error: emailResult.error });
-            // }
+            if (emailResult.error) {
+                return res.status(StatusCodes.BAD_REQUEST).json({ error: emailResult.error });
+            }
 
             return res.status(StatusCodes.OK).json({ message: 'Success reset password' });
         } catch (error) {
@@ -334,16 +343,16 @@ router.post(
 
             if (token) await deleteAccountUser(token);
 
-            // const emailResult = await sendEmail({
-            //     to: [user.email],
-            //     subject: 'Your Account Has Been Deleted',
-            //     // text: `Your Account successfully deleted`,
-            //     react: <DeleteAccountEmail />,
-            // });
+            const emailResult = await sendEmail({
+                to: [user.email],
+                subject: 'Your Account Has Been Deleted',
+                // text: `Your Account successfully deleted`,
+                react: <DeleteAccountEmail />,
+            });
 
-            // if (emailResult.error) {
-            //     return res.status(StatusCodes.BAD_REQUEST).json({ error: emailResult.error });
-            // }
+            if (emailResult.error) {
+                return res.status(StatusCodes.BAD_REQUEST).json({ error: emailResult.error });
+            }
 
             return res.status(StatusCodes.OK).json({ message: 'Success delete account' });
         } catch (error) {
