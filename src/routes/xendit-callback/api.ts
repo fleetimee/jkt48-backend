@@ -1,15 +1,10 @@
 import express from 'express';
 import { messaging } from 'firebase-admin';
+import { Notification } from 'firebase-admin/lib/messaging/messaging-api';
 import { StatusCodes } from 'http-status-codes';
 
-import { verifyXenditToken } from '../../middlewares/xendit-auth';
-import { fetchIdolIdByOrderId } from '../order/repository';
 import { fetchFcmTokenByOrderId } from '../token/repository';
-import {
-    deleteOrderStatusXenditCallback,
-    updateOrderStatusXenditCallback,
-    updateOrderStatusXenditSubscriptionCallback,
-} from './repository';
+import { updateOrderStatusXenditCallback, updateOrderStatusXenditSubscriptionCallback } from './repository';
 
 const router = express.Router();
 
@@ -23,7 +18,7 @@ export enum XenditRecurringStatus {
     PAYMENT_ACTIVATED = 'payment_method.activated',
 }
 
-router.post('/', verifyXenditToken, async (req, res, next) => {
+router.post('/', async (req, res, next) => {
     try {
         const { body } = req;
 
@@ -34,60 +29,64 @@ router.post('/', verifyXenditToken, async (req, res, next) => {
             });
         }
 
-        switch (body.status) {
-            case 'PAID': {
-                await updateOrderStatusXenditCallback(body.external_id, 'success', body);
+        if (body.status === 'PAID') {
+            await updateOrderStatusXenditCallback(body.external_id, 'success', body);
 
-                // Fetch the FCM tokens and the idol ID associated with the order
-                const [tokens, idolId] = await Promise.all([
-                    fetchFcmTokenByOrderId(body.external_id),
-                    fetchIdolIdByOrderId(body.external_id),
-                ]);
+            const tokens = await fetchFcmTokenByOrderId(body.external_id);
 
-                if (tokens.length > 0 && idolId) {
-                    const subscribePromises = tokens.map(tokenRecord => {
-                        const token = tokenRecord.token as string;
-                        const topicName = `idol_${idolId.idol_id}`;
-                        return messaging().subscribeToTopic(token, topicName);
-                    });
+            console.log('FCM Tokens:', tokens);
 
-                    // Wait for all subscriptions to complete
-                    await Promise.all(subscribePromises);
-                    console.log(`Successfully subscribed tokens to topic idol_${idolId.idol_id}`);
-                }
+            if (tokens.length > 0) {
+                const fcmTokens = tokens.map(token => token.token);
 
-                return res.status(StatusCodes.OK).send({
-                    message: 'Xendit callback received for successful payment',
+                const notificationMessage: Notification = {
+                    title: 'Payment Success',
+                    body: 'Your payment has been successfully processed',
+                };
+
+                // Send FCM notification
+                await messaging().sendEachForMulticast({
+                    tokens: fcmTokens as unknown as string[],
+                    notification: notificationMessage,
+                    android: {
+                        notification: {
+                            imageUrl: 'https://jkt48pm.my.id/static/logo_jkt48pm_2.png',
+                            sound: 'default',
+                        },
+                    },
+                    apns: {
+                        payload: {
+                            aps: {
+                                'mutable-content': 1,
+                                sound: 'notification_sound.caf',
+                            },
+                        },
+                        fcmOptions: {
+                            imageUrl: 'https://jkt48pm.my.id/static/logo_jkt48pm_2.png',
+                        },
+                    },
                 });
             }
 
-            case 'FAILED': {
-                await updateOrderStatusXenditCallback(body.external_id, 'failed', body);
+            return res.status(StatusCodes.OK).send({
+                message: 'Xendit callback received for successful payment',
+            });
 
-                return res.status(StatusCodes.OK).send({
-                    message: 'Xendit callback received for failed payment',
-                });
-            }
+            return;
+        } else if (body.status === 'FAILED') {
+            await updateOrderStatusXenditCallback(body.external_id, 'failed', body);
 
-            case 'EXPIRED': {
-                await deleteOrderStatusXenditCallback(body.external_id);
+            return res.status(StatusCodes.OK).send({
+                message: 'Xendit callback received for failed payment',
+            });
 
-                return res.status(StatusCodes.OK).send({
-                    message: 'Xendit callback received for expired payment',
-                });
-            }
-
-            default:
-                return res.status(StatusCodes.BAD_REQUEST).send({
-                    message: 'Invalid status received',
-                });
+            return;
         }
 
         return res.status(StatusCodes.BAD_REQUEST).send({
             message: 'Invalid status',
         });
     } catch (error) {
-        console.error('Error processing Xendit callback:', error);
         next(error);
     }
 });

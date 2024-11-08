@@ -26,10 +26,6 @@ export const updateOrderStatusXenditCallback = async (orderId: string, status: s
         .where(eq(order.id, orderId));
 };
 
-export const deleteOrderStatusXenditCallback = async (orderId: string) => {
-    await db.delete(order).where(eq(order.id, orderId));
-};
-
 export const updateOrderStatusXenditSubscriptionCallback = async (
     orderId: string,
     status: XenditRecurringStatus,

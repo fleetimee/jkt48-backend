@@ -18,8 +18,17 @@ const loggingMiddleware = async (req: Request, res: Response, next: NextFunction
         try {
             const payload = verifyToken(token);
             user = `${payload.name} - ${payload.email} - ${payload.roles}`;
+            logger.info({
+                level: 'info',
+                message: `Authenticated user: ${user}`,
+                service: 'jkt48-pm',
+            });
         } catch (err) {
-            // Handle error if needed
+            logger.warn({
+                level: 'warn',
+                message: `Unauthenticated access attempt: ${err}`,
+                service: 'jkt48-pm',
+            });
         }
     }
 
@@ -35,27 +44,18 @@ const loggingMiddleware = async (req: Request, res: Response, next: NextFunction
         hour12: true,
     });
 
-    const userAgent = req.headers['user-agent'];
-    if (userAgent && userAgent.includes('Dart')) {
-        next();
-        return;
-    }
-
-    const clientIp = req.headers['x-forwarded-for'] || req.ip;
-
     logger.info({
         level: 'info',
         message: [
             `Date: ${date}`,
             `Time: ${time}`,
             `User: ${user}`,
-            `IP: ${clientIp}`,
-            `User Agent: ${userAgent}`,
+            `IP: ${req.ip}`,
+            `User Agent: ${req.headers['user-agent']}`,
             `Route: ${req.method} ${req.url}`,
         ],
         service: 'jkt48-pm',
     });
-
     next();
 };
 

@@ -14,30 +14,10 @@ const config = {
  * @param {number} config.max - The maximum number of requests allowed within the time window.
  * @returns {Function} - The rate limiter middleware function.
  */
-
-/**
- * Middleware function to limit the rate of incoming requests.
- *
- * This rate limiter is configured to allow a maximum of 1000 requests per minute
- * from a single IP address. The time window for this rate limit is set to 1 minute.
- *
- * @constant
- * @type {import("express-rate-limit").RateLimit}
- * @default
- * @param {number} windowMs - The time window in milliseconds for which the rate limit is calculated.
- * @param {number} max - The maximum number of requests allowed within the time window.
- * @param {object} config - Additional configuration options for the rate limiter.
- */
 export const rateLimiter = rateLimit({
-    windowMs: 60 * 1000, // 1 minute window
-    max: 300, // 300 requests allowed per minute
+    windowMs: 5 * 1000,
+    max: 100,
     ...config,
-});
-
-export const rateLimiter5Minutes = rateLimit({
-    windowMs: 5 * 60 * 1000, // 10 minute window
-    max: 1000, // 1000 requests allowed per 10 minutes
-    // Add any additional configuration options here
 });
 
 /**
@@ -50,11 +30,5 @@ export const rateLimiter5Minutes = rateLimit({
 export const rateLimiterStrict = rateLimit({
     windowMs: 10 * 1000,
     max: 3,
-    ...config,
-});
-
-export const rateLimiterVeryStrict = rateLimit({
-    windowMs: 5 * 1000, // 5 seconds window
-    max: 1, // 1 request allowed per 5 seconds
     ...config,
 });

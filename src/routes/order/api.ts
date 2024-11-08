@@ -2,12 +2,9 @@ import express from 'express';
 import { StatusCodes } from 'http-status-codes';
 
 import { authenticateUser } from '../../middlewares/authenticate-user';
-import { checkBlockedUserAgent } from '../../middlewares/ip-block';
-import { verifyCustomHeader } from '../../middlewares/legit';
 import { validateSchema } from '../../middlewares/validate-request';
 import { NotFoundError } from '../../utils/errors';
 import { formatResponse } from '../../utils/response-formatter';
-import { getPackage } from '../packet/repository';
 import { deleteFcmTokensByUserId } from '../token/repository';
 import { checkUserSubscription } from '../user/repository';
 import {
@@ -31,7 +28,7 @@ import {
 
 const router = express.Router();
 
-router.get('/check-expired', verifyCustomHeader, async (req, res, next) => {
+router.get('/check-expired', async (req, res, next) => {
     try {
         await updateExpiredOrderStatus();
 
@@ -143,15 +140,6 @@ router.post('/', validateSchema(createOrderSchema), authenticateUser, async (req
         const checkSubscription = await checkUserSubscription(userId);
         if (checkSubscription) throw new NotFoundError('User already have an active subscription');
 
-        // Validate idols count from package
-        const packageIdol = await getPackage(packageId);
-
-        const idolCount = packageIdol.totalMembers;
-
-        console.log('idolIds', idolIds.length);
-        console.log('idolCount', idolCount);
-        if (idolIds.length != idolCount) throw new NotFoundError('Idol count not match with package');
-
         const createOrderItem = await createOrder(userId, packageId, paymentMethod, subtotal, tax, total, idolIds);
 
         return res.status(StatusCodes.OK).send(
@@ -187,38 +175,28 @@ router.post('/createAppleResubscribe', async (req, res, next) => {
     }
 });
 
-router.patch(
-    '/updateStatus',
-    validateSchema(updateOrderStatusSchema),
-    authenticateUser,
-    checkBlockedUserAgent,
-    async (req, res, next) => {
-        try {
-            const { orderId } = req.body;
+router.patch('/updateStatus', validateSchema(updateOrderStatusSchema), authenticateUser, async (req, res, next) => {
+    try {
+        const { orderId } = req.body;
 
-            // Change
+        const order = await getOrderById(orderId);
 
-            const order = await getOrderById(orderId);
+        if (!order) throw new NotFoundError('Order not found');
 
-            if (!order) throw new NotFoundError('Order not found');
+        await updateOrderStatusGpay(orderId);
 
-            await updateOrderStatusGpay(orderId);
-
-            // Hey
-
-            return res.status(StatusCodes.OK).send(
-                formatResponse({
-                    success: true,
-                    code: StatusCodes.OK,
-                    message: 'Invalid credentials',
-                    data: null,
-                }),
-            );
-        } catch (error) {
-            next(error);
-        }
-    },
-);
+        return res.status(StatusCodes.OK).send(
+            formatResponse({
+                success: true,
+                code: StatusCodes.OK,
+                message: 'Order status updated',
+                data: null,
+            }),
+        );
+    } catch (error) {
+        next(error);
+    }
+});
 
 router.patch(
     '/updateAppleOriginalTransactionId',

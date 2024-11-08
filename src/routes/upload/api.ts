@@ -2,13 +2,12 @@ import express from 'express';
 import { StatusCodes } from 'http-status-codes';
 import multer from 'multer';
 
-import { rateLimiterStrict } from '../../middlewares/rate-limiter';
 import { upload } from '../../utils/multer';
 import { formatResponse } from '../../utils/response-formatter';
 
 const router = express.Router();
 
-router.post('/:urlParam(news|profile)', upload.single('file'), rateLimiterStrict, (req, res, next) => {
+router.post('/:urlParam(news|profile)', upload.single('file'), (req, res, next) => {
     try {
         if (!req.file) {
             return res.status(StatusCodes.BAD_REQUEST).send({ error: 'No file uploaded' });
