@@ -6,6 +6,9 @@ import { StatusCodes } from 'http-status-codes';
 import path from 'path';
 
 import { authenticateUser, requireAdminRole } from '../../middlewares/authenticate-user';
+import { cacheResponse, redisClient } from '../../middlewares/caching';
+import { checkBlockedUserAgent } from '../../middlewares/ip-block';
+import { rateLimiter } from '../../middlewares/rate-limiter';
 import { validateSchema } from '../../middlewares/validate-request';
 import { NotFoundError } from '../../utils/errors';
 import { uploadUserProfile } from '../../utils/multer';
@@ -21,10 +24,12 @@ import { fetchFcmTokenByUserId } from '../token/repository';
 import {
     cancelSubscription,
     checkUserSubscription,
-    checkUserSubscriptionOderIdol,
+    checkUserSubscriptionByConversation,
     countActiveSubscriptionsUsers,
     countRegisteredUsers,
     deleteUserReactToMessage,
+    getBlockList,
+    getConversationId,
     getUserActiveIdols,
     getUserBirthdayMessages,
     getUserById,
@@ -34,6 +39,7 @@ import {
     getUserIdWithUnreadBirthdayMessageCount,
     getUserTransactionDetail,
     getUserTransactionList,
+    insertBlockList,
     setUserReactionToMessage,
     updateAdminCredentials,
     updateUser,
@@ -42,6 +48,10 @@ import {
 import { postReaction, updateUserSchema } from './schema';
 
 const router = express.Router();
+
+const possibleThresholds = [5, 7, 8, 9, 10];
+const BURST_THRESHOLD = possibleThresholds[Math.floor(Math.random() * possibleThresholds.length)];
+const BURST_WINDOW = 1;
 
 router.get('/me', authenticateUser, async (req, res, next) => {
     try {
@@ -262,78 +272,194 @@ router.get('/me/transactionDetail/:orderId', authenticateUser, async (req, res, 
     }
 });
 
-router.get('/me/conversationList', authenticateUser, async (req, res, next) => {
+router.get('/me/conversationList', authenticateUser, checkBlockedUserAgent, async (req, res, next) => {
     try {
         const id = req.user.id;
+        const email = req.user.email;
+
+        const redisBurstKey = `burst:${email}`;
+        const requests = await redisClient.incr(redisBurstKey);
+        if (requests === 1) {
+            await redisClient.expire(redisBurstKey, BURST_WINDOW);
+        }
+
+        if (requests > BURST_THRESHOLD) {
+            const blockList = await getBlockList(email);
+
+            if (blockList) {
+                return res.status(404).send(
+                    formatResponse({
+                        code: 404,
+                        message:
+                            'Anda terdeteksi melakukan aktivitas scraping dan penyalahgunaan pada sistem kami. Demi menjaga integritas dan keamanan layanan, akun Anda akan diblokir sementara dari akses chat terbaru member. Harap diperhatikan bahwa aktivitas ini melanggar ketentuan layanan kami, dan IP Anda telah dicatat sebagai bukti pelanggaran. Jika aktivitas ini terus berlanjut, kami tidak segan-segan untuk melaporkannya kepada pihak berwajib. Untuk mengaktifkan kembali akun Anda atau jika Anda merasa ini adalah kesalahan, silakan segera hubungi customer support. Terima kasih atas perhatian Anda.',
+                        success: false,
+                        data: null,
+                    }),
+                );
+            }
+
+            await insertBlockList(email);
+            console.log(`Burst detected and blocked email: ${email}`);
+
+            return res.status(403).send({
+                message: 'Your access is blocked due to suspicious activity',
+                success: false,
+            });
+        }
+
+        const cacheKey = `conversation-list:${id}`;
+
+        const cachedData = await redisClient.get(cacheKey);
+        if (cachedData) {
+            console.log(`Cache hit for ${cacheKey}`);
+            res.setHeader('Content-Type', 'application/json');
+            return res.send(JSON.parse(cachedData));
+        }
 
         const user = await getUserById(id);
         if (!user) throw new NotFoundError('User not found');
 
+        const blockList = await getBlockList(email);
+        if (blockList) {
+            return res.status(404).send(
+                formatResponse({
+                    code: 404,
+                    message:
+                        'Anda terdeteksi melakukan aktivitas scraping dan penyalahgunaan pada sistem kami. Demi menjaga integritas dan keamanan layanan, akun Anda akan diblokir sementara dari akses chat terbaru member. Harap diperhatikan bahwa aktivitas ini melanggar ketentuan layanan kami, dan IP Anda telah dicatat sebagai bukti pelanggaran. Jika aktivitas ini terus berlanjut, kami tidak segan-segan untuk melaporkannya kepada pihak berwajib. Untuk mengaktifkan kembali akun Anda atau jika Anda merasa ini adalah kesalahan, silakan segera hubungi customer support. Terima kasih atas perhatian Anda.',
+                    success: false,
+                    data: null,
+                }),
+            );
+        }
+
         const conversationList = await getUserConversationList(id);
 
-        return res.status(StatusCodes.OK).send(
-            formatResponse({
-                code: StatusCodes.OK,
-                message: 'User conversation list',
-                data: conversationList,
-                success: true,
-            }),
-        );
+        const response = formatResponse({
+            code: StatusCodes.OK,
+            message: 'User conversation list',
+            data: conversationList,
+            success: true,
+        });
+
+        await cacheResponse(cacheKey, response, 3);
+
+        return res.status(StatusCodes.OK).send(response);
     } catch (error) {
         console.log(error);
-
         next(error);
     }
 });
 
-router.get('/me/conversation/:conversationId', authenticateUser, async (req, res, next) => {
-    try {
-        const id = req.user.id;
-        const conversationId = req.params.conversationId;
+// Middleware function to check if the user agent is blocked
 
-        const page = parseInt(req.query.page as string) || 1;
-        const pageSize = parseInt(req.query.pageSize as string) || 10;
-        const orderBy = (req.query.orderBy as string) || 'created_at';
-        const orderDirection = (req.query.orderDirection as string) || 'DESC';
+// Define thresholds
 
-        const user = await getUserById(id);
-        if (!user) throw new NotFoundError('User not found');
+router.get(
+    '/me/conversation/:conversationId',
+    authenticateUser,
+    checkBlockedUserAgent,
+    rateLimiter,
+    async (req, res, next) => {
+        try {
+            const id = req.user.id;
+            const email = req.user.email;
+            const conversationIdParams = req.params.conversationId;
 
-        // Get the conversation list
-        const conversationList = await getUserConversationList(id);
-        if (!conversationList) throw new NotFoundError('Conversation not found');
+            // Implement burst detection
+            const redisKey = `burst:${email}`;
+            const requests = await redisClient.incr(redisKey);
+            if (requests === 1) {
+                await redisClient.expire(redisKey, BURST_WINDOW);
+            }
 
-        // Get the list of idols from the conversation list
-        const idolList = conversationList.map(conversation => conversation.idol_id);
+            if (requests > BURST_THRESHOLD) {
+                const blockList = await getBlockList(email);
 
-        // Check if the user is subscribed to any of the idols in the conversation
-        const subscriptions = await Promise.all(
-            idolList.map(idolId => checkUserSubscriptionOderIdol(id, idolId as string)),
-        );
+                if (blockList) {
+                    return res.status(404).send(
+                        formatResponse({
+                            code: 404,
+                            message:
+                                'Anda terdeteksi melakukan aktivitas scraping dan penyalahgunaan pada sistem kami. Demi menjaga integritas dan keamanan layanan, akun Anda akan diblokir sementara dari akses chat terbaru member. Harap diperhatikan bahwa aktivitas ini melanggar ketentuan layanan kami, dan IP Anda telah dicatat sebagai bukti pelanggaran. Jika aktivitas ini terus berlanjut, kami tidak segan-segan untuk melaporkannya kepada pihak berwajib. Untuk mengaktifkan kembali akun Anda atau jika Anda merasa ini adalah kesalahan, silakan segera hubungi customer support. Terima kasih atas perhatian Anda.',
+                            success: false,
+                            data: null,
+                        }),
+                    );
+                }
 
-        // If the user is not subscribed to any of the idols, throw an error
-        if (subscriptions.every(subscription => !subscription)) {
-            throw new NotFoundError(
-                'User does not have an active subscription to any of the idols in this conversation',
+                // Add email to blocklist as the burst threshold is exceeded
+                await insertBlockList(email);
+
+                // Log or notify about the burst detection
+                console.log(`Burst detected and blocked email: ${email}`);
+
+                return res.status(403).send({
+                    message: 'Your access is blocked due to suspicious activity',
+                    success: false,
+                });
+            }
+
+            const cacheKey = `conversation:${id}:${conversationIdParams}`;
+
+            const cachedData = await redisClient.get(cacheKey);
+            if (cachedData) {
+                console.log(`Cache hit for ${cacheKey}`);
+                res.setHeader('Content-Type', 'application/json');
+                return res.send(JSON.parse(cachedData));
+            }
+
+            const conversationId = req.params.conversationId;
+
+            const page = parseInt(req.query.page as string) || 1;
+            const pageSize = parseInt(req.query.pageSize as string) || 10;
+            const orderBy = (req.query.orderBy as string) || 'created_at';
+            const orderDirection = (req.query.orderDirection as string) || 'DESC';
+
+            const user = await getUserById(id);
+            if (!user) throw new NotFoundError('User not found');
+
+            const conversationList = await getUserConversationList(id);
+            if (!conversationList) throw new NotFoundError('Conversation not found');
+
+            const blockList = await getBlockList(email);
+
+            if (blockList) {
+                return res.status(404).send(
+                    formatResponse({
+                        code: 404,
+                        message:
+                            'Anda terdeteksi melakukan aktivitas scraping dan penyalahgunaan pada sistem kami. Demi menjaga integritas dan keamanan layanan, akun Anda akan diblokir sementara dari akses chat terbaru member. Harap diperhatikan bahwa aktivitas ini melanggar ketentuan layanan kami, dan IP Anda telah dicatat sebagai bukti pelanggaran. Jika aktivitas ini terus berlanjut, kami tidak segan-segan untuk melaporkannya kepada pihak berwajib. Untuk mengaktifkan kembali akun Anda atau jika Anda merasa ini adalah kesalahan, silakan segera hubungi customer support. Terima kasih atas perhatian Anda.',
+                        success: false,
+                        data: null,
+                    }),
+                );
+            }
+
+            const isValidSubs = await checkUserSubscriptionByConversation(id, conversationId);
+            if (!isValidSubs) {
+                return res.status(404).send(
+                    formatResponse({
+                        code: 404,
+                        message: '🤣👉',
+                        success: false,
+                        data: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                    }),
+                );
+            }
+
+            // Get the conversation messages
+            const conversation = await getUserConversationMessages(
+                id,
+                conversationId,
+                orderBy,
+                orderDirection,
+                pageSize,
+                page,
             );
-        }
 
-        // Get the conversation messages
-        const conversation = await getUserConversationMessages(
-            id,
-            conversationId,
-            orderBy,
-            orderDirection,
-            pageSize,
-            page,
-        );
+            if (!conversation) throw new NotFoundError('Conversation not found');
 
-        console.log(conversation);
-
-        if (!conversation) throw new NotFoundError('Conversation not found');
-
-        return res.status(StatusCodes.OK).send(
-            formatResponsePaginated({
+            const response = formatResponsePaginated({
                 code: StatusCodes.OK,
                 message: 'User conversation',
                 data: conversation,
@@ -344,43 +470,113 @@ router.get('/me/conversation/:conversationId', authenticateUser, async (req, res
                     orderDirection,
                 },
                 success: true,
-            }),
-        );
-    } catch (error) {
-        console.log(error);
-        next(error);
-    }
-});
+            });
 
-router.get('/me/conversation/:conversationId/images', authenticateUser, async (req, res, next) => {
-    try {
-        const conversationId = req.params.conversationId;
+            await cacheResponse(cacheKey, response, 5);
 
-        const id = req.user.id;
+            return res.status(StatusCodes.OK).send(response);
+        } catch (error) {
+            console.log(error);
+            next(error);
+        }
+    },
+);
 
-        // Check if conversation id is valid uuid
-        const isValidUuid = validateUuid(conversationId);
-        if (!isValidUuid) throw new NotFoundError('ConversationId not valid (uuid)');
+router.get(
+    '/me/conversation/:conversationId/images',
+    authenticateUser,
+    checkBlockedUserAgent,
+    rateLimiter,
+    async (req, res, next) => {
+        try {
+            const conversationId = req.params.conversationId;
 
-        // Check if the conversation exists
-        const conversation = await getConversationsById(conversationId);
-        if (!conversation) throw new NotFoundError('Conversation not found');
+            const id = req.user.id;
+            const email = req.user.email;
 
-        const images = await getAllAttachmentsByConversationId(conversationId, id);
-        if (!images) throw new NotFoundError('Images not found');
+            // Check if conversation id is valid uuid
+            const isValidUuid = validateUuid(conversationId);
+            if (!isValidUuid) throw new NotFoundError('ConversationId not valid (uuid)');
 
-        return res.status(StatusCodes.OK).send(
-            formatResponse({
+            // Implement burst detection
+            const redisKey = `burst:${email}`;
+            const requests = await redisClient.incr(redisKey);
+            if (requests === 1) {
+                await redisClient.expire(redisKey, BURST_WINDOW);
+            }
+
+            if (requests > BURST_THRESHOLD) {
+                const blockList = await getBlockList(email);
+
+                if (blockList) {
+                    return res.status(404).send(
+                        formatResponse({
+                            code: 404,
+                            message:
+                                'Anda terdeteksi melakukan aktivitas scraping dan penyalahgunaan pada sistem kami. Demi menjaga integritas dan keamanan layanan, akun Anda akan diblokir sementara dari akses chat terbaru member. Harap diperhatikan bahwa aktivitas ini melanggar ketentuan layanan kami, dan IP Anda telah dicatat sebagai bukti pelanggaran. Jika aktivitas ini terus berlanjut, kami tidak segan-segan untuk melaporkannya kepada pihak berwajib. Untuk mengaktifkan kembali akun Anda atau jika Anda merasa ini adalah kesalahan, silakan segera hubungi customer support. Terima kasih atas perhatian Anda.',
+                            success: false,
+                            data: null,
+                        }),
+                    );
+                }
+
+                // Add email to blocklist as the burst threshold is exceeded
+                await insertBlockList(email);
+
+                // Log or notify about the burst detection
+                console.log(`Burst detected and blocked email: ${email}`);
+
+                return res.status(403).send({
+                    message: 'Your access is blocked due to suspicious activity',
+                    success: false,
+                });
+            }
+
+            const cacheKey = `conversation:${id}:${conversationId}:images`;
+
+            const cachedData = await redisClient.get(cacheKey);
+            if (cachedData) {
+                console.log(`Cache hit for ${cacheKey}`);
+                res.setHeader('Content-Type', 'application/json');
+                return res.send(JSON.parse(cachedData));
+            }
+
+            const isValidSubs = await checkUserSubscriptionByConversation(id, conversationId);
+
+            console.log(isValidSubs);
+
+            if (!isValidSubs) {
+                return res.status(404).send(
+                    formatResponse({
+                        code: 404,
+                        message: '🤣👉',
+                        success: false,
+                        data: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                    }),
+                );
+            }
+
+            const conversation = await getConversationsById(conversationId);
+            if (!conversation) throw new NotFoundError('Conversation not found');
+
+            const images = await getAllAttachmentsByConversationId(conversationId, id);
+            if (!images) throw new NotFoundError('Images not found');
+
+            const response = formatResponse({
                 code: StatusCodes.OK,
                 message: 'Conversation images',
                 data: images,
                 success: true,
-            }),
-        );
-    } catch (error) {
-        next(error);
-    }
-});
+            });
+
+            await cacheResponse(cacheKey, response, 6);
+
+            return res.status(StatusCodes.OK).send(response);
+        } catch (error) {
+            next(error);
+        }
+    },
+);
 
 router.get('/me/getActiveIdols', authenticateUser, async (req, res, next) => {
     try {
@@ -411,12 +607,16 @@ router.post('/me/reactMessage/:messageId', validateSchema(postReaction), authent
         const messageId = req.params.messageId;
         const { reactionId } = req.body;
 
-        // Let these functions throw errors if something goes wrong
+        const conversationId = await getConversationId(messageId);
+
         await getMessagesById(messageId);
         await getReactionById(reactionId);
 
-        // Post the reaction
-        await await setUserReactionToMessage(id, messageId, reactionId);
+        await setUserReactionToMessage(id, messageId, reactionId);
+
+        const cacheKey = `conversation:${id}:${conversationId}`;
+
+        await redisClient.del(cacheKey);
 
         return res.status(StatusCodes.OK).send(
             formatResponse({
@@ -437,12 +637,19 @@ router.delete('/me/unReactMessage/:messageId/reaction/:reactionId', authenticate
         const messageId = req.params.messageId;
         const reactionId = req.params.reactionId;
 
+        // Fetch the conversation ID
+        const conversationId = await getConversationId(messageId);
+
         // Let these functions throw errors if something goes wrong
         await getMessagesById(messageId);
         await getReactionById(reactionId);
 
-        // Post the reaction
+        // Remove the reaction
         await deleteUserReactToMessage(id, messageId, reactionId);
+
+        // Clear the cache for the conversation
+        const cacheKey = `conversation:${id}:${conversationId}`;
+        await redisClient.del(cacheKey);
 
         return res.status(StatusCodes.OK).send(
             formatResponse({

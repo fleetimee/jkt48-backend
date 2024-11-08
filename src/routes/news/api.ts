@@ -109,7 +109,7 @@ router.get('/slug/:slug', async (req, res, next) => {
     }
 });
 
-router.post('/', validateSchema(createNewsSchema), authenticateUser, async (req, res, next) => {
+router.post('/', validateSchema(createNewsSchema), authenticateUser, requireAdminRole, async (req, res, next) => {
     try {
         const { title, body, image } = req.body;
         const userId = req.user.id;

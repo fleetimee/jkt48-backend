@@ -270,9 +270,11 @@ export const getMessageDetail = async (messageId: string) => {
         sql`
         SELECT u.nickname AS nickname,
         u.profile_image AS profile_image,
+        i.id AS idol_id,
         m.message  AS message
         FROM users u
                 INNER JOIN message m ON u.id = m.user_id
+                INNER JOIN idol i ON u.id = i.user_id
         WHERE m.id = ${messageId};
         `,
     );

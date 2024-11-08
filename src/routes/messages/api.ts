@@ -6,13 +6,13 @@ import { StatusCodes } from 'http-status-codes';
 
 import { BASE_URL } from '../../config';
 import { authenticateUser, requireAdminRole, requireMemberRole } from '../../middlewares/authenticate-user';
+import { redisClient } from '../../middlewares/caching';
 import { validateSchema } from '../../middlewares/validate-request';
 import { UnprocessableEntityError } from '../../utils/errors';
 import { processUserBirthday } from '../../utils/process-birthday';
 import { formatResponsePaginated } from '../../utils/response-formatter';
 import { validateUuid } from '../../utils/validate';
 import { deleteAttachment, getAttachmentsByMessageId } from '../attachment/repository';
-import { fetchSubscribedFcmTokens } from '../token/repository';
 import { checkBirthday, fetchTodayBirthdayUsers } from '../user/repository';
 import {
     approveAllUserMessages,
@@ -229,6 +229,52 @@ router.delete('/:id', authenticateUser, requireMemberRole, async (req, res, next
     }
 });
 
+const notificationQueue: { idolId: string; notificationMessage: Notification; buildAvatar: string }[] = [];
+
+// Function to process batched notifications
+const processNotificationQueue = () => {
+    setInterval(async () => {
+        if (notificationQueue.length > 0) {
+            const notifications = [...notificationQueue];
+            notificationQueue.length = 0;
+
+            // Group notifications by idolId
+            const idolGroups = notifications.reduce(
+                (acc, notification) => {
+                    const { idolId } = notification;
+                    if (!acc[idolId]) acc[idolId] = [];
+                    acc[idolId].push(notification);
+                    return acc;
+                },
+                {} as Record<string, typeof notificationQueue>,
+            );
+
+            // Send notifications for each idolId with Redis deduplication
+            for (const idolId in idolGroups) {
+                const { notificationMessage, buildAvatar } = idolGroups[idolId][0]; // Take the first message for each idol
+
+                // Redis key for deduplication based on idolId
+                const redisKey = `notifyUser:idol:${idolId}:message`;
+                const keyExists = await redisClient.get(redisKey);
+
+                if (!keyExists) {
+                    // Send the FCM notification
+                    await sendNotificationToIdolTopic(idolId, notificationMessage, buildAvatar);
+
+                    // Set Redis key with a 5-second expiration to prevent duplicates
+                    await redisClient.set(redisKey, '1', 'EX', 60);
+
+                    // Delay between messages for each idol
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                }
+            }
+        }
+    }, 5000); // Process queue every 5 seconds
+};
+
+// Start processing the queue in the background
+processNotificationQueue();
+
 router.patch(
     '/:id/approveOrReject',
     validateSchema(approveOrRejectMessageSchema),
@@ -241,51 +287,28 @@ router.patch(
 
             const { isApproved } = req.body;
 
-            // await approveMessage(messageId, isApproved);
-
-            const [approveMessageRes, userFcmTokens, messageDetail] = await Promise.all([
+            const [approveMessageRes, messageDetail] = await Promise.all([
                 approveMessage(messageId, isApproved),
-                fetchSubscribedFcmTokens(messageId),
                 getMessageDetail(messageId),
             ]);
 
-            if (userFcmTokens.length > 0 && isApproved) {
-                const arrayOfStrings = userFcmTokens.map(item => item.token);
-
+            if (isApproved) {
+                const idolId = messageDetail.idol_id;
                 const notificationMessage: Notification = {
                     title: messageDetail.nickname as string,
                     body: messageDetail.message ? (messageDetail.message as string) : 'You have a new message!',
                 };
-
                 const buildAvatar = `${BASE_URL}${messageDetail.profile_image}`;
+                console.log('Build Avatar:', buildAvatar);
 
-                await messaging().sendEachForMulticast({
-                    tokens: arrayOfStrings as unknown as string[],
-                    notification: notificationMessage,
-                    android: {
-                        notification: {
-                            imageUrl: buildAvatar,
-                            sound: 'default',
-                        },
-                    },
-                    apns: {
-                        payload: {
-                            aps: {
-                                'mutable-content': 1,
-                                sound: 'notification_sound.caf',
-                            },
-                        },
-                        fcmOptions: {
-                            imageUrl: buildAvatar,
-                        },
-                    },
-                });
+                // Add notification to batch queue
+                notificationQueue.push({ idolId: idolId as string, notificationMessage, buildAvatar });
             }
 
             return res.status(StatusCodes.OK).send({
                 success: true,
                 code: StatusCodes.OK,
-                message: isApproved === true ? 'Success approve message' : 'Success reject message',
+                message: isApproved ? 'Success approve message' : 'Success reject message',
                 data: approveMessageRes,
             });
         } catch (error) {
@@ -294,5 +317,194 @@ router.patch(
         }
     },
 );
+
+const sendNotificationToIdolTopic = async (idolId: string, notificationMessage: Notification, buildAvatar: string) => {
+    const topicName = `idol_${idolId}`;
+
+    console.log(`Sending notification to topic: ${topicName}`);
+    console.log(`Notification Message:`, notificationMessage);
+    console.log(`Avatar URL: ${buildAvatar}`);
+
+    try {
+        const response = await messaging().send({
+            topic: topicName,
+            notification: notificationMessage,
+            android: {
+                notification: {
+                    imageUrl: buildAvatar,
+                    sound: 'default',
+                },
+            },
+            apns: {
+                payload: {
+                    aps: {
+                        'mutable-content': 1,
+                        sound: 'notification_sound.caf',
+                    },
+                },
+                fcmOptions: {
+                    imageUrl: buildAvatar,
+                },
+            },
+        });
+
+        console.log(`Notification sent successfully to topic: ${topicName}`);
+        console.log(`FCM Response:`, response);
+    } catch (error) {
+        console.error(`Error sending notification to topic: ${topicName}`);
+        console.error(`Error details:`, error);
+    }
+};
+
+// const isFCMError = (
+//     error: any,
+// ): error is {
+//     code: string;
+//     message: string;
+//     response?: { headers?: { 'retry-after'?: string } };
+// } => {
+//     return typeof error?.code === 'string' && typeof error?.message === 'string';
+// };
+
+// const sendNotificationsInBackground = async (
+//     tokenChunks: string[][],
+//     notificationMessage: Notification,
+//     buildAvatar: string,
+// ) => {
+//     const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+//     const maxRetries = 5;
+//     const maxRPS = 5000; // Max Requests Per Second based on FCM limits
+//     const maxDelay = 60000; // Maximum delay cap (60 seconds)
+//     const notificationDelay = 120000; // 2 minutes delay between sending each chunk
+
+//     // Ramp-up schedule configuration
+//     const rampUpSchedule = [
+//         { step: 0, percentage: 0.01, duration: 3600 * 1000 }, // 1% ramp-up over 1 hour
+//         { step: 1, percentage: 0.05, duration: 7200 * 1000 }, // 5% ramp-up over 2 hours
+//         { step: 2, percentage: 0.1, duration: 7200 * 1000 }, // 10% ramp-up over 2 hours
+//         { step: 3, percentage: 0.25, duration: 10800 * 1000 }, // 25% ramp-up over 3 hours
+//         { step: 4, percentage: 0.5, duration: 21600 * 1000 }, // 50% ramp-up over 6 hours
+//         { step: 5, percentage: 0.75, duration: 21600 * 1000 }, // 75% ramp-up over 6 hours
+//         { step: 6, percentage: 1.0, duration: 21600 * 1000 }, // 100% ramp-up over 6 hours
+//     ];
+
+//     const sendChunkWithRetries = async (tokenChunk: string[], attempt = 0) => {
+//         try {
+//             await messaging().sendEachForMulticast({
+//                 tokens: tokenChunk,
+//                 notification: notificationMessage,
+//                 android: {
+//                     notification: {
+//                         imageUrl: buildAvatar,
+//                         sound: 'default',
+//                     },
+//                 },
+//                 apns: {
+//                     payload: {
+//                         aps: {
+//                             'mutable-content': 1,
+//                             sound: 'notification_sound.caf',
+//                         },
+//                     },
+//                     fcmOptions: {
+//                         imageUrl: buildAvatar,
+//                     },
+//                 },
+//             });
+//         } catch (error) {
+//             if (isFCMError(error)) {
+//                 if (
+//                     error.code === 'messaging/quota-exceeded' ||
+//                     error.code === 'messaging/server-unavailable' ||
+//                     error.code === 'messaging/unknown-error'
+//                 ) {
+//                     const retryAfter = error?.response?.headers?.['retry-after'];
+//                     let retryDelay = retryAfter ? parseInt(retryAfter) * 1000 : 1000 * Math.pow(2, attempt);
+
+//                     // Cap the delay to a maximum value and add jittering
+//                     retryDelay = Math.min(retryDelay, maxDelay) * (0.8 + Math.random() * 0.4);
+
+//                     console.error(`Error sending notification for chunk on attempt ${attempt}: ${error.message}`);
+//                     console.log(`Retrying chunk after ${retryDelay} ms...`);
+//                     if (attempt < maxRetries) {
+//                         await delay(retryDelay);
+//                         return sendChunkWithRetries(tokenChunk, attempt + 1);
+//                     } else {
+//                         console.error(`Max retries reached for this chunk. Skipping...`);
+//                     }
+//                 } else {
+//                     console.error(`Non-retryable error occurred: ${error.message}`);
+//                 }
+//             } else {
+//                 console.error(`An unknown error occurred: ${JSON.stringify(error)}`);
+//             }
+//         }
+//     };
+
+//     const avoidOnTheHourTraffic = async () => {
+//         const now = new Date();
+//         const minutes = now.getMinutes();
+//         const seconds = now.getSeconds();
+
+//         if (
+//             (minutes >= 0 && minutes < 2) ||
+//             (minutes >= 15 && minutes < 17) ||
+//             (minutes >= 30 && minutes < 32) ||
+//             (minutes >= 45 && minutes < 47)
+//         ) {
+//             const waitTime = ((2 - (minutes % 15)) * 60 - seconds) * 1000;
+//             console.log(`Waiting ${waitTime / 1000} seconds to avoid peak traffic...`);
+//             await delay(waitTime);
+//         }
+//     };
+
+//     let currentStep = 0;
+//     let currentRPS = 0;
+//     let stepStartTime = Date.now();
+
+//     const adjustDelayAndRPS = (index: number) => {
+//         const stepInfo = rampUpSchedule[currentStep];
+//         const elapsedTime = Date.now() - stepStartTime;
+
+//         if (elapsedTime >= stepInfo.duration) {
+//             if (currentStep < rampUpSchedule.length - 1) {
+//                 currentStep++;
+//                 stepStartTime = Date.now(); // Reset the start time for the next step
+//             }
+//         }
+
+//         const targetRPS = maxRPS * stepInfo.percentage;
+
+//         if (currentRPS < targetRPS) {
+//             currentRPS += maxRPS * 0.01; // Increase RPS by 1% of max per iteration
+//         } else {
+//             currentRPS = targetRPS;
+//         }
+
+//         // Calculate delay based on the current RPS and chunk index
+//         const delayTime = Math.max((1000 / currentRPS) * (index + 1), 200);
+//         console.log(
+//             `Step ${currentStep}, Target RPS: ${targetRPS}, Actual RPS: ${currentRPS}, Delay for index ${index}: ${delayTime} ms`,
+//         );
+//         return delayTime;
+//     };
+
+//     const promises = tokenChunks.map(async (tokenChunk, index) => {
+//         await avoidOnTheHourTraffic();
+
+//         const delayTime = adjustDelayAndRPS(index);
+//         await delay(delayTime);
+
+//         // Adding a delay of 2 minutes before processing the next chunk
+//         if (index > 0) {
+//             console.log(`Waiting for ${notificationDelay / 1000} seconds before sending the next chunk...`);
+//             await delay(notificationDelay);
+//         }
+
+//         await sendChunkWithRetries(tokenChunk);
+//     });
+
+//     await Promise.all(promises);
+// };
 
 export default router;

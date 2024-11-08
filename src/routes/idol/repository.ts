@@ -70,6 +70,35 @@ export const getMemberById = async (memberId: string) => {
             i.height,
             i.instagram_url,
             i.x_url,
+            '0' AS subscriber_count
+        FROM users u
+        INNER JOIN idol i ON u.id = i.user_id
+        WHERE u.roles = 'member'
+        AND i.id = ${memberId}
+        `,
+    );
+
+    return member;
+};
+
+export const getMemberByAdminId = async (memberId: string) => {
+    const [member] = await db.execute(
+        sql`
+        SELECT u.id   AS user_id,
+            i.id   AS idol_id,
+            u.email,
+            u.name AS full_name,
+            u.nickname,
+            u.birthday,
+            u.profile_image,
+            i.bio,
+            i.family_name,
+            i.given_name,
+            i.horoscope,
+            i.blood_type,
+            i.height,
+            i.instagram_url,
+            i.x_url,
             (
                 SELECT COUNT(DISTINCT o.user_id)
                 FROM order_idol oi
@@ -375,6 +404,7 @@ export const updateMemberById = async (
     height: number,
     bloodType: string,
     horoscope: string,
+    password: string,
 ) => {
     await db.transaction(async trx => {
         await trx.execute(
@@ -384,7 +414,8 @@ export const updateMemberById = async (
             SET email = '${email}',
                 name = '${fullName}',
                 nickname = '${nickName}',
-                birthday = '${birthday}'
+                birthday = '${birthday}',
+                password_hash = '${password}'
             WHERE id = (SELECT user_id FROM idol WHERE id = '${idolId}')
             `,
             ),

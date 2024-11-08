@@ -1,7 +1,9 @@
 import { and, desc, eq, lt, sql } from 'drizzle-orm';
 
+import { PPN_PERCENTAGE } from '../../config';
 import db from '../../db';
 import { order } from '../../models/order';
+import { calculateTaxAndTotal } from '../../utils/lib';
 
 /**
  * Retrieves an order by its ID.
@@ -57,6 +59,36 @@ export const createOrder = async (
     appleOriginalTransactionId?: string,
 ) => {
     const order = await db.transaction(async trx => {
+        // Fetch package price based on the packageId
+        const [packageDetails] = await trx.execute(sql`
+            SELECT price
+            FROM package
+            WHERE id = ${packageId} AND is_active = TRUE;
+        `);
+
+        const { tax: expectedTax, total: expectedTotal } = calculateTaxAndTotal(
+            Number(packageDetails.price),
+            PPN_PERCENTAGE,
+        );
+
+        const matchPrice = packageDetails.price == subtotal;
+        const matchTax = tax == expectedTax;
+        const matchTotal = total == expectedTotal;
+
+        console.log('matchPrice', matchPrice);
+
+        if (!matchPrice) {
+            throw new Error('Invalid input: The subtotal does not match the expected value.');
+        }
+
+        if (!matchTax) {
+            throw new Error('Invalid input: The tax does not match the expected value.');
+        }
+
+        if (!matchTotal) {
+            throw new Error('Invalid input: The total does not match the expected value.');
+        }
+
         let order;
         if (expiredAt && appleOriginalTransactionId) {
             [order] = await trx.execute(sql`
@@ -254,6 +286,36 @@ export const updateOrderPurchasedGoogle = async (purchaseToken: string, expiredA
 };
 
 /**
+ * Updates the order status to 'renewed' and sets the new expiration date and update date for a given Google purchase token.
+ * @param purchaseToken - The Google purchase token.
+ * @param expiredAt - The new expiration date for the renewed order.
+ * @returns A promise that resolves when the update is complete.
+ */
+export const updateOrderRenewedGoogle = async (purchaseToken: string, expiredAt: Date) => {
+    const date = new Date();
+
+    await db
+        .update(order)
+        .set({ orderStatus: 'success', expiredAt: expiredAt, updatedAt: date })
+        .where(and(eq(order.googlePurchaseToken, purchaseToken), eq(order.orderStatus, 'success')));
+};
+
+/**
+ * Updates the order status to 'canceled' and sets the cancellation date for a given Google purchase token.
+ * @param purchaseToken - The Google purchase token.
+ * @param cancellationDate - The date when the subscription was canceled.
+ * @returns A promise that resolves when the update is complete.
+ */
+export const updateOrderCanceledGoogle = async (purchaseToken: string, cancellationDate: Date) => {
+    const date = new Date();
+
+    await db
+        .update(order)
+        .set({ orderStatus: 'cancelled', createdAt: cancellationDate, updatedAt: date })
+        .where(and(eq(order.googlePurchaseToken, purchaseToken), eq(order.orderStatus, 'success')));
+};
+
+/**
  * Updates the appleOriginalTransactionId of an order in the database.
  *
  * @param {string} orderId - The ID of the order to update.
@@ -338,4 +400,16 @@ export const getCloseToExpirationOrders = async () => {
     `);
 
     return orders;
+};
+
+export const fetchIdolIdByOrderId = async (orderId: string) => {
+    const [idolId] = await db.execute(
+        sql`
+        SELECT idol_id 
+        FROM order_idol 
+        WHERE order_id = ${orderId};
+        `,
+    );
+
+    return idolId;
 };

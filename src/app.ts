@@ -4,26 +4,114 @@ import bodyParser from 'body-parser';
 import compression from 'compression';
 import cookies from 'cookie-parser';
 import cors from 'cors';
-import express from 'express';
-import monitor from 'express-status-monitor';
+import express, { NextFunction, Request, Response } from 'express';
 import { credential } from 'firebase-admin';
 import { initializeApp, ServiceAccount } from 'firebase-admin/app';
+import { getAppCheck } from 'firebase-admin/app-check';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import appleReceiptVerify from 'node-apple-receipt-verify';
 import cron from 'node-cron';
 import responseTime from 'response-time';
 import swStat from 'swagger-stats';
-import swaggerUi from 'swagger-ui-express';
 
 import { APPLE_SECRET_KET, BASE_URL } from './config';
 import serviceAccount from './config/service-account.json';
 import { infoMiddleware } from './middlewares/author-info';
 import { errorHandler } from './middlewares/error-handler';
+import { checkBlockedUserAgent } from './middlewares/ip-block';
 import loggingMiddleware from './middlewares/logging';
-import { rateLimiter } from './middlewares/rate-limiter';
 import routes from './routes';
 import { specs } from './utils/swagger-options';
+
+export interface FirebaseAppCheckError extends Error {
+    errorInfo: {
+        code: string; // The Firebase App Check error code
+        message: string; // The error message
+    };
+    codePrefix: string; // The prefix (usually 'app-check')
+}
+
+const appCheckVerification = async (req: Request, res: Response, next: NextFunction) => {
+    const appCheckToken = req.header('X-Firebase-AppCheck');
+
+    if (!appCheckToken) {
+        return res.status(401).json({
+            status: 'error',
+            message: 'No App Check token provided',
+        });
+    }
+
+    try {
+        const appCheckClaims = await getAppCheck().verifyToken(appCheckToken, { consume: true });
+
+        if (appCheckClaims.alreadyConsumed) {
+            return res.status(401).json({
+                status: 'error',
+                message: 'Unauthorized',
+            });
+        }
+
+        return next();
+    } catch (err) {
+        const appCheckError = err as FirebaseAppCheckError;
+
+        console.error('Error verifying app check token:', appCheckError);
+
+        if (appCheckError.errorInfo) {
+            const { code, message } = appCheckError.errorInfo;
+            switch (code) {
+                case 'app-check/invalid-argument':
+                    return res.status(400).json({
+                        status: 'error',
+                        code,
+                        message,
+                    });
+                case 'app-check/token-expired':
+                    return res.status(401).json({
+                        status: 'error',
+                        code,
+                        message,
+                    });
+                case 'app-check/token-revoked':
+                    return res.status(401).json({
+                        status: 'error',
+                        code,
+                        message,
+                    });
+                case 'app-check/invalid-token':
+                    return res.status(400).json({
+                        status: 'error',
+                        code,
+                        message,
+                    });
+                case 'app-check/project-id-mismatch':
+                    return res.status(403).json({
+                        status: 'error',
+                        code,
+                        message,
+                    });
+                case 'app-check/certificate-check-failed':
+                    return res.status(500).json({
+                        status: 'error',
+                        code,
+                        message,
+                    });
+                default:
+                    return res.status(500).json({
+                        status: 'error',
+                        code,
+                        message: 'An unknown error occurred while verifying the App Check token.',
+                    });
+            }
+        } else {
+            return res.status(401).json({
+                status: 'error',
+                message: appCheckError.message || 'Unauthorized',
+            });
+        }
+    }
+};
 
 /**
  * Express application.
@@ -70,7 +158,7 @@ appleReceiptVerify.config({
 // // TracingHandler creates a trace for every incoming request
 // app.use(Sentry.Handlers.tracingHandler());
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, { explorer: true }));
+// app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, { explorer: true }));
 
 /**
  * Morgan, a HTTP request logger middleware for Node.js.
@@ -81,13 +169,6 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, { explorer: true })
 app.use(morgan('dev'));
 
 app.use(responseTime());
-
-app.use(
-    monitor({
-        path: '/health-check',
-        title: 'JKT48 API PM Status',
-    }),
-);
 
 /**
  * My logging middleware.
@@ -156,7 +237,7 @@ app.use(
 );
 
 // Serve Static files
-app.use('/static', express.static('static'));
+app.use('/static', checkBlockedUserAgent, express.static('static'));
 
 app.use('/robots.txt', express.static('static/robots.txt'));
 
@@ -165,8 +246,22 @@ app.use('/robots.txt', express.static('static/robots.txt'));
 // Top idols scheduler
 cron.schedule('0 0 * * 0', function () {
     console.log('Running store top idols by order transaction every Sunday midnight');
+
+    const serverKey = process.env.SERVER_KEY;
+
+    if (!serverKey) {
+        console.error('SERVER_KEY is undefined. Please set it in the environment variables.');
+        return;
+    }
+
     try {
-        fetch(`${BASE_URL}/api/top-idol/by-week`)
+        fetch(`${BASE_URL}/api/top-idol/by-week`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-server-key': serverKey,
+            },
+        })
             .then(res => res.json())
             .then(data => console.log(data))
             .catch(err => console.error(err));
@@ -179,8 +274,22 @@ cron.schedule('0 0 * * 0', function () {
 // Check for expired orders scheduler
 cron.schedule('*/10 * * * *', function () {
     console.log('Running check for expired orders every 10 minutes');
+
+    const serverKey = process.env.SERVER_KEY;
+
+    if (!serverKey) {
+        console.error('SERVER_KEY is undefined. Please set it in the environment variables.');
+        return;
+    }
+
     try {
-        fetch(`${BASE_URL}/api/order/check-expired`)
+        fetch(`${BASE_URL}/api/order/check-expired`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-server-key': serverKey,
+            },
+        })
             .then(res => res.json())
             .then(data => console.log(data))
             .catch(err => console.error(err));
@@ -237,7 +346,7 @@ cron.schedule('0 0 1 * *', function () {
  * This middleware function is used to limit repeated requests to public APIs and/or endpoints such as password reset.
  * It is based on express-rate-limit.
  */
-app.use(rateLimiter);
+// app.use(rateLimiter5Minutes);
 
 // Set timeout on all requests
 app.use((req, res, next) => {
@@ -259,6 +368,14 @@ app.get('/', infoMiddleware, (req, res) => {
     res.json(res.locals.info);
 });
 
+app.get('/appCheckTest', appCheckVerification, (req, res) => {
+    res.json({
+        status: 'success',
+        message: 'App Check token verified',
+        congrast_here_watch_it: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+    });
+});
+
 app.use(swStat.getMiddleware({ swaggerSpec: specs }));
 
 /**
@@ -268,6 +385,12 @@ app.use('/api', routes);
 
 // The error handler must be registered before any other error middleware and after all controllers
 // app.use(Sentry.Handlers.errorHandler());
+
+app.use((req, res, next) => {
+    res.status(404).json({ message: 'Where are you going ?' });
+
+    next();
+});
 
 /**
  * Error handling middleware.

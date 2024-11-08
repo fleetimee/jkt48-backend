@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 
 import { verifyToken } from '../routes/auth/utils';
+import { hasActiveSubscription } from '../routes/user/repository';
 import { ForbiddenError, UnauthorizedError } from '../utils/errors';
 
 declare module 'express-serve-static-core' {
@@ -54,6 +55,23 @@ export const requireMemberRole = (req: Request, res: Response, next: NextFunctio
         next();
     } else {
         next(new ForbiddenError('User does not have the required member role'));
+    }
+};
+
+export const requireSubscription = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.user.id; // Adjust this line based on how you store user information in the request
+        const subscription = await hasActiveSubscription(userId);
+
+        console.log(subscription);
+
+        if (subscription) {
+            next();
+        } else {
+            res.status(403).json({ message: 'Subscription required' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 

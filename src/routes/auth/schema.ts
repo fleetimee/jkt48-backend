@@ -9,9 +9,22 @@ export const loginSchema = z.object({
 
 export const registerSchema = z.object({
     body: z.object({
-        email: z.string().min(1, 'Please enter your email').email(),
-        name: z.string().min(1, 'Please enter your name'),
-        nickName: z.string().min(1, 'Please enter your nickname'),
+        email: z
+            .string()
+            .min(1, 'Please enter your email')
+            .email()
+            .refine(
+                value => {
+                    const allowedDomains = ['gmail.com', 'hotmail.com', 'jkt48.com'];
+                    const domain = value.split('@')[1];
+                    return allowedDomains.includes(domain);
+                },
+                {
+                    message: 'Please enter an email from a reputable service such as Gmail, Hotmail, or JKT48',
+                },
+            ),
+        name: z.string().min(1, 'Please enter your name').max(100, 'Name cannot exceed 100 characters'),
+        nickName: z.string().min(1, 'Please enter your nickname').max(64, 'Nickname cannot exceed 64 characters'),
         password: z.string().min(8, 'Password must be at least 8 characters'),
         birthday: z
             .string()

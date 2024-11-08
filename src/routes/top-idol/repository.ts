@@ -13,7 +13,7 @@ export const getTopIdol = async () => {
        i.id AS idol_id,
        u.nickname,
        u.profile_image,
-       it.subscription_count
+       0 AS subscription_count
     FROM idol_top it
     INNER JOIN idol i ON it.id_idol = i.id
     INNER JOIN users u ON i.user_id = u.id
@@ -48,8 +48,7 @@ export const getTopIdolByOrderTransaction = async () => {
     WHERE order_id IN (
         SELECT id
         FROM "order"
-        WHERE created_at BETWEEN CURRENT_DATE - INTERVAL '7 days' AND CURRENT_DATE AND order_status = 'success'
-    )
+        WHERE created_at BETWEEN CURRENT_DATE - INTERVAL '7 days' AND CURRENT_DATE AND order_status = 'success'    )
     GROUP BY idol_id;
     `);
     return topIdolCount;
